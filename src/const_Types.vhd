@@ -38,9 +38,11 @@ package const_Types is
     constant LOAD           : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0000011";
     constant S_TYPE         : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0100011";
     constant B_TYPE         : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1100011";
-    constant J_TYPE         : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1101111";
-    constant U_TYPE_L       : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0110111";
-    constant U_TYPE_A       : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0010111";
+    constant JAL            : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1101111";
+    constant JALR           : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1100111";  
+    constant U_LUI          : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0110111";
+    constant U_AUIPC        : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0010111";
+    constant ECALL          : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1110111";
     
     -- BRANCHING
     constant BEQ           : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "000";

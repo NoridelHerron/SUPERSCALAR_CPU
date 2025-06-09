@@ -15,13 +15,13 @@ package initialize_records is
     );
     
     constant EMPTY_DECODER : Decoder_Type := (
-        op          => ZERO_7bits,
+        op          => I_IMME,
         rd          => ZERO_5bits,
         funct3      => ZERO_3bits,
         rs1         => ZERO_5bits,
 	    rs2         => ZERO_5bits,
-        funct7      => ZERO_7bits,
-        imm         => ZERO_32bits
+        funct7      => ZERO_7bits
+       -- imm         => ZERO_32bits
     );
 
     constant EMPTY_control_Type : control_Type := (   

@@ -20,7 +20,7 @@ package Pipeline_Types is
         rs1         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 1
 	    rs2         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 2
         funct7      : std_logic_vector(FUNCT7_WIDTH-1 downto 0);    -- type of operation under funct3 
-        imm         : std_logic_vector(DATA_WIDTH-1 downto 0); -- since immediate will be added to pc or reg_data, I made it to 32 bits
+      --  imm         : std_logic_vector(DATA_WIDTH-1 downto 0); 
     end record;
     
     type control_Type is record
