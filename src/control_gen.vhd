@@ -28,15 +28,19 @@ begin
     process (opcode)
     variable temp : control_Type := EMPTY_control_Type;
     begin   
-        
+        temp.alu_op      := NONE;
         temp.mem_read    := NONE;
         temp.mem_write   := NONE;
         temp.reg_write   := REG_WRITE;
-        temp.alu         := ALU_ON;
+        temp.mem_reg     := NONE;
+        temp.branch      := NONE;
+        temp.jump        := NONE;
+        temp.imm         := NONE;
         
         case opcode is
-            when R_Type | I_IMME =>
-                -- default  
+            when R_Type =>
+                
+            when I_IMME => 
             when LOAD   =>
                 temp.mem_read    := MEM_READ;
             when S_TYPE =>

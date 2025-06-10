@@ -4,8 +4,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
-use work.enum_types.all;
 use work.ALU_pkg.all;
+--use work.control_types.all;
 
 package initialize_records is
 
@@ -25,13 +25,7 @@ package initialize_records is
         imm20       => ZERO_20bits
     );
 
-    constant EMPTY_control_Type : control_Type := (   
-        mem_read    => NONE,
-        mem_write   => NONE,
-        reg_write   => NONE,
-        alu         => NONE
-    );
-
+    
     constant EMPTY_BranchAndJump_Type : BranchAndJump_Type := (
         branch      => ZERO,
         target      => ZERO_32bits,
@@ -39,6 +33,7 @@ package initialize_records is
     );
     
     constant EMPTY_ALU_out : ALU_out := (   
+        operation   => NONE,
         result      => ZERO_32bits,  
         Z           => NONE,
         V           => NONE,

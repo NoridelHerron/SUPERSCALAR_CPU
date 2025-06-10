@@ -25,10 +25,14 @@ package Pipeline_Types is
     end record;
     
     type control_Type is record
+        alu_op      : CONTROL_SIG;
         mem_read    : CONTROL_SIG;
         mem_write   : CONTROL_SIG;
         reg_write   : CONTROL_SIG;
-        alu         : CONTROL_SIG;
+        mem_reg     : CONTROL_SIG;
+        branch      : CONTROL_SIG;
+        jump        : CONTROL_SIG;
+        imm         : CONTROL_SIG;
     end record;
     
     type BranchAndJump_Type is record

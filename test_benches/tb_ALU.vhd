@@ -10,8 +10,6 @@ use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
 use work.ALU_Pkg.all;
-use work.enum_types.all;
-
 
 entity tb_ALU is
 end tb_ALU;
@@ -37,7 +35,7 @@ begin
         -- for C Flag
         variable sum_ext, sub_ext : unsigned(32 downto 0);
         
-        variable total_tests : integer := 10000;
+        variable total_tests : integer := 20000;
         -- Keep track of the tests
         variable fail_add, fail_sub, fail_sll, fail_slt, fail_sltu  : integer := 0;
         variable fail_xor, fail_srl, fail_sra, fail_or, fail_and    : integer := 0;
@@ -88,7 +86,8 @@ begin
                     if input.f7 = ZERO_7bits then
                         sum_ext := resize(unsigned(to_unsigned(rand_A, DATA_WIDTH)), DATA_WIDTH+1) + 
                                    resize(unsigned(to_unsigned(rand_B, DATA_WIDTH)), DATA_WIDTH+1);
-                        expected.result := std_logic_vector(sum_ext(DATA_WIDTH-1 downto 0));
+                        expected.result     := std_logic_vector(sum_ext(DATA_WIDTH-1 downto 0));
+                        expected.operation  := ALU_ADD;
    
                         if sum_ext(DATA_WIDTH) = '1' then expected.C := Cf; else expected.C := NONE; end if;
                         
@@ -104,7 +103,8 @@ begin
                     else
                         sub_ext := resize(unsigned(to_unsigned(rand_A, DATA_WIDTH)), DATA_WIDTH+1) - 
                                    resize(unsigned(to_unsigned(rand_B, DATA_WIDTH)), DATA_WIDTH+1);
-                        expected.result := std_logic_vector(sub_ext(31 downto 0));
+                        expected.result     := std_logic_vector(sub_ext(31 downto 0));
+                        expected.operation  := ALU_SUB;
  
                         if sub_ext(DATA_WIDTH) = '0' then expected.C := Cf; else expected.C := NONE; end if; 
                         if ((rand_A < 0 and rand_B > 0 and to_integer(signed(expected.result)) >= 0) or
@@ -118,40 +118,42 @@ begin
                 when 1 => -- SLL
                     expected.result := std_logic_vector(shift_left(unsigned(to_unsigned(rand_A,DATA_WIDTH)), 
                                        to_integer(unsigned(to_unsigned(rand_B,DATA_WIDTH)(4 downto 0))))); 
+                    expected.operation  := ALU_SLL;
                     
                 when 2 => -- SLT
                     if signed(to_signed(rand_A,32)) < signed(to_signed(rand_B,DATA_WIDTH)) then 
                         expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
-                    else 
-                        expected.result := (others => '0'); 
+                        expected.operation  := ALU_SLT; 
                     end if;
                     
                 when 3 => -- SLTU
                     if unsigned(to_unsigned(rand_A,32)) < unsigned(to_unsigned(rand_B,DATA_WIDTH)) then 
                         expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
-                    else 
-                        expected.result := (others => '0'); 
+                        expected.operation  := ALU_SLTU;
                     end if;
-                    wait for 10 ns;
-                    
+       
                 when 4 => -- XOR
                     expected.result := std_logic_vector(unsigned(to_unsigned(rand_A,DATA_WIDTH)) xor unsigned(to_unsigned(rand_B,DATA_WIDTH)));
-                    wait for 10 ns;
-                    
+                    expected.operation  := ALU_XOR;
+                   
                 when 5 => -- SRL/SRA
                     if input.f7 = ZERO_7bits then 
                         expected.result := std_logic_vector(shift_right(unsigned(to_unsigned(rand_A,DATA_WIDTH)), 
                                            to_integer(unsigned(to_unsigned(rand_B,DATA_WIDTH)(4 downto 0)))));
+                        expected.operation  := ALU_SRL;
                     else 
                         expected.result := std_logic_vector(shift_right(signed(to_signed(rand_A,DATA_WIDTH)), 
                                            to_integer(unsigned(to_unsigned(rand_B,DATA_WIDTH)(SHIFT_WIDTH-1 downto 0)))));
+                        expected.operation  := ALU_SRA;                   
                     end if;
                    
                 when 6 =>  -- OR 
                     expected.result := std_logic_vector(unsigned(to_unsigned(rand_A,DATA_WIDTH)) or unsigned(to_unsigned(rand_B,DATA_WIDTH)));
+                    expected.operation  := ALU_OR;
 
                 when 7 => -- AND
                     expected.result := std_logic_vector(unsigned(to_unsigned(rand_A,DATA_WIDTH)) and unsigned(to_unsigned(rand_B,DATA_WIDTH)));
+                    expected.operation  := ALU_AND;
                     
                 when others => null;
             end case;
@@ -161,7 +163,8 @@ begin
             
             -- Keep track the number of pass or fail
             if output.result = expected.result and output.Z = expected.Z and
-               output.N = expected.N and output.V = expected.V and output.C = expected.C then
+               output.N = expected.N and output.V = expected.V and output.C = expected.C 
+               and output.operation = expected.operation then
                 pass := pass + 1;
             else
                 fail := fail + 1;

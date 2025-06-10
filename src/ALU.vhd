@@ -13,7 +13,6 @@ use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ALU_Pkg.all; 
 use work.initialize_records.all;
-use work.enum_types.all;
 
 entity ALU is
     Port ( 
@@ -48,47 +47,57 @@ begin
                 case input.f7 is
                     when FUNC7_ADD =>    -- ADD
                         res_temp := add_temp;
+                        res_temp.operation := ALU_ADD;
                     when FUNC7_SUB =>   -- SUB (RISC-V uses 0b0100000 = 32 decimal)
                         res_temp := sub_temp;
+                        res_temp.operation := ALU_SUB;
                     when others =>
                         res_temp := EMPTY_ALU_out;  
                 end case;
 
             when FUNC3_SLL =>  -- SLL
                 res_temp.result := std_logic_vector(shift_left(unsigned(input.A), to_integer(unsigned(input.B(SHIFT_WIDTH - 1 downto 0)))));
+                res_temp.operation := ALU_SLL;
 
             when FUNC3_SLT =>  -- SLT
                 if signed(input.A) < signed(input.B) then
                     res_temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
-                else
-                    res_temp := EMPTY_ALU_out;
+                    res_temp.operation := ALU_SLT;
+               -- else
+             --       res_temp := EMPTY_ALU_out;
                 end if;
 
             when FUNC3_SLTU =>  -- SLTU
                 if unsigned(input.A) < unsigned(input.B) then
                     res_temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
-                else
-                    res_temp := EMPTY_ALU_out;
+                    res_temp.operation := ALU_SLTU;
+              --  else
+                  --  res_temp := EMPTY_ALU_out;
                 end if;
 
             when FUNC3_XOR =>  -- XOR
                 res_temp.result := input.A xor input.B;
+                res_temp.operation := ALU_XOR;
 
             when FUNC3_SRL_SRA =>  -- SRL/SRA
                 case input.f7 is
                     when FUNC7_SRL =>    -- SRL
                         res_temp.result := std_logic_vector(shift_right(unsigned(input.A), to_integer(unsigned(input.B(SHIFT_WIDTH - 1 downto 0)))));
+                        res_temp.operation := ALU_SRL;
                     when FUNC7_SRA =>   -- SRA
                         res_temp.result := std_logic_vector(shift_right(signed(input.A), to_integer(unsigned(input.B(SHIFT_WIDTH - 1 downto 0)))));
+                        res_temp.operation := ALU_SRA;
                     when others =>
                         res_temp := EMPTY_ALU_out;
                 end case;
 
             when FUNC3_OR =>  -- OR
                 res_temp.result := input.A or input.B;
+                res_temp.operation := ALU_OR;
 
             when FUNC3_AND =>  -- AND
                 res_temp.result := input.A and input.B;
+                res_temp.operation := ALU_AND;
 
             when others =>
                 res_temp := EMPTY_ALU_out;
