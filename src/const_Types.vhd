@@ -13,18 +13,18 @@ package const_Types is
     constant FUNCT7_WIDTH   : integer := 7;
     constant DEPTH          : integer := 4;
     constant LOG2DEPTH      : integer := 2;
-    constant IMM_WIDTH      : integer := 12;
-    constant IMMJ_WIDTH     : integer := 20;
+    constant IMM12_WIDTH    : integer := 12;
+    constant IMM20_WIDTH    : integer := 20;
     constant FLAGs_WIDTH    : integer := 3;
     constant SHIFT_WIDTH    : integer := 5;
     constant MAX            : integer := 2147483647;
     
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';
-    constant ZERO_32bits    : std_logic_vector(DATA_WIDTH-1 downto 0)     := "00000000000000000000000000000000";
-    constant ONE_32bits     : std_logic_vector(DATA_WIDTH-1 downto 0)     := "11111111111111111111111111111111";
-    constant ZERO_20bits    : std_logic_vector(IMMJ_WIDTH-1 downto 0)     := (others => '0');
-    constant ZERO_12bits    : std_logic_vector(IMM_WIDTH-1 downto 0)      := (others => '0');
+    constant ZERO_32bits    : std_logic_vector(DATA_WIDTH-1 downto 0)     := x"00000000";
+    constant ONE_32bits     : std_logic_vector(DATA_WIDTH-1 downto 0)     := x"ffffffff";
+    constant ZERO_20bits    : std_logic_vector(IMM20_WIDTH-1 downto 0)    := (others => '0');
+    constant ZERO_12bits    : std_logic_vector(IMM12_WIDTH-1 downto 0)    := (others => '0');
     constant ZERO_7bits     : std_logic_vector(FUNCT7_WIDTH-1 downto 0)   := (others => '0');
     constant ZERO_5bits     : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := (others => '0');
     constant ZERO_3bits     : std_logic_vector(FUNCT3_WIDTH-1 downto 0)   := (others => '0');

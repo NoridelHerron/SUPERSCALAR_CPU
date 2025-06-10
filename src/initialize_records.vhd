@@ -20,8 +20,9 @@ package initialize_records is
         funct3      => ZERO_3bits,
         rs1         => ZERO_5bits,
 	    rs2         => ZERO_5bits,
-        funct7      => ZERO_7bits
-       -- imm         => ZERO_32bits
+        funct7      => ZERO_7bits,
+        imm12       => ZERO_12bits,
+        imm20       => ZERO_20bits
     );
 
     constant EMPTY_control_Type : control_Type := (   
