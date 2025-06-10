@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- Noridel Herron
 -- 6/7/2025
--- Extracts opcode, register values, function codes, and immediate values from a 32-bit instruction. 
+-- Extracts opcode, registers, function codes, and immediate values from a 32-bit instruction. 
 ------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;

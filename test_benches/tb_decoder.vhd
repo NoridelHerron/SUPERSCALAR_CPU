@@ -74,7 +74,7 @@ begin
         rst <= '0';
         wait for clk_period;
         for i in 1 to total_tests loop
-            -- Randomize fields manually
+  
             -- This will cover all instructions in riscv
             uniform(seed1, seed2, rand_real);
             if rand_real < 0.02    then temp.op := ECALL;     

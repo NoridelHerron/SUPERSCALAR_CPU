@@ -124,12 +124,16 @@ begin
                     if signed(to_signed(rand_A,32)) < signed(to_signed(rand_B,DATA_WIDTH)) then 
                         expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
                         expected.operation  := ALU_SLT; 
+                    else
+                        expected := EMPTY_ALU_out;
                     end if;
                     
                 when 3 => -- SLTU
                     if unsigned(to_unsigned(rand_A,32)) < unsigned(to_unsigned(rand_B,DATA_WIDTH)) then 
                         expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
                         expected.operation  := ALU_SLTU;
+                    else
+                        expected := EMPTY_ALU_out;
                     end if;
        
                 when 4 => -- XOR

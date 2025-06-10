@@ -25,9 +25,14 @@ package initialize_records is
         imm20       => ZERO_20bits
     );
 
-    
+    constant EMPTY_control_Type : control_Type := ( 
+        target      => NONE,
+        alu         => NONE,
+        mem         => NONE,
+        wb          => NONE
+    );
+
     constant EMPTY_BranchAndJump_Type : BranchAndJump_Type := (
-        branch      => ZERO,
         target      => ZERO_32bits,
         rd_value    => ZERO_32bits
     );

@@ -2,9 +2,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.const_Types.all;
-use work.enum_types.all;
 
 package Pipeline_Types is
+
+    type CONTROL_SIG is ( 
+        -- memory and register control signal
+        MEM_READ, MEM_WRITE, -- for load or store
+        REG_WRITE,           -- wb
+        MEM_REG, ALU_REG,    -- source result whether from alu or memory
+        BRANCH, JUMP, 
+        RS2, IMM,            -- for operand 2
+        NONE
+    );
 
     -- PC and instruction
     type Inst_PC is record
@@ -24,19 +33,15 @@ package Pipeline_Types is
         imm20       : std_logic_vector(IMM20_WIDTH-1 downto 0); 
     end record;
     
+    -- control signals
     type control_Type is record
-        alu_op      : CONTROL_SIG;
-        mem_read    : CONTROL_SIG;
-        mem_write   : CONTROL_SIG;
-        reg_write   : CONTROL_SIG;
-        mem_reg     : CONTROL_SIG;
-        branch      : CONTROL_SIG;
-        jump        : CONTROL_SIG;
-        imm         : CONTROL_SIG;
+        target  : CONTROL_SIG; -- operand2, branch and jump control signal
+        alu     : CONTROL_SIG; -- which data to send as 2nd operand rs2 or imm  
+        mem     : CONTROL_SIG; -- for read or write
+        wb      : CONTROL_SIG; -- reg
     end record;
-    
+
     type BranchAndJump_Type is record
-        branch      : std_logic;
         target      : std_logic_vector(DATA_WIDTH-1 downto 0);
         rd_value    : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;

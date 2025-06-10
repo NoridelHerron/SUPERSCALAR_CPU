@@ -63,16 +63,16 @@ begin
                 if signed(input.A) < signed(input.B) then
                     res_temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
                     res_temp.operation := ALU_SLT;
-               -- else
-             --       res_temp := EMPTY_ALU_out;
+                else
+                    res_temp := EMPTY_ALU_out;
                 end if;
 
             when FUNC3_SLTU =>  -- SLTU
                 if unsigned(input.A) < unsigned(input.B) then
                     res_temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
                     res_temp.operation := ALU_SLTU;
-              --  else
-                  --  res_temp := EMPTY_ALU_out;
+                else
+                    res_temp := EMPTY_ALU_out;
                 end if;
 
             when FUNC3_XOR =>  -- XOR

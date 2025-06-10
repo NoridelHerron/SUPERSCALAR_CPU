@@ -12,7 +12,6 @@ library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
-use work.enum_types.all;
 
 entity control_gen is
     Port ( 
@@ -28,31 +27,36 @@ begin
     process (opcode)
     variable temp : control_Type := EMPTY_control_Type;
     begin   
-        temp.alu_op      := NONE;
-        temp.mem_read    := NONE;
-        temp.mem_write   := NONE;
-        temp.reg_write   := REG_WRITE;
-        temp.mem_reg     := NONE;
-        temp.branch      := NONE;
-        temp.jump        := NONE;
-        temp.imm         := NONE;
-        
+        temp.target := NONE;
+        temp.alu    := IMM;
+        temp.mem    := NONE;
+        temp.wb     := REG_WRITE;
+
         case opcode is
-            when R_Type =>
+            when R_Type =>   
+                temp.target := ALU_REG;
+                temp.alu    := RS2;
                 
             when I_IMME => 
+                temp.target := ALU_REG;
+                
             when LOAD   =>
-                temp.mem_read    := MEM_READ;
+                temp.target := MEM_REG;
+                temp.mem    := MEM_READ;
+                
             when S_TYPE =>
-                temp.mem_write   := MEM_WRITE;
-                temp.reg_write   := NONE;
+                temp.target := MEM_REG;
+                temp.mem    := MEM_WRITE;
+                
             when B_TYPE =>
-                temp.reg_write   := NONE;
+                temp.alu    := RS2;
+                temp.wb     := NONE;
+                temp.target := BRANCH;
+                
             when JAL =>
-                temp.alu         := NONE;
-            when JALR =>
-                temp.alu         := NONE;
-            when JALR =>
+                temp.target := JUMP;
+                temp.alu    := NONE;
+   
             when others =>
                 temp  := EMPTY_control_Type;
         end case;  
