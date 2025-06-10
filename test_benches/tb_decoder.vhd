@@ -25,16 +25,14 @@ architecture sim of tb_decoder is
 
     signal clk                  : std_logic := '0';
     signal rst                  : std_logic := '1';
-    signal PC_INSTR             : Inst_PC      := EMPTY_inst_pc;
+    signal instruction          : std_logic_vector(DATA_WIDTH-1 downto 0) := NOP;
     signal ID_content           : Decoder_Type := EMPTY_DECODER;
-
-    signal expected_instr_pc    : Inst_PC      := EMPTY_inst_pc;
-    signal expected_decoder     : Decoder_Type := EMPTY_DECODER;
+    signal expected_content     : Decoder_Type := EMPTY_DECODER;
     constant clk_period         : time := 10 ns;
 begin
 
     UUT : entity work.DECODER port map (
-        ID         => PC_INSTR,    
+        ID         => instruction,    
         ID_content => ID_content
     );
 
@@ -52,7 +50,7 @@ begin
 
     process
         variable total_tests                             : integer      := 20000;
-        variable temp_instr_pc                           : Inst_PC      := EMPTY_inst_pc;
+        variable temp_instr                              : std_logic_vector(DATA_WIDTH-1 downto 0) := NOP;
         variable temp                                    : Decoder_Type := EMPTY_DECODER; 
         variable rand_real                               : real;
         variable seed1, seed2                            : positive     := 12345;
@@ -137,17 +135,13 @@ begin
             end case;
             
             -- Build instruction word
-            temp_instr_pc.instr := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3 & temp.rd & temp.op;
-            
-            -- Set inputs before rising edge
-            PC_INSTR.pc    <= temp_instr_pc.pc;
-            PC_INSTR.instr <= temp_instr_pc.instr;
+            temp_instr := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3 & temp.rd & temp.op;
 
-            expected_instr_pc <= temp_instr_pc;
-            expected_decoder  <= temp;
+            instruction       <= temp_instr;
+            expected_content  <= temp;
 
             wait until rising_edge(clk);  -- Decoder captures input
-            wait for 1 ns;  -- Let ID_content settle
+            wait for 1 ns;                -- Let ID_content settle
 
             -- Compare fields
             if temp.funct7 = ID_content.funct7 and temp.rs2 = ID_content.rs2 and temp.rs1 = ID_content.rs1 and 
@@ -176,9 +170,7 @@ begin
                 if temp.op     /= ID_content.op     then fail_op  := fail_op + 1; end if;
      
               end if;            
-
-            -- Increment PC for next instruction
-            temp_instr_pc.pc := std_logic_vector(unsigned(temp_instr_pc.pc) + 4);
+ 
             wait for 10 ns;
         end loop;
 

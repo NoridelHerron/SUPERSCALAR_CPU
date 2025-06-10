@@ -15,7 +15,7 @@ use work.initialize_records.all;
 
 entity DECODER is
     Port (  -- inputs 
-            ID          : in  Inst_PC;       
+            ID          : in  std_logic_vector(DATA_WIDTH-1 downto 0);       
             ID_content  : out Decoder_Type      
         );
 end DECODER;
@@ -27,12 +27,12 @@ begin
     process (ID)
     variable temp : Decoder_Type := EMPTY_DECODER;
     begin 
-        temp.funct7   := ID.instr(31 downto 25);
-        temp.rs2      := ID.instr(24 downto 20);
-        temp.rs1      := ID.instr(19 downto 15);
-        temp.funct3   := ID.instr(14 downto 12);
-        temp.rd       := ID.instr(11 downto 7);
-        temp.op       := ID.instr(6 downto 0);
+        temp.funct7   := ID(31 downto 25);
+        temp.rs2      := ID(24 downto 20);
+        temp.rs1      := ID(19 downto 15);
+        temp.funct3   := ID(14 downto 12);
+        temp.rd       := ID(11 downto 7);
+        temp.op       := ID(6 downto 0);
 
         ID_content <= temp;
     end process;
