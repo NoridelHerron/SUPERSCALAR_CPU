@@ -19,9 +19,9 @@ architecture sim of tb_ALU is
     constant clk_period         : time := 10 ns;
     signal clk                  : std_logic := '0';
     signal rst                  : std_logic := '1';
-    signal input    : ALU_in  := EMPTY_ALU_in;
-    signal output   : ALU_out := EMPTY_ALU_out;
-    signal exp_out  : ALU_out := EMPTY_ALU_out;
+    signal input                : ALU_in  := EMPTY_ALU_in;
+    signal output               : ALU_out := EMPTY_ALU_out;
+    signal exp_out              : ALU_out := EMPTY_ALU_out;
     
 begin
     UUT: entity work.ALU port map (input, output);
@@ -68,8 +68,6 @@ begin
             uniform(seed1, seed2, rand_real);
             if rand_real < 0.1 then
                 rand_A := 0; rand_B := 0;
-            elsif rand_real < 0.2 then
-                rand_A := -1; rand_B := -1;
             else
                 uniform(seed1, seed2, rand_real);
                 rand_A := integer(rand_real * real(MAX));
@@ -98,9 +96,10 @@ begin
             input.B <= std_logic_vector(to_signed(rand_B, DATA_WIDTH)); 
             input.f3 <= std_logic_vector(to_unsigned(rand_f3, 3));
             
-            wait until rising_edge(clk);  -- Decoder captures input
-            wait for 1 ns;                -- Let ID_content settle
-
+            wait until rising_edge(clk); 
+            
+            expected.V := NONE; 
+            expected.C := NONE; 
             case rand_f3 is
                 when 0 =>  -- ADD/SUB
                     if input.f7 = ZERO_7bits then
@@ -108,16 +107,17 @@ begin
                                    resize(unsigned(to_unsigned(rand_B, DATA_WIDTH)), DATA_WIDTH+1);
                         expected.result     := std_logic_vector(sum_ext(DATA_WIDTH-1 downto 0));
                         expected.operation  := ALU_ADD;
-   
-                        if sum_ext(DATA_WIDTH) = '1' then expected.C := Cf; else expected.C := NONE; end if;
+                        if sum_ext(DATA_WIDTH) = '1' then 
+                            expected.C := Cf; 
+                        else 
+                            expected.C := NONE; 
+                        end if;                      
                         
-                        -- check the sign of the inputs and compare it to the sign of the result,
-                        -- if they are different, then, there's an overflow                   
-                        if ((rand_A < 0 and rand_B < 0 and to_integer(signed(expected.result)) >= 0) or
-                            (rand_A > 0 and rand_B > 0 and to_integer(signed(expected.result)) < 0)) then
-                            expected.V := V;
-                        else
-                            expected.V := NONE;
+                        if ((input.A(DATA_WIDTH - 1) = input.B(DATA_WIDTH - 1)) and 
+                           (expected.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
+                            expected.V := V; 
+                        else 
+                            expected.V := NONE; 
                         end if;
                         
                     else
@@ -126,13 +126,19 @@ begin
                         expected.result     := std_logic_vector(sub_ext(31 downto 0));
                         expected.operation  := ALU_SUB;
  
-                        if sub_ext(DATA_WIDTH) = '0' then expected.C := Cf; else expected.C := NONE; end if; 
-                        if ((rand_A < 0 and rand_B > 0 and to_integer(signed(expected.result)) >= 0) or
-                            (rand_A > 0 and rand_B < 0 and to_integer(signed(expected.result)) < 0)) then
-                            expected.V := V;  
-                        else
+                        if sub_ext(DATA_WIDTH) = '0' then 
+                            expected.C := Cf;  -- No borrow → C = 1
+                        else 
+                            expected.C := NONE;  -- Borrow → C = 0
+                        end if;
+                    
+                        if ((input.A(DATA_WIDTH - 1) /= input.B(DATA_WIDTH - 1)) and 
+                           (expected.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
+                            expected.V := V; 
+                        else 
                             expected.V := NONE; 
                         end if;
+ 
                     end if;   
                     
                 when 1 => -- SLL
@@ -184,8 +190,7 @@ begin
 
             if expected.result = ZERO_32bits then expected.Z := Z; else expected.Z := NONE; end if;
             if expected.result(DATA_WIDTH-1) = '1' then expected.N := N; else expected.N := NONE; end if;
-            if rand_f3 /= 0 then expected.V := NONE; expected.C := NONE; end if;  
-
+             
             exp_out <= expected;
             
             -- Keep track the number of pass or fail

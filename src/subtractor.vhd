@@ -10,12 +10,13 @@ use IEEE.NUMERIC_STD.ALL;
 -- CUSTOMIZED PACKAGE
 use work.Pipeline_Types.all;
 use work.const_Types.all;
+use work.initialize_records.all;
 use work.ALU_Pkg.all;
 
 entity subtractor is
     Port ( 
             A, B      : in  std_logic_vector (DATA_WIDTH - 1 downto 0);
-            output    : out ALU_out
+            output    : out ALU_add_sub
         );
 end subtractor;
 
@@ -57,38 +58,12 @@ begin
 
 
     process(Do, A, B, Bo)
+    variable temp : ALU_add_sub := EMPTY_ALU_add_sub;
     begin
-        output.result    <= Do;
-        output.operation <= SUB;
-
-        -- Zero flag
-        if Do = ZERO_32bits then
-            output.Z <= Z;
-        else
-            output.Z <= NONE;
-        end if;
-
-        -- Overflow flag for subtraction
-        if (A(DATA_WIDTH - 1) /= B(DATA_WIDTH - 1)) and (Do(DATA_WIDTH - 1) /= A(DATA_WIDTH - 1)) then
-            output.V <= V;
-        else
-            output.V <= NONE;
-        end if;
-
-        -- Carry flag (borrow out)\
-        if Bo = '0' then
-            output.C <= Cf;
-        else
-            output.C <= NONE;
-        end if;
-
-        -- Negative flag
-        if Do(DATA_WIDTH - 1) = '1' then
-            output.N <= N;
-        else
-            output.N <= NONE;
-        end if;
+        temp.result := Do;
+        temp.CB     := Bo;
         
+        output <= temp; 
     end process;
 
 end equation;

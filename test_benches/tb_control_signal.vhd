@@ -95,6 +95,7 @@ begin
                 when S_TYPE =>
                     temp.target := MEM_REG;
                     temp.mem    := MEM_WRITE;
+                    temp.wb     := NONE;
                     
                 when B_TYPE =>
                     temp.alu    := RS2;

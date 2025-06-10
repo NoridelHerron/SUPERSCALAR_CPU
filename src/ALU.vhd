@@ -23,8 +23,8 @@ end ALU;
 
 architecture Behavioral of ALU is
 
-    signal add_temp : ALU_out := EMPTY_ALU_out;
-    signal sub_temp : ALU_out := EMPTY_ALU_out;
+    signal add_temp : ALU_add_sub := EMPTY_ALU_add_sub;
+    signal sub_temp : ALU_add_sub := EMPTY_ALU_add_sub;
     
 begin
 
@@ -42,15 +42,44 @@ begin
     process (input, add_temp, sub_temp)
     variable res_temp : ALU_out := EMPTY_ALU_out;
     begin
+        -- C and V flags
+        res_temp.C := NONE;
+        res_temp.V := NONE;
         case input.f3 is
             when FUNC3_ADD_SUB =>  -- ADD/SUB
                 case input.f7 is
                     when FUNC7_ADD =>    -- ADD
-                        res_temp := add_temp;
+                        res_temp.result := add_temp.result;
                         res_temp.operation := ALU_ADD;
+                        if add_temp.CB = '1' then   
+                            res_temp.C := Cf; 
+                        else 
+                            res_temp.C := NONE; 
+                        end if;
+                        
+                        if ((input.A(DATA_WIDTH - 1) = input.B(DATA_WIDTH - 1)) and 
+                           (res_temp.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
+                           res_temp.V := V; 
+                        else 
+                            res_temp.V := NONE; 
+                        end if;
+  
                     when FUNC7_SUB =>   -- SUB (RISC-V uses 0b0100000 = 32 decimal)
-                        res_temp := sub_temp;
+                        res_temp.result := sub_temp.result;
                         res_temp.operation := ALU_SUB;
+                        if sub_temp.CB = '0' then 
+                            res_temp.C := Cf; 
+                        else 
+                            res_temp.C := NONE; 
+                        end if;
+                        
+                        if ((input.A(DATA_WIDTH - 1) /= input.B(DATA_WIDTH - 1)) and 
+                           (res_temp.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
+                            res_temp.V := V; 
+                        else 
+                            res_temp.V := NONE; 
+                        end if;
+                        
                     when others =>
                         res_temp := EMPTY_ALU_out;  
                 end case;
@@ -103,22 +132,11 @@ begin
                 res_temp := EMPTY_ALU_out;
         end case;
         
-        if input.f3 /= ZERO_3bits then         
-            if res_temp.result = ZERO_32bits then
-                res_temp.Z := Z;
-            else
-                res_temp.Z := NONE;
-            end if;
-            
-            if res_temp.result(DATA_WIDTH - 1) = ONE then
-                res_temp.N := N;
-            else
-                res_temp.N := NONE;
-            end if;
-            
-            res_temp.C := NONE;
-            res_temp.V := NONE;
-        end if;
+        -- Z flag
+        if res_temp.result = ZERO_32bits then res_temp.Z := Z; else res_temp.Z := NONE; end if;
+        
+        -- N flag
+        if res_temp.result(DATA_WIDTH - 1) = ONE then res_temp.N := N; else res_temp.N := NONE; end if;
         
         output <= res_temp;
 

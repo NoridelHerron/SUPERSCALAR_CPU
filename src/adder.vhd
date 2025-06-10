@@ -10,11 +10,12 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ALU_Pkg.all;
+use work.initialize_records.all;
 
 entity adder is
     Port (
             A, B      : in  std_logic_vector (DATA_WIDTH - 1 downto 0);
-            output    : out ALU_out
+            output    : out ALU_add_sub
         ); 
 end adder;
 
@@ -53,38 +54,12 @@ begin
         S   => S(DATA_WIDTH - 1)
     );
 
-    process(S, A(DATA_WIDTH - 1), B(DATA_WIDTH - 1), C(DATA_WIDTH))
+    process(S, Co)
+    variable temp : ALU_add_sub := EMPTY_ALU_add_sub;
     begin
-        output.result     <= S;
-        output.operation  <= ADD;
-        -- Zero flag
-        if S = ZERO_32bits then
-            output.Z <= Z;
-        else
-            output.Z <= NONE;
-        end if;
-
-        -- Overflow flag for addition
-        if ((A(DATA_WIDTH - 1) = B(DATA_WIDTH - 1)) and (S(DATA_WIDTH - 1) /= A(DATA_WIDTH - 1))) then
-            output.V <= V;
-        else
-            output.V <= NONE;
-        end if;
-
-        -- Carry flag
-        if Co = '1' then
-            output.C <= Cf;
-        else
-            output.C <= NONE;
-        end if;
-        
-        -- Negative flag
-        if S(DATA_WIDTH - 1) = '1' then
-            output.N <= N;
-        else
-            output.N <= NONE;
-        end if;
-       
+        temp.result := S;
+        temp.CB     := Co;
+        output      <= temp;
     end process;
 
 end equation;

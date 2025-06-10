@@ -35,6 +35,11 @@ package ALU_pkg is
     constant FUNC7_SRA     : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0100000";  -- For SRA
     constant THIRTY_TWO    : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0100000";
     
+    type ALU_add_sub is record
+        result      : std_logic_vector(DATA_WIDTH-1 downto 0);   
+        CB          : std_logic;
+    end record;
+    
     type ALU_in is record
         A           : std_logic_vector(DATA_WIDTH-1 downto 0);   
         B           : std_logic_vector(DATA_WIDTH-1 downto 0);

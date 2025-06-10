@@ -37,6 +37,11 @@ package initialize_records is
         rd_value    => ZERO_32bits
     );
     
+    constant EMPTY_ALU_add_sub : ALU_add_sub := (    
+        result      => ZERO_32bits,  
+        CB          => ZERO  
+    );
+    
     constant EMPTY_ALU_in : ALU_in := (   
         A           => ZERO_32bits,  
         B           => ZERO_32bits,  

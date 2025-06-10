@@ -21,8 +21,8 @@ constant clk_period : time := 10 ns;
 signal clk          : std_logic := '0';
 signal rst          : std_logic := '1';
 signal A, B         : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
-signal output       : ALU_out := EMPTY_ALU_out;
-signal exp_output   : ALU_out := EMPTY_ALU_out;
+signal output       : ALU_add_sub := EMPTY_ALU_add_sub;
+signal exp_output   : ALU_add_sub := EMPTY_ALU_add_sub;
 
 begin
     
@@ -48,7 +48,7 @@ begin
     variable sub_ext                : unsigned(DATA_WIDTH downto 0);
 
    -- variable sum_ext                : std_logic_vector(DATA_WIDTH downto 0) := (others => '0');
-    variable expected : ALU_out     := EMPTY_ALU_out;
+    variable expected               : ALU_add_sub := EMPTY_ALU_add_sub;
     variable pass, fail             : integer   := 0;
     variable fail_res, fail_Z       : integer   := 0;
     variable fail_V, fail_N, fail_C : integer   := 0;
@@ -59,8 +59,6 @@ begin
         wait for clk_period;
         
         for i in 1 to TOTAL_TESTS loop 
-            expected.operation  := SUB;
-            expected.result     := ZERO_32bits;
             
             uniform(seed1, seed2, rand_real);
             if rand_real > 0.75 then
@@ -79,36 +77,21 @@ begin
             A <= std_logic_vector(to_unsigned(rand_A, DATA_WIDTH));
             B <= std_logic_vector(to_unsigned(rand_B, DATA_WIDTH)); 
     
-            sub_ext := resize(unsigned(to_unsigned(rand_A, DATA_WIDTH)), DATA_WIDTH+1) - 
-                       resize(unsigned(to_unsigned(rand_B, DATA_WIDTH)), DATA_WIDTH+1);
-            expected.result  := std_logic_vector(sub_ext(DATA_WIDTH-1 downto 0));  
-            
-            if sub_ext(DATA_WIDTH) = '0' then expected.C := Cf; else expected.C := NONE; end if;
-            if expected.result(DATA_WIDTH-1) = '1' then expected.N := N; else expected.N := NONE; end if;
-            if expected.result = ZERO_32bits then expected.Z := Z; else expected.Z := NONE; end if;
-            if ((rand_A < 0 and rand_B > 0 and to_integer(signed(expected.result)) >= 0) or
-                (rand_A > 0 and rand_B < 0 and to_integer(signed(expected.result)) < 0)) then
-                expected.V := V;
-            else
-                expected.V := NONE;
-            end if;
-            
-            exp_output  <= expected;
+            sub_ext := resize(unsigned(to_unsigned(rand_A, DATA_WIDTH)), 33) - 
+                       resize(unsigned(to_unsigned(rand_B, DATA_WIDTH)), 33);
+            expected.result    := std_logic_vector(sub_ext(DATA_WIDTH-1 downto 0));
+             
+            if rand_A < rand_B then expected.CB := '1'; else expected.CB := '0'; end if;
+            exp_output.CB      <= expected.CB;
+            exp_output.result  <= expected.result;
             
             wait for 1 ns;     
             
-            if output.result = expected.result and output.Z = expected.Z and
-               output.N = expected.N and output.V = expected.V and output.C = expected.C 
-               and output.operation = expected.operation then
+            if output.result = exp_output.result and output.CB = exp_output.CB then
                 pass := pass + 1;
                 
             else
                 fail := fail + 1;
-                if output.result /= expected.result then fail_res := fail_res + 1; assert false report "Result mismatch" severity warning; end if;
-                if output.Z /= expected.Z then fail_Z := fail_Z + 1; assert false report "Z flag mismatch" severity warning; end if;
-                if output.N /= expected.N then fail_N := fail_N + 1; assert false report "N flag mismatch" severity warning; end if;
-                if output.V /= expected.V then fail_V := fail_V + 1; assert false report "V flag mismatch" severity warning; end if;
-                if output.C /= expected.C then fail_C := fail_C + 1; assert false report "C flag mismatch" severity warning; end if;
             end if;
         end loop;
         
@@ -116,13 +99,7 @@ begin
     report "ALU Randomized Test Summary:";
     report "Total Tests      : " & integer'image(TOTAL_TESTS);
     report "Total Passes     : " & integer'image(pass);
-    report "Total Failures   : " & integer'image(fail);
-    
-    report "Flag Failures:";
-    report "Z flag fails : " & integer'image(fail_Z);
-    report "N flag fails : " & integer'image(fail_N);
-    report "V flag fails : " & integer'image(fail_V);
-    report "C flag fails : " & integer'image(fail_C);
+    report "Total Failures   : " & integer'image(fail); 
     report "----------------------------------------------------";
     
     wait;
