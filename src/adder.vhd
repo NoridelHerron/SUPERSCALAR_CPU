@@ -10,7 +10,6 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ALU_Pkg.all;
-use work.enum_types.all;
 
 entity adder is
     Port (
@@ -56,8 +55,8 @@ begin
 
     process(S, A(DATA_WIDTH - 1), B(DATA_WIDTH - 1), C(DATA_WIDTH))
     begin
-        output.result <= S;
-
+        output.result     <= S;
+        output.operation  <= ADD;
         -- Zero flag
         if S = ZERO_32bits then
             output.Z <= Z;

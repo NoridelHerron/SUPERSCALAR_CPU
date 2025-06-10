@@ -11,7 +11,6 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ALU_Pkg.all;
-use work.enum_types.all;
 
 entity subtractor is
     Port ( 
@@ -59,7 +58,8 @@ begin
 
     process(Do, A, B, Bo)
     begin
-        output.result <= Do;
+        output.result    <= Do;
+        output.operation <= SUB;
 
         -- Zero flag
         if Do = ZERO_32bits then

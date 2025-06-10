@@ -16,12 +16,28 @@ end tb_ALU;
 
 architecture sim of tb_ALU is
 
-    signal input    : ALU_in;
-    signal output   : ALU_out;
+    constant clk_period         : time := 10 ns;
+    signal clk                  : std_logic := '0';
+    signal rst                  : std_logic := '1';
+    signal input    : ALU_in  := EMPTY_ALU_in;
+    signal output   : ALU_out := EMPTY_ALU_out;
+    signal exp_out  : ALU_out := EMPTY_ALU_out;
     
 begin
     UUT: entity work.ALU port map (input, output);
 
+    -- Clock generation only
+    clk_process : process
+    begin
+        while now < 2000000 ns loop
+            clk <= '0';
+            wait for clk_period / 2;
+            clk <= '1';
+            wait for clk_period / 2;
+        end loop;
+        wait;
+    end process;
+    
     process
         -- For generated value
         variable rand_real : real;
@@ -41,12 +57,18 @@ begin
         variable fail_xor, fail_srl, fail_sra, fail_or, fail_and    : integer := 0;
         variable pass, fail, fail_Z, fail_N, fail_V, fail_C         : integer := 0;
     begin 
+    
+        rst <= '1';
+        wait for clk_period;
+        rst <= '0';
+        wait for clk_period;
+        
         for i in 1 to total_tests loop
  
             uniform(seed1, seed2, rand_real);
-            if rand_real > 0.75 then
+            if rand_real < 0.1 then
                 rand_A := 0; rand_B := 0;
-            elsif rand_real > 0.5 then
+            elsif rand_real < 0.2 then
                 rand_A := -1; rand_B := -1;
             else
                 uniform(seed1, seed2, rand_real);
@@ -76,11 +98,9 @@ begin
             input.B <= std_logic_vector(to_signed(rand_B, DATA_WIDTH)); 
             input.f3 <= std_logic_vector(to_unsigned(rand_f3, 3));
             
-            expected.V := NONE; 
-            expected.C := NONE;
-            -- Let it settle
-            wait for 10 ns;
-            
+            wait until rising_edge(clk);  -- Decoder captures input
+            wait for 1 ns;                -- Let ID_content settle
+
             case rand_f3 is
                 when 0 =>  -- ADD/SUB
                     if input.f7 = ZERO_7bits then
@@ -164,6 +184,9 @@ begin
 
             if expected.result = ZERO_32bits then expected.Z := Z; else expected.Z := NONE; end if;
             if expected.result(DATA_WIDTH-1) = '1' then expected.N := N; else expected.N := NONE; end if;
+            if rand_f3 /= 0 then expected.V := NONE; expected.C := NONE; end if;  
+
+            exp_out <= expected;
             
             -- Keep track the number of pass or fail
             if output.result = expected.result and output.Z = expected.Z and
@@ -206,6 +229,7 @@ begin
                     when others => null;
                 end case;
             end if;
+
         end loop;
         
         -- Summary report

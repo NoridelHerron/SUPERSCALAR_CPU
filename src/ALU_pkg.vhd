@@ -13,7 +13,8 @@ package ALU_pkg is
         ALU_SLL, ALU_SRL, ALU_SRA, ALU_SLT, ALU_SLTU,
         -- I_type expected operation
         ALU_ADDi, ALU_XORi, ALU_ORi, ALU_ANDi,
-        ALU_SLLi, ALU_SRLi, ALU_SRAi, ALU_SLTi, ALU_SLTiU, NONE
+        ALU_SLLi, ALU_SRLi, ALU_SRAi, ALU_SLTi, ALU_SLTiU, 
+        ADD, SUB, NONE
     );
     
     -- FUNCT3 codes
