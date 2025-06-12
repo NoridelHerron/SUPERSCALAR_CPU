@@ -15,7 +15,6 @@ use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
 use work.ALU_Pkg.all;
-use work.reusable_function.all; -- Customize function
 
 entity tb_decoder is
 end tb_decoder;
