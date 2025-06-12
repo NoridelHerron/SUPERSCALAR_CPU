@@ -5,7 +5,6 @@ use ieee.numeric_std.all;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ALU_pkg.all;
---use work.control_types.all;
 
 package initialize_records is
 
