@@ -71,7 +71,6 @@ begin
         wait for clk_period;
         rst <= '0';
         wait for clk_period;
-        
         for i in 1 to total_tests loop
   
             -- This will cover all instructions in riscv
@@ -165,6 +164,9 @@ begin
             instruction       <= temp_instr;
             expected_content  <= temp;
 
+            wait until rising_edge(clk);  -- Decoder captures input
+            wait for 1 ns;                -- Let ID_content settle
+
             -- Compare fields
             if temp.funct7 = ID_content.funct7 and temp.rs2 = ID_content.rs2 and temp.rs1 = ID_content.rs1 and 
                temp.funct3 = ID_content.funct3 and temp.rd = ID_content.rd and temp.op = ID_content.op and
@@ -195,6 +197,7 @@ begin
                 if temp.imm20  /= ID_content.imm20  then fail_imm20 := fail_imm20 + 1; end if; 
               end if;            
  
+            wait for 10 ns;
         end loop;
 
         -- Summary report
