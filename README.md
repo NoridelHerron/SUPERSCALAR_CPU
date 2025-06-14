@@ -40,7 +40,7 @@ The use of a record output improves clarity and modularity, making the control l
 **In progress**:
 - Nori
     - Architecture planning complete
-    - Hazard Detection Unit (Verilog) with testbench
+    - Hazard Detection Unit with testbench
 - Venkateshwarlu
     - Register file (4R / 2W) being implemented (Verilog) with testbench
     - Branch unit with testbench
