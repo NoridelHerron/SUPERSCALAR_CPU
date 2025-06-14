@@ -16,7 +16,7 @@ use work.ENUM_T.all;
 
 package MyFunctions is
 
-  function get_decoded_val (rand_real : real) return Decoder_Type;
+  function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type;
 
   function get_contrl_sig  (op: std_logic_vector) return CONTROL_SIG;
   

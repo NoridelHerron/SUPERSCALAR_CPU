@@ -15,10 +15,7 @@ use work.initialize_records.all;
 use work.ENUM_T.all;
 package body MyFunctions is
 
-    function get_decoded_val (rand_real : real) return Decoder_Type is
-    variable rs1, rs2       : real;
-    variable seed1          : positive                                 := 15;
-    variable seed2          : positive                                 := 43;
+    function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type is
     variable temp           : Decoder_Type                             := EMPTY_DECODER;
     variable imm12          : std_logic_vector(IMM12_WIDTH-1 downto 0) := ZERO_12bits;
     variable imm20          : std_logic_vector(IMM20_WIDTH-1 downto 0) := ZERO_20bits;
@@ -35,15 +32,9 @@ package body MyFunctions is
         else temp.op := R_TYPE;
         end if;
 
-        uniform(seed1, seed2, rs1);
         temp.rs1 := std_logic_vector(to_unsigned(integer(rs1 * 32.0), 5));
-        uniform(seed1, seed2, rs2);
         temp.rs2 := std_logic_vector(to_unsigned(integer(rs2 * 32.0), 5));
-        if rand_real < 0.5 then
-            temp.rd := temp.rs1;
-        else
-            temp.rd := temp.rs2;
-        end if;
+        temp.rd  := std_logic_vector(to_unsigned(integer(rd * 32.0), 5));
 
         temp.funct3 := std_logic_vector(to_unsigned(integer(rand_real * 8.0), 3));
         temp.funct7 := std_logic_vector(to_unsigned(integer(rand_real * 128.0), 7));
@@ -108,10 +99,10 @@ package body MyFunctions is
     function get_contrl_sig  (op: std_logic_vector) return CONTROL_SIG is
     variable result : CONTROL_SIG := NONE;
     begin
-        if (op = R_TYPE) or (op = I_IMME) or (op = LOAD) or (op = JAL) or (op = JALR) or (op = U_LUI) or (op = U_AUIPC) then 
-            result := REG_WRITE;
-        else
+        if (op = S_TYPE) or (op = ECALL) or (op = B_TYPE) then 
             result := NONE;
+        else
+            result := REG_WRITE;
         end if;
         
         return result;
