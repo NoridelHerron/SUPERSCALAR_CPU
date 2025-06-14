@@ -26,13 +26,13 @@ signal clk                      : std_logic := '0';
 signal rst                      : std_logic := '1';
 
 signal actual_in                : HDU_in           := EMPTY_HDU_in;
+signal actual_res               : HDU_OUT_N        := EMPTY_HDU_OUT_N;
 signal whole_ID                 : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
 signal ID                       : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR;
 signal ID_EX                    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal EX_MEM                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal MEM_WB                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
-signal actual_res               : HDU_OUT_N := EMPTY_HDU_OUT_N;
-signal expected_res             : HDU_OUT_N := EMPTY_HDU_OUT_N;
+signal expected_res             : HDU_OUT_N        := EMPTY_HDU_OUT_N;
 constant clk_period             : time := 10 ns;
     
 begin
