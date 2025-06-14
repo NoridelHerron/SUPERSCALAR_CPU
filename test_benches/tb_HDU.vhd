@@ -28,10 +28,6 @@ signal rst                      : std_logic := '1';
 signal actual_in                : HDU_in           := EMPTY_HDU_in;
 signal whole_ID                 : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
 signal ID                       : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR;
-
-signal ID_EX_rs1A, ID_EX_rs2A   : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := ZERO_5bits;
-signal ID_EX_rs1B, ID_EX_rs2B   : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := ZERO_5bits;
-
 signal ID_EX                    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal EX_MEM                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal MEM_WB                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
@@ -107,41 +103,25 @@ begin
             -- input and 
             case i is
                 when 1 => 
-                    temp_ID_EX      := EMPTY_DECODER_N_INSTR; 
-                    temp_rs1A       := ZERO_5bits;
-                    temp_rs2A       := ZERO_5bits;
-                    temp_rs1B       := ZERO_5bits;
-                    temp_rs2B       := ZERO_5bits;
+                    temp_ID_EX      := EMPTY_DECODER_N_INSTR;  
                     temp_IDEX       := EMPTY_RD_CTRL_N_INSTR; 
                     temp_EX_MEM     := EMPTY_RD_CTRL_N_INSTR; 
                     temp_MEM_WB     := EMPTY_RD_CTRL_N_INSTR; 
                     
                 when 2 =>  
                     temp_ID_EX      := whole_ID; 
-                    temp_rs1A       := whole_ID.A.rs1;
-                    temp_rs2A       := whole_ID.A.rs2;
-                    temp_rs1B       := whole_ID.B.rs1;
-                    temp_rs2B       := whole_ID.B.rs2;
                     temp_IDEX       := ID;
                     temp_EX_MEM     := EMPTY_RD_CTRL_N_INSTR; 
                     temp_MEM_WB     := EMPTY_RD_CTRL_N_INSTR; 
                     
                 when 3 =>  
-                    temp_ID_EX      := whole_ID; 
-                    temp_rs1A       := whole_ID.A.rs1;
-                    temp_rs2A       := whole_ID.A.rs2;
-                    temp_rs1B       := whole_ID.B.rs1;
-                    temp_rs2B       := whole_ID.B.rs2;
+                    temp_ID_EX      := whole_ID;   
                     temp_IDEX       := ID;
                     temp_EX_MEM     := ID_EX; 
                     temp_MEM_WB     := EMPTY_RD_CTRL_N_INSTR;  
 
                 when others => 
                     temp_ID_EX      := whole_ID; 
-                    temp_rs1A       := whole_ID.A.rs1;
-                    temp_rs2A       := whole_ID.A.rs2;
-                    temp_rs1B       := whole_ID.B.rs1;
-                    temp_rs2B       := whole_ID.B.rs2;
                     temp_IDEX       := ID;
                     temp_EX_MEM     := ID_EX; 
                     temp_MEM_WB     := EX_MEM; 
@@ -163,11 +143,6 @@ begin
             ID.A.readWrite  <= temp_ID2.A.readWrite;
             ID.B.rd         <= temp_ID2.B.rd;
             ID.B.readWrite  <= temp_ID2.B.readWrite;
-            
-            ID_EX_rs1A      <= temp_rs1A;
-            ID_EX_rs2A      <= temp_rs2A;
-            ID_EX_rs1B      <= temp_rs1B;
-            ID_EX_rs2B      <= temp_rs2B;
             ID_EX           <= temp_IDEX;
             EX_MEM          <= temp_EX_MEM;
             MEM_WB          <= temp_MEM_WB;
