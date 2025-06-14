@@ -11,7 +11,7 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
-use work.ALU_Pkg.all; 
+use work.ENUM_T.all; 
 use work.initialize_records.all;
 
 entity ALU is
