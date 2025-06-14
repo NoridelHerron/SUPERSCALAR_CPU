@@ -1,25 +1,30 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+library work;
 use work.const_Types.all;
+use work.ENUM_T.all;
 
 package Pipeline_Types is
 
-    type CONTROL_SIG is ( 
-        -- memory and register control signal
-        MEM_READ, MEM_WRITE, -- for load or store
-        REG_WRITE,           -- wb
-        MEM_REG, ALU_REG,    -- source result whether from alu or memory
-        BRANCH, JUMP, 
-        RS2, IMM,            -- for operand 2
-        NONE
-    );
-
     -- PC and instruction
     type Inst_PC is record
-        instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         pc          : std_logic_vector(DATA_WIDTH-1 downto 0);      -- program counter
+        instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
+        is_valid    : CONTROL_SIG;
     end record;
+       
+-----------------------------------------ID STAGE------------------------------------------
+    -- RS values 
+    type REG_DATA_PER is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0);      
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);      
+    end record;
+    
+    type REG_DATAS is record
+        one         : REG_DATA_PER;      
+        two         : REG_DATA_PER;      
+    end record;   
     
     -- Decoder records 
     type Decoder_Type is record
@@ -33,12 +38,71 @@ package Pipeline_Types is
         imm20       : std_logic_vector(IMM20_WIDTH-1 downto 0); 
     end record;
     
+    type DECODER_N_INSTR is record
+        A           : Decoder_Type;
+        B           : Decoder_Type;
+    end record;
+    
+    type RD_CTRL is record
+        readWrite   : CONTROL_SIG;
+        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+    end record;
+    
+    type RD_CTRL_N_INSTR is record
+        A           : RD_CTRL;
+        B           : RD_CTRL;
+    end record;
+    
+    type HDU_r is record
+        forwA       : HAZ_SIG;
+        forwB       : HAZ_SIG;
+        stall       : HAZ_SIG;
+    end record;
+    
+    type HDU_OUT_N is record
+        A          : HDU_r;
+        B          : HDU_r;
+    end record;
+    
     -- control signals
     type control_Type is record
-        target  : CONTROL_SIG; -- operand2, branch and jump control signal
-        alu     : CONTROL_SIG; -- which data to send as 2nd operand rs2 or imm  
-        mem     : CONTROL_SIG; -- for read or write
-        wb      : CONTROL_SIG; -- reg
+        target     : CONTROL_SIG; -- operand2, branch and jump control signal
+        alu        : CONTROL_SIG; -- which data to send as 2nd operand rs2 or imm  
+        mem        : CONTROL_SIG; -- for read or write
+        wb         : CONTROL_SIG; -- reg
+    end record;
+   
+   -----------------------------------------EX STAGE------------------------------------------
+    type ALU_add_sub is record
+        result      : std_logic_vector(DATA_WIDTH-1 downto 0);   
+        CB          : std_logic;
+    end record;
+    
+    type ALU_in is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0);   
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);
+        f3          : std_logic_vector(FUNCT3_WIDTH-1 downto 0);   
+        f7          : std_logic_vector(FUNCT7_WIDTH-1 downto 0);
+    end record;
+    
+    type ALU_out is record
+        operation   : ALU_OP;
+        result      : std_logic_vector(DATA_WIDTH-1 downto 0);   
+        Z           : FLAG_TYPE;
+        V           : FLAG_TYPE;
+        C           : FLAG_TYPE;
+        N           : FLAG_TYPE;
+    end record;
+    
+   type EX_CONTENT is record
+        instrType  : INSTRUCTION_T;
+        reg_values : REG_DATA_PER;
+        alu        : ALU_out; 
+    end record;
+    
+    type EX_CONTENT_N_INSTR is record
+        A           : EX_CONTENT;
+        B           : EX_CONTENT;
     end record;
 
     type BranchAndJump_Type is record
@@ -46,6 +110,14 @@ package Pipeline_Types is
         rd_value    : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
     
+    -----------------------------------------MEM STAGE------------------------------------------
     
+    ----------------------------------------- HDU I/O ------------------------------------------   
+    type HDU_in is record
+        ID          : DECODER_N_INSTR;   
+        ID_EX       : DECODER_N_INSTR;   
+        EX_MEM      : RD_CTRL_N_INSTR; 
+        MEM_WB      : RD_CTRL_N_INSTR;
+    end record;
     
 end package;

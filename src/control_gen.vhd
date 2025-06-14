@@ -12,6 +12,7 @@ library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
+use work.ENUM_T.all; 
 
 entity control_gen is
     Port ( 

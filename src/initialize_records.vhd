@@ -4,17 +4,29 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
-use work.ALU_pkg.all;
+use work.ENUM_T.all; 
 
 package initialize_records is
 
     constant EMPTY_inst_pc : Inst_PC := (
-        instr       => x"00000013",
+        is_valid    => NONE,
+        instr       => NOP,
         pc          => ZERO_32bits
     );
     
+    -----------------------------------------ID STAGE------------------------------------------
+    constant EMPTY_REG_DATA_PER : REG_DATA_PER := (
+        A          => ZERO_32bits,
+        B          => ZERO_32bits
+    );
+    
+    constant EMPTY_REG_DATAS : REG_DATAS := (
+        one        => EMPTY_REG_DATA_PER,
+        two        => EMPTY_REG_DATA_PER
+    );
+    
     constant EMPTY_DECODER : Decoder_Type := (
-        op          => I_IMME,
+        op          => ZERO_7bits,
         rd          => ZERO_5bits,
         funct3      => ZERO_3bits,
         rs1         => ZERO_5bits,
@@ -23,24 +35,47 @@ package initialize_records is
         imm12       => ZERO_12bits,
         imm20       => ZERO_20bits
     );
+    
+    constant EMPTY_DECODER_N_INSTR : DECODER_N_INSTR := (
+        A          => EMPTY_DECODER,
+        B          => EMPTY_DECODER
+    );
 
+    constant EMPTY_RD_CTRL : RD_CTRL := (
+        readWrite  => NONE,
+        rd         => ZERO_5bits
+    );
+    
+    constant EMPTY_RD_CTRL_N_INSTR : RD_CTRL_N_INSTR := (
+        A          => EMPTY_RD_CTRL,
+        B          => EMPTY_RD_CTRL
+    );
+    
+    constant EMPTY_HDU_r : HDU_r := (
+        forwA      => NONE,
+        forwB      => NONE,
+        stall      => NONE
+    );
+    
+    constant EMPTY_HDU_OUT_N : HDU_OUT_N := (
+        A          => EMPTY_HDU_r,
+        B          => EMPTY_HDU_r
+    );
+    
     constant EMPTY_control_Type : control_Type := ( 
         target      => NONE,
         alu         => NONE,
         mem         => NONE,
         wb          => NONE
     );
-
-    constant EMPTY_BranchAndJump_Type : BranchAndJump_Type := (
-        target      => ZERO_32bits,
-        rd_value    => ZERO_32bits
-    );
+    
+-----------------------------------------EX STAGE------------------------------------------
     
     constant EMPTY_ALU_add_sub : ALU_add_sub := (    
         result      => ZERO_32bits,  
         CB          => ZERO  
     );
-    
+
     constant EMPTY_ALU_in : ALU_in := (   
         A           => ZERO_32bits,  
         B           => ZERO_32bits,  
@@ -57,4 +92,27 @@ package initialize_records is
         N           => NONE
     );
 
+    constant EMPTY_EX_CONTENT : EX_CONTENT := (
+        instrType   => NONE,
+        reg_values  => EMPTY_REG_DATA_PER,
+        alu         => EMPTY_ALU_out
+    );
+    
+    constant EMPTY_EX_CONTENT_N_INSTR : EX_CONTENT_N_INSTR := (
+        A          => EMPTY_EX_CONTENT,
+        B          => EMPTY_EX_CONTENT
+    );
+    
+    constant EMPTY_BranchAndJump_Type : BranchAndJump_Type := (
+        target      => ZERO_32bits,
+        rd_value    => ZERO_32bits
+    );
+    
+    ----------------------------------------- HDU I/O ------------------------------------------
+    constant EMPTY_HDU_in : HDU_in := (
+        ID          => EMPTY_DECODER_N_INSTR,  
+        ID_EX       => EMPTY_DECODER_N_INSTR,    
+        EX_MEM      => EMPTY_RD_CTRL_N_INSTR,  
+        MEM_WB      => EMPTY_RD_CTRL_N_INSTR
+    );   
 end package;
