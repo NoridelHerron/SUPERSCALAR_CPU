@@ -16,7 +16,7 @@ use work.initialize_records.all;
 
 entity HDU is
     Port ( 
-            H       : in  HDU_in;
+            H       : in  HDU_in;  
             result  : out HDU_OUT_N
         );
 end HDU;
@@ -53,12 +53,16 @@ begin
         else
             temp.A.ForwB := NONE;
         end if;
+        
         -- STALL A
-        if H.ID_EX.A.op = LOAD and (H.ID_EX.A.rd = H.ID.A.rs1 or H.ID_EX.A.rd = H.ID.A.rs2) then
-            temp.A.stall := A_STALL;
+        if H.ID_EX.A.op = LOAD and  H.ID_EX.A.rd /= ZERO_5bits and (H.ID_EX.A.rd = H.ID.A.rs1 or H.ID_EX.A.rd = H.ID.A.rs2) then
+            temp.A.stall := A_STALL;  
+        elsif H.ID_EX.B.op = LOAD and  H.ID_EX.B.rd /= ZERO_5bits and (H.ID_EX.B.rd = H.ID.A.rs1 or H.ID_EX.B.rd = H.ID.A.rs2) then
+            temp.A.stall := B_STALL;     
         else
             temp.A.stall := NONE;
         end if;
+
 -------------------------------------------------- INSTRUCTION B --------------------------------------------------
         -- Forward A
         if ((H.ID_EX.A.op = R_TYPE) or (H.ID_EX.A.op = I_IMME) or (H.ID_EX.A.op = LOAD) or (H.ID_EX.A.op = JAL) or (H.ID_EX.A.op = JALR)
@@ -92,15 +96,18 @@ begin
         end if;
  
         -- STALL B
-        if ((H.ID_EX.A.op = R_TYPE) or (H.ID_EX.A.op = I_IMME) or (H.ID_EX.A.op = LOAD) or (H.ID_EX.A.op = JAL) or (H.ID_EX.A.op = JALR)
-           or (H.ID_EX.A.op = U_LUI) or (H.ID_EX.A.op = U_AUIPC) ) and H.ID_EX.B.rs2 = H.ID_EX.A.rd and H.ID_EX.B.rd /= ZERO_5bits then
-            temp.A.stall := STALL;
-        elsif H.ID_EX.B.op = LOAD and (H.ID_EX.B.rd = H.ID.B.rs1 or H.ID_EX.B.rd = H.ID.B.rs2) then 
-            temp.A.stall := A_STALL;
+        if H.ID_EX.A.op = LOAD and  H.ID_EX.A.rd /= ZERO_5bits and (H.ID_EX.A.rd = H.ID.A.rs1 or H.ID_EX.A.rd = H.ID.A.rs2) then
+            temp.B.stall := STALL_FROM_A;  
+        elsif H.ID_EX.B.op = LOAD and  H.ID_EX.B.rd /= ZERO_5bits and (H.ID_EX.B.rd = H.ID.A.rs1 or H.ID_EX.B.rd = H.ID.A.rs2) then
+            temp.B.stall := STALL_FROM_A;
+        elsif H.ID_EX.A.op = LOAD and  H.ID_EX.A.rd /= ZERO_5bits and (H.ID_EX.A.rd = H.ID.B.rs1 or H.ID_EX.A.rd = H.ID.B.rs2) then
+            temp.B.stall := A_STALL;  
+        elsif H.ID_EX.B.op = LOAD and  H.ID_EX.B.rd /= ZERO_5bits and (H.ID_EX.B.rd = H.ID.B.rs1 or H.ID_EX.B.rd = H.ID.B.rs2) then
+            temp.B.stall := B_STALL;     
         else
-            temp.A.stall := NONE;
+            temp.B.stall := NONE;
         end if;
-        
+
         result <= temp;
     end process;
 
