@@ -18,8 +18,8 @@ package MyFunctions is
 
   function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type;
 
-  function get_contrl_sig  (op: std_logic_vector) return CONTROL_SIG;
+  function Get_Control(opcode : std_logic_vector(OPCODE_WIDTH-1 downto 0)) return control_Type;
   
-  function get_hazard_sig  (H: HDU_in) return HDU_OUT_N;
+  function get_hazard_sig  (H: HDU_in; ID_EX: control_Type_N) return HDU_OUT_N;
 
 end MyFunctions;

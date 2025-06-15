@@ -41,16 +41,6 @@ package initialize_records is
         B          => EMPTY_DECODER
     );
 
-    constant EMPTY_RD_CTRL : RD_CTRL := (
-        readWrite  => NONE,
-        rd         => ZERO_5bits
-    );
-    
-    constant EMPTY_RD_CTRL_N_INSTR : RD_CTRL_N_INSTR := (
-        A          => EMPTY_RD_CTRL,
-        B          => EMPTY_RD_CTRL
-    );
-    
     constant EMPTY_HDU_r : HDU_r := (
         forwA      => NONE,
         forwB      => NONE,
@@ -69,6 +59,20 @@ package initialize_records is
         wb          => NONE
     );
     
+    constant EMPTY_control_Type_N : control_Type_N := (
+        A          => EMPTY_control_Type,
+        B          => EMPTY_control_Type
+    );
+    
+    constant EMPTY_RD_CTRL : RD_CTRL := (
+        cntrl      => EMPTY_control_Type,
+        rd         => ZERO_5bits
+    );
+    
+    constant EMPTY_RD_CTRL_N_INSTR : RD_CTRL_N_INSTR := (
+        A          => EMPTY_RD_CTRL,
+        B          => EMPTY_RD_CTRL
+    );
 -----------------------------------------EX STAGE------------------------------------------
     
     constant EMPTY_ALU_add_sub : ALU_add_sub := (    

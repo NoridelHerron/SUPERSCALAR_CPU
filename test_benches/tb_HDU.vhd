@@ -27,19 +27,20 @@ signal rst                      : std_logic := '1';
 
 signal actual_in                : HDU_in           := EMPTY_HDU_in;
 signal actual_res               : HDU_OUT_N        := EMPTY_HDU_OUT_N;
-
 signal whole_ID                 : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
-signal ID                       : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR;
+signal HDU_cntrl                : control_Type_N   := EMPTY_control_Type_N;
+signal ID                       : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal ID_EX                    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal EX_MEM                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal MEM_WB                   : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
-signal expected_res             : HDU_OUT_N := EMPTY_HDU_OUT_N;
+signal expected_res             : HDU_OUT_N        := EMPTY_HDU_OUT_N;
 constant clk_period             : time := 10 ns;
     
 begin
     
     UUT : entity work.HDU port map (
-        H       => actual_in,    
+        H       => actual_in, 
+        ID_EX   => HDU_cntrl,
         result  => actual_res
     );
     
@@ -69,6 +70,7 @@ begin
     variable temp_IDEX      : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
     variable temp_EX_MEM    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
     variable temp_MEM_WB    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
+    variable temp_HDU_cntrl : control_Type_N   := EMPTY_control_Type_N;
     
     -- randomized used for generating values
     variable rand1, rand2   : real;
@@ -89,17 +91,17 @@ begin
             uniform(seed1, seed2, rs1);
             uniform(seed1, seed2, rs2);
             uniform(seed1, seed2, rd);
-            temp_ID.A               := get_decoded_val(rand1, rs1, rs2, rd);
-            temp_ID2.A.readWrite    := get_contrl_sig  (temp_ID.A.op);
-            temp_ID2.A.rd           := temp_ID.A.rd;
+            temp_ID.A           := get_decoded_val(rand1, rs1, rs2, rd);
+            temp_ID2.A.cntrl    := Get_Control  (temp_ID.A.op);
+            temp_ID2.A.rd       := temp_ID.A.rd;
             
             uniform(seed1, seed2, rand2);
             uniform(seed1, seed2, rs1);
             uniform(seed1, seed2, rs2);
             uniform(seed1, seed2, rd);
-            temp_ID.B               := get_decoded_val(rand2, rs1, rs2, rd);
-            temp_ID2.B.readWrite    := get_contrl_sig  (temp_ID.B.op);
-            temp_ID2.B.rd           := temp_ID.B.rd;
+            temp_ID.B            := get_decoded_val(rand2, rs1, rs2, rd);
+            temp_ID2.B.cntrl     := Get_Control (temp_ID.B.op);
+            temp_ID2.B.rd        := temp_ID.B.rd;
 
             -- input and 
             case i is
@@ -130,20 +132,24 @@ begin
             end case;
             
             -- HDU input
-            temp_in.ID      := temp_ID;
-            temp_in.ID_EX   := temp_ID_EX;
-            temp_in.EX_MEM  := temp_EX_MEM;
-            temp_in.MEM_WB  := temp_MEM_WB;
+            temp_in.ID       := temp_ID;
+            temp_in.ID_EX    := temp_ID_EX;
+            temp_in.EX_MEM   := temp_EX_MEM;
+            temp_in.MEM_WB   := temp_MEM_WB;
+            
+            temp_HDU_cntrl.A := temp_IDEX.A.cntrl;
+            temp_HDU_cntrl.B := temp_IDEX.B.cntrl;
             
             -- display result
+            HDU_cntrl       <= temp_HDU_cntrl;
             actual_in       <= temp_in;  -- Send the values to the unit
-            expected_res    <= get_hazard_sig (temp_in);
+            expected_res    <= get_hazard_sig (temp_in, temp_HDU_cntrl);
             
             whole_ID        <= temp_ID;
             ID.A.rd         <= temp_ID2.A.rd;
-            ID.A.readWrite  <= temp_ID2.A.readWrite;
+            ID.A.cntrl      <= temp_ID2.A.cntrl;
             ID.B.rd         <= temp_ID2.B.rd;
-            ID.B.readWrite  <= temp_ID2.B.readWrite;
+            ID.B.cntrl      <= temp_ID2.B.cntrl;
             ID_EX           <= temp_IDEX;
             EX_MEM          <= temp_EX_MEM;
             MEM_WB          <= temp_MEM_WB;

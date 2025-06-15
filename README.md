@@ -23,6 +23,35 @@ The design uses a combination of VHDL and Verilog modules to support team collab
 - Document progress for portfolio and collaboration
 
 ## Designs
+### HAZARD DETECTION UNIT (HDU)
+![Hazard diagram](images/Hazard_Guide.jpg)
+Note: This is how I implemented the HDU to detect hazards
+
+The hazard detection unit (HDU) is responsible for identifying data hazards between instructions in a dual-issue superscalar pipeline. To implement this, I followed a structured approach based on a dependency diagram I sketched to visualize potential conflicts across pipeline stages.
+
+For instruction A in the ID_EX stage, I check for hazards by comparing its source registers against the destination registers of instructions ahead in the pipeline. The priority of checks is as follows:
+- EX_MEM.A
+- EX_MEM.B
+- MEM_WB.A
+- MEM_WB.B
+
+This priority order ensures that the most recent results (from closer pipeline stages) are considered first for potential forwarding.
+
+For load-use hazards, instruction A in the ID stage is compared specifically against both instructions in the ID_EX stage to determine whether a stall is required.
+
+For instruction B, the logic is more complex due to its possible dependency on instruction A, which is issued in the same cycle. Therefore, the first check is whether instruction B depends on instruction A. If no dependency is found, the hazard detection continues using the same priority as instruction A:
+- EX_MEM.A
+- EX_MEM.B
+- MEM_WB.A
+- MEM_WB.B
+
+If no hazard is detected after these checks, then no action (stall or forward) is taken.
+
+This hierarchy ensures correct data forwarding and minimal pipeline stalling while maintaining proper instruction execution order.
+
+![Hazard diagram](images/HDU.png)
+The image above demonstrates that the hazard detection unit is functioning correctly. Several dependency cases have been highlighted to illustrate how hazards are identified and handled. Additional screenshots are included to show more examples of detected hazards across different scenarios for both instruction A and B.
+
 ### ALU UNIT
 I refactored both the adder and subtractor modules to make them reusable by removing flag generation from their logic. Instead, result computation and flag generation are now centralized in the ALU unit. Additionally, I introduced an enumerated type for ALU operations to improve code readability and simplify debugging. After refactoring, the adder, subtractor, and ALU unit were fully re-verified with 20,000 test cases.
 

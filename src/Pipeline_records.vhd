@@ -42,17 +42,7 @@ package Pipeline_Types is
         A           : Decoder_Type;
         B           : Decoder_Type;
     end record;
-    
-    type RD_CTRL is record
-        readWrite   : CONTROL_SIG;
-        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-    end record;
-    
-    type RD_CTRL_N_INSTR is record
-        A           : RD_CTRL;
-        B           : RD_CTRL;
-    end record;
-    
+
     type HDU_r is record
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
@@ -70,6 +60,21 @@ package Pipeline_Types is
         alu        : CONTROL_SIG; -- which data to send as 2nd operand rs2 or imm  
         mem        : CONTROL_SIG; -- for read or write
         wb         : CONTROL_SIG; -- reg
+    end record;
+    
+    type control_Type_N is record
+        A          : control_Type;
+        B          : control_Type;
+    end record;
+    
+    type RD_CTRL is record
+        cntrl       : control_Type;
+        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+    end record;
+    
+    type RD_CTRL_N_INSTR is record
+        A           : RD_CTRL;
+        B           : RD_CTRL;
     end record;
    
    -----------------------------------------EX STAGE------------------------------------------
