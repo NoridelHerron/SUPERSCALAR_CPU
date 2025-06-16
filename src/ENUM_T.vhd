@@ -30,14 +30,14 @@ package ENUM_T is
         MEM_REG, ALU_REG,    -- source result whether from alu or memory
         BRANCH, JUMP, 
         RS2, IMM,            -- for operand 2
-        VALID, INVALID,
+        VALID, INVALID, 
         NONE
     );
     
     -- HAZARD signal
     type HAZ_SIG is ( 
         A_STALL, B_STALL, STALL_FROM_A, STALL_FROM_B,
-        EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A,
+        EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A, HOLD_B, B_INVALID, 
         NONE
     );
 

@@ -47,6 +47,7 @@ package Pipeline_Types is
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
         stall       : HAZ_SIG;
+        is_hold     : HAZ_SIG;
     end record;
     
     type HDU_OUT_N is record
@@ -117,12 +118,22 @@ package Pipeline_Types is
     
     -----------------------------------------MEM STAGE------------------------------------------
     
-    ----------------------------------------- HDU I/O ------------------------------------------   
-    type HDU_in is record
-        ID          : DECODER_N_INSTR;   
-        ID_EX       : DECODER_N_INSTR;   
-        EX_MEM      : RD_CTRL_N_INSTR; 
-        MEM_WB      : RD_CTRL_N_INSTR;
+    -----------------------------------------WB STAGE------------------------------------------ 
+    type WB_CONTENT is record
+        data        : std_logic_vector(DATA_WIDTH-1 downto 0);
+        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+        we          : CONTROL_SIG; 
     end record;
     
+    type WB_CONTENT_N_INSTR is record
+        A           : WB_CONTENT;
+        B           : WB_CONTENT;
+    end record;
+    
+    type EX_OPERAND_N is record
+        one      : REG_DATA_PER; 
+        is_valid : HAZ_SIG; 
+        two      : REG_DATA_PER;
+    end record;
+   
 end package;

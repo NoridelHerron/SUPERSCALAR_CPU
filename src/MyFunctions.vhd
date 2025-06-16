@@ -20,6 +20,10 @@ package MyFunctions is
 
   function Get_Control(opcode : std_logic_vector(OPCODE_WIDTH-1 downto 0)) return control_Type;
   
-  function get_hazard_sig  (H: HDU_in; ID_EX: control_Type_N) return HDU_OUT_N;
+  function get_hazard_sig  (ID      : DECODER_N_INSTR;   
+                            ID_EX   : DECODER_N_INSTR; 
+                            ID_EX_c : control_Type_N;    
+                            EX_MEM  : RD_CTRL_N_INSTR; 
+                            MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N;
 
 end MyFunctions;
