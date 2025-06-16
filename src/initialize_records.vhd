@@ -111,12 +111,16 @@ package initialize_records is
         target      => ZERO_32bits,
         rd_value    => ZERO_32bits
     );
+    -----------------------------------------WB STAGE------------------------------------------ 
+    constant EMPTY_WB_CONTENT : WB_CONTENT := (
+        data        => ZERO_32bits,
+        rd          => ZERO_5bits,
+        we          => NONE
+    );
     
-    ----------------------------------------- HDU I/O ------------------------------------------
-    constant EMPTY_HDU_in : HDU_in := (
-        ID          => EMPTY_DECODER_N_INSTR,  
-        ID_EX       => EMPTY_DECODER_N_INSTR,    
-        EX_MEM      => EMPTY_RD_CTRL_N_INSTR,  
-        MEM_WB      => EMPTY_RD_CTRL_N_INSTR
-    );   
+    constant EMPTY_WB_CONTENT_N_INSTR : WB_CONTENT_N_INSTR := (
+        A          => EMPTY_WB_CONTENT,
+        B          => EMPTY_WB_CONTENT
+    );
+   
 end package;

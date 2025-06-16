@@ -25,9 +25,9 @@ architecture sim of tb_HDU is
 signal clk                      : std_logic := '0';
 signal rst                      : std_logic := '1';
 
-signal actual_in                : HDU_in           := EMPTY_HDU_in;
 signal actual_res               : HDU_OUT_N        := EMPTY_HDU_OUT_N;
 signal whole_ID                 : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
+signal whole_ID_EX              : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
 signal HDU_cntrl                : control_Type_N   := EMPTY_control_Type_N;
 signal ID                       : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
 signal ID_EX                    : RD_CTRL_N_INSTR  := EMPTY_RD_CTRL_N_INSTR; 
@@ -39,8 +39,11 @@ constant clk_period             : time := 10 ns;
 begin
     
     UUT : entity work.HDU port map (
-        H       => actual_in, 
-        ID_EX   => HDU_cntrl,
+        ID      => whole_ID, 
+        ID_EX   => whole_ID_EX,
+        ID_EX_c => HDU_cntrl, 
+        EX_MEM  => EX_MEM,
+        MEM_WB  => MEM_WB,
         result  => actual_res
     );
     
@@ -62,7 +65,6 @@ begin
     variable temp_rs1B, temp_rs2B   : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := ZERO_5bits;
     
     variable total_tests    : integer          := 20000;
-    variable temp_in        : HDU_in           := EMPTY_HDU_in;
     variable temp_exp       : HDU_OUT_N        := EMPTY_HDU_OUT_N;
     variable temp_ID        : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
     variable temp_ID_EX     : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
@@ -131,21 +133,14 @@ begin
                     
             end case;
             
-            -- HDU input
-            temp_in.ID       := temp_ID;
-            temp_in.ID_EX    := temp_ID_EX;
-            temp_in.EX_MEM   := temp_EX_MEM;
-            temp_in.MEM_WB   := temp_MEM_WB;
-            
+
             temp_HDU_cntrl.A := temp_IDEX.A.cntrl;
             temp_HDU_cntrl.B := temp_IDEX.B.cntrl;
-            
-            -- display result
+
             HDU_cntrl       <= temp_HDU_cntrl;
-            actual_in       <= temp_in;  -- Send the values to the unit
-            expected_res    <= get_hazard_sig (temp_in, temp_HDU_cntrl);
-            
+            expected_res    <= get_hazard_sig (temp_ID, temp_ID_EX, temp_HDU_cntrl, temp_EX_MEM, temp_MEM_WB);
             whole_ID        <= temp_ID;
+            whole_ID_EX     <= temp_ID_EX;
             ID.A.rd         <= temp_ID2.A.rd;
             ID.A.cntrl      <= temp_ID2.A.cntrl;
             ID.B.rd         <= temp_ID2.B.rd;
