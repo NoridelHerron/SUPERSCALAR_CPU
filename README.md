@@ -25,31 +25,45 @@ The design uses a combination of VHDL and Verilog modules to support team collab
 ## Designs
 ### HAZARD DETECTION UNIT (HDU)
 ![Hazard diagram](images/Hazard_Guide.jpg)
-Note: This is how I implemented the HDU to detect hazards
+Note: This is how I implemented the HDU to detect hazards.
 
-The hazard detection unit (HDU) is responsible for identifying data hazards between instructions in a dual-issue superscalar pipeline. To implement this, I followed a structured approach based on a dependency diagram I sketched to visualize potential conflicts across pipeline stages.
+The **Hazard Detection Unit (HDU)** identifies data hazards in a dual-issue superscalar pipeline. To design this module, I first created a dependency diagram to visualize potential conflicts between instructions across different pipeline stages.
 
-For instruction A in the ID_EX stage, I check for hazards by comparing its source registers against the destination registers of instructions ahead in the pipeline. The priority of checks is as follows:
+#### Instruction A (first issued instruction)
+
+For instruction A in the ID_EX stage, hazard checks are performed by comparing its source registers (rs1, rs2) against the destination registers (rd) of instructions ahead in the pipeline. The priority for forwarding or stall is:
 - EX_MEM.A
 - EX_MEM.B
 - MEM_WB.A
 - MEM_WB.B
 
-This priority order ensures that the most recent results (from closer pipeline stages) are considered first for potential forwarding.
+This priority ensures the most recent results are considered first, enabling correct forwarding and reducing stalls.
 
-For load-use hazards, instruction A in the ID stage is compared specifically against both instructions in the ID_EX stage to determine whether a stall is required.
+#### Instruction B (second issued instruction)
 
-For instruction B, the logic is more complex due to its possible dependency on instruction A, which is issued in the same cycle. This stall is not limited to load-use hazards; any data dependency where B needs to use the output of A when it is reg write, B is require to stall, otherwise it will read the register too early. Also, when A is stall, B must stall. Therefore, the first check is whether instruction B depends on instruction A and whether instruction A intends to write (RegWrite asserted).
+Instruction B requires additional logic because it may depend on instruction A, which is issued in the same cycle. This is known as an intra-cycle dependency, and it must be checked before checking future pipeline stages. If B depends on A, and A is performing a register write, B must stall — otherwise it may read incorrect data from the register file too early.
 
-If no such dependency exists, hazard detection continues for instruction B using the same priority order as instruction A:
+After checking the dependency on A, the same priority logic as instruction A is applied:
 - EX_MEM.A
 - EX_MEM.B
 - MEM_WB.A
 - MEM_WB.B
+  
+Also, if instruction A stalls for any reason (e.g., load-use hazard), instruction B must also stall to maintain instruction pairing and alignment.
 
-If no hazard is detected after these checks, then no action (stall or forward) is taken.
+#### Load-Use Hazards
 
-This hierarchy ensures correct data forwarding and minimal pipeline stalling while maintaining proper instruction execution order.
+Classic load-use hazards are also detected by comparing the source registers of the instruction in ID against both instructions in the ID_EX stage. If an instruction in ID_EX is loading data that a following instruction depends on, a stall is inserted.
+
+#### Summary
+
+This hierarchical approach ensures:
+- Correct execution across pipeline stages
+- Accurate forwarding paths
+- Proper handling of both inter-cycle and intra-cycle hazards
+- Minimal and targeted stalling
+
+By handling instruction B’s special case explicitly, the pipeline avoids subtle bugs caused by simultaneous issuance while preserving the performance benefits of dual-issue execution.
 
 ![Hazard diagram](images/HDU.png)
 The image above demonstrates that the hazard detection unit is functioning correctly. Several dependency cases have been highlighted to illustrate how hazards are identified and handled. Additional screenshots are included to show more examples of detected hazards across different scenarios for both instruction A and B.
