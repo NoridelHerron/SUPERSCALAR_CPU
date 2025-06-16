@@ -20,7 +20,7 @@ entity HDU is
             ID_EX       : in  DECODER_N_INSTR; 
             ID_EX_c     : in  control_Type_N;    
             EX_MEM      : in  RD_CTRL_N_INSTR; 
-            MEM_WB      : in  RD_CTRL_N_INSTR;
+            MEM_WB      : in  RD_CTRL_N_INSTR; 
             result      : out HDU_OUT_N
         );
 end HDU;
@@ -29,8 +29,9 @@ architecture Behavioral of HDU is
 
 begin
     process (ID, ID_EX, ID_EX_c, EX_MEM, MEM_WB)
-    variable temp : HDU_OUT_N := EMPTY_HDU_OUT_N;
+    variable temp         : HDU_OUT_N := EMPTY_HDU_OUT_N;
     begin
+        temp.B.is_hold := NONE; 
          -- Forwarding logic (always active)
  -------------------------------------------------- INSTRUCTION A --------------------------------------------------
         -- Forward A
@@ -98,8 +99,9 @@ begin
         end if;
  
         -- STALL B
-        if temp.B.ForwA /= NONE or temp.B.ForwB /= NONE or temp.A.stall /= NONE then
+        if temp.B.ForwA = FORW_FROM_A or temp.B.ForwB = FORW_FROM_A or temp.A.stall /= NONE then
             temp.B.stall := STALL_FROM_A; 
+            temp.B.is_hold := HOLD_B; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
@@ -108,7 +110,7 @@ begin
             temp.B.stall := NONE;
         end if;
 
-        result <= temp;
+        result  <= temp;  
     end process;
 
 end Behavioral;

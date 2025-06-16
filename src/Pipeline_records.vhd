@@ -47,6 +47,7 @@ package Pipeline_Types is
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
         stall       : HAZ_SIG;
+        is_hold     : HAZ_SIG;
     end record;
     
     type HDU_OUT_N is record
@@ -127,6 +128,12 @@ package Pipeline_Types is
     type WB_CONTENT_N_INSTR is record
         A           : WB_CONTENT;
         B           : WB_CONTENT;
+    end record;
+    
+    type EX_OPERAND_N is record
+        one      : REG_DATA_PER; 
+        is_valid : HAZ_SIG; 
+        two      : REG_DATA_PER;
     end record;
    
 end package;

@@ -60,10 +60,7 @@ begin
     end process;
 
     process
-    
-    variable temp_rs1A, temp_rs2A   : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := ZERO_5bits;
-    variable temp_rs1B, temp_rs2B   : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := ZERO_5bits;
-    
+
     variable total_tests    : integer          := 20000;
     variable temp_exp       : HDU_OUT_N        := EMPTY_HDU_OUT_N;
     variable temp_ID        : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR; 
