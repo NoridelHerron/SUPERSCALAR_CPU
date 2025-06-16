@@ -39,7 +39,7 @@ This priority order ensures that the most recent results (from closer pipeline s
 
 For load-use hazards, instruction A in the ID stage is compared specifically against both instructions in the ID_EX stage to determine whether a stall is required.
 
-For instruction B, the logic is more complex due to its possible dependency on instruction A, which is issued in the same cycle. This stall is not limited to load-use hazards; any data dependency where B needs to use the output of A when it is reg write, B is require to stall, otherwise it will read the register too early. Therefore, the first check is whether instruction B depends on instruction A and whether instruction A intends to write (RegWrite asserted).
+For instruction B, the logic is more complex due to its possible dependency on instruction A, which is issued in the same cycle. This stall is not limited to load-use hazards; any data dependency where B needs to use the output of A when it is reg write, B is require to stall, otherwise it will read the register too early. Also, when A is stall, B must stall. Therefore, the first check is whether instruction B depends on instruction A and whether instruction A intends to write (RegWrite asserted).
 
 If no such dependency exists, hazard detection continues for instruction B using the same priority order as instruction A:
 - EX_MEM.A
