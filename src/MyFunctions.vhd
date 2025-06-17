@@ -16,14 +16,58 @@ use work.ENUM_T.all;
 
 package MyFunctions is
 
-  function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type;
-
-  function Get_Control(opcode : std_logic_vector(OPCODE_WIDTH-1 downto 0)) return control_Type;
+  subtype data_32 is std_logic_vector(DATA_WIDTH - 1 downto 0);
+  subtype data_12 is std_logic_vector(IMM12_WIDTH-1 downto 0);
+  subtype data_20 is std_logic_vector(IMM20_WIDTH-1 downto 0);
+  subtype data_op is std_logic_vector(OPCODE_WIDTH-1 downto 0);
   
+  -- generate 32 bits data
+  function get_32bits_val(rand_real : real) return data_32;
+  
+  -- generate 12 bits
+  function get_imm12_val(rand_real : real) return data_12;
+  
+  -- generate 20 bits data
+  function get_imm20_val(rand_real : real) return data_20;
+  
+  -- generate 7 bits data for opcode
+  function get_op (rand_real : real) return data_op;
+  
+  -- Generate forwarding status to determine the source of operands
+  function get_forwStats (rand : real) return HAZ_SIG;
+  
+  -- Generate decoded value
+  function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type;
+  
+  -- Generate control signal
+  function Get_Control(opcode : std_logic_vector(OPCODE_WIDTH-1 downto 0)) return control_Type;
+  -- Generate Hazard signal
   function get_hazard_sig  (ID      : DECODER_N_INSTR;   
                             ID_EX   : DECODER_N_INSTR; 
                             ID_EX_c : control_Type_N;    
                             EX_MEM  : RD_CTRL_N_INSTR; 
                             MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N;
+                            
+  -- generate operandA value
+  function get_operandA ( forwStats : HAZ_SIG; is_valid : HAZ_SIG;
+                          EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
+                          EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
+                          reg   : data_32 ) return data_32;
+                        
+  -- generate operandB value
+  function get_operandB ( op : data_op; forwStats : HAZ_SIG; is_valid : HAZ_SIG;
+                          EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
+                          EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
+                          reg : data_32; imm12 : data_12; imm20 : data_20      
+                         ) return data_32;
+  
+  -- generate operandB value
+  function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
+                          WB        : WB_CONTENT_N_INSTR;
+                          ID_EX     : DECODER_N_INSTR;
+                          reg       : REG_DATAS;
+                          Forw      : HDU_OUT_N
+                         ) return EX_OPERAND_N;                       
+ 
 
 end MyFunctions;

@@ -22,27 +22,29 @@ end tb_Forw;
 
 architecture sim of tb_Forw is
 
+constant clk_period : time := 10 ns;
 signal clk          : std_logic := '0';
 signal rst          : std_logic := '1';
 
-signal EX_MEM       : EX_CONTENT_N_INSTR; 
-signal WB           : WB_CONTENT_N_INSTR;
-signal ID_EX        : DECODER_N_INSTR;
-signal reg          : REG_DATAS;
-signal Forw         : HDU_OUT_N;   
-signal result       : EX_OPERAND_N;
+signal counter      : integer   := 0;
+signal Forw         : HDU_OUT_N          := EMPTY_HDU_OUT_N;  
+signal act_result   : EX_OPERAND_N       := EMPTY_EX_OPERAND_N; 
+signal exp_result   : EX_OPERAND_N       := EMPTY_EX_OPERAND_N; 
 
-constant clk_period : time := 10 ns;
-    
+signal EX_MEM       : EX_CONTENT_N_INSTR := EMPTY_EX_CONTENT_N_INSTR; 
+signal MEM_WB       : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR; 
+signal ID_EX        : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
+signal reg_val      : REG_DATAS          := EMPTY_REG_DATAS; 
+
 begin
     
     UUT : entity work.Forw_Unit port map (
         EX_MEM      => EX_MEM,
-        WB          => WB,
+        WB          => MEM_WB,
         ID_EX       => ID_EX,
-        reg         => reg,
+        reg         => reg_val,
         Forw        => Forw,
-        operands    => result
+        operands    => act_result
     );
     
     -- Clock generation only
@@ -58,22 +60,19 @@ begin
     end process;
 
     process
-  
-  
-    
-   
     -- randomized used for generating values
-    variable r_EX_MEM_A, r_EX_MEM_B, r_WB_A, r_WB_B : real;
-    variable reg1A, reg1B, reg2A, reg2B             : real;
-    variable r_imm_A, r_imm_B, r_op_A, r_op_B       : real;
-    variable seed1, seed2                           : positive  := 12345;
-    variable total_tests                            : integer   := 20000;
-    variable pass, fail                             : integer   := 0; -- Keep track test
-    variable EX_MEM_v                               : EX_CONTENT_N_INSTR; 
-    variable WB_v                                   : WB_CONTENT_N_INSTR;
-    variable ID_EX_v                                : DECODER_N_INSTR;
-    variable reg_v                                  : REG_DATAS;
-    variable Forw_v                                 : HDU_OUT_N;   
+    variable r_EX_MEM, r_WB, reg, r_imm12, r_imm20 : real;
+    variable rand, r_op                            : real;
+    variable seed1, seed2                          : positive              := 12345;
+    variable total_tests                           : integer               := 20000;
+    variable pass, fail, fail_o1A, fail_o1B        : integer               := 0; -- Keep track test
+    variable fail_o2A, fail_o2B                    : integer               := 0; -- Keep track test
+    variable EX_MEM_v                              : EX_CONTENT_N_INSTR    := EMPTY_EX_CONTENT_N_INSTR; 
+    variable MEM_WB_v                              : WB_CONTENT_N_INSTR    := EMPTY_WB_CONTENT_N_INSTR;
+    variable ID_EX_v                               : DECODER_N_INSTR       := EMPTY_DECODER_N_INSTR;
+    variable reg_v                                 : REG_DATAS             := EMPTY_REG_DATAS;
+    variable Forw_v                                : HDU_OUT_N             := EMPTY_HDU_OUT_N;  
+    variable exp_result_v                          : EX_OPERAND_N          := EMPTY_EX_OPERAND_N;  
     begin
         rst <= '1';
         wait for clk_period;
@@ -81,18 +80,76 @@ begin
         wait for clk_period;
         
         for i in 1 to total_tests loop
-            -- This will cover all instructions in riscv
-           
-           
-           
-            wait until rising_edge(clk);  -- Decoder captures input
-            wait for 1 ns;                -- Let ID_content settle
-
+            -- GENERATE value for possible source operands based on forwarding status
+            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.A.alu.result := get_32bits_val(r_EX_MEM); 
+            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.B.alu.result := get_32bits_val(r_EX_MEM); 
+            uniform(seed1, seed2, r_WB);     MEM_WB_v.A.data       := get_32bits_val(r_WB); 
+            uniform(seed1, seed2, r_WB);     MEM_WB_v.B.data       := get_32bits_val(r_WB); 
+            uniform(seed1, seed2, reg);      reg_v.one.A           := get_32bits_val(reg); 
+            uniform(seed1, seed2, reg);      reg_v.one.B           := get_32bits_val(reg);  
+            uniform(seed1, seed2, reg);      reg_v.two.A           := get_32bits_val(reg); 
+            uniform(seed1, seed2, reg);      reg_v.two.B           := get_32bits_val(reg); 
+            uniform(seed1, seed2, r_imm12);  ID_EX_v.A.imm12       := get_imm12_val(r_imm12);
+            uniform(seed1, seed2, r_imm12);  ID_EX_v.B.imm12       := get_imm12_val(r_imm12);
+            uniform(seed1, seed2, r_imm20);  ID_EX_v.A.imm20       := get_imm20_val(r_imm20);
+            uniform(seed1, seed2, r_imm20);  ID_EX_v.B.imm20       := get_imm20_val(r_imm20);
+            
+            -- GENERATE opcode value for operand B of 1st and 2nd instructions just in case no forwarding is needed
+            uniform(seed1, seed2, r_op);     ID_EX_v.A.op          := get_op(r_op);
+            uniform(seed1, seed2, r_op);     ID_EX_v.B.op          := get_op(r_op);
+            
+            -- GENERATE forwarding status
+            uniform(seed1, seed2, rand); Forw_v.A.forwA            := get_forwStats (rand);
+            uniform(seed1, seed2, rand); Forw_v.A.forwB            := get_forwStats (rand);
+            uniform(seed1, seed2, rand); Forw_v.B.forwA            := get_forwStats (rand);
+            uniform(seed1, seed2, rand); Forw_v.B.forwB            := get_forwStats (rand);
+            
+            -- Generate intra-dependency status between instruction A and B of the same cycle
+            uniform(seed1, seed2, rand);
+            if    rand < 0.1 then Forw_v.B.is_hold := HOLD_B;
+            else Forw_v.B.is_hold := NONE; end if;
+            
+            -- Get the expected output (see MyFuntions.vhd and MyFuntions_body.vhd)
+            exp_result_v := get_operands ( EX_MEM, MEM_WB, ID_EX, reg_val, Forw );
+            exp_result  <= exp_result_v;             
+            
+            counter <= i;
+            -- Assign inputs
+            Forw        <= Forw_v;
+            EX_MEM      <= EX_MEM_v;
+            MEM_WB      <= MEM_WB_v;
+            ID_EX       <= ID_EX_v;
+            reg_val     <= reg_v;
+            
+            wait until rising_edge(clk);  
             -- Compare fields
-            if actual_res = expected_res then
+            if act_result = exp_result then
                 pass := pass + 1; 
             else
                 fail := fail + 1;
+                if act_result.one.A /= exp_result.one.A then
+                    report "fail_o1A: " & integer'image(i);
+                    fail_o1A := fail_o1A + 1;
+                end if;
+                
+                if act_result.one.B /= exp_result.one.B then
+                    report "fail_o1B: " & integer'image(i);
+                    fail_o1B := fail_o1B + 1;
+                end if;
+                
+                if Forw_v.B.is_hold = B_INVALID then 
+                    pass := pass + 1;
+                else     
+                    if act_result.two.A /= exp_result.two.A then
+                        report "fail_o2A: " & integer'image(i);
+                        fail_o2A := fail_o2A + 1;
+                    end if;
+                    
+                    if act_result.two.B /= exp_result.two.B then
+                        report "fail_o2B: " & integer'image(i);
+                        fail_o2B := fail_o2B + 1;
+                    end if;
+                end if;
             end if;            
  
             wait for 10 ns;
@@ -103,6 +160,10 @@ begin
         report "Total tests: " & integer'image(total_tests)     severity note;
         report "Passed:      " & integer'image(pass)            severity note;
         report "Failed:      " & integer'image(fail)            severity note;
+        report "fail_o1A:    " & integer'image(fail_o1A)        severity note;
+        report "fail_o1B:    " & integer'image(fail_o1B)        severity note;
+        report "fail_o2A:    " & integer'image(fail_o2A)        severity note;
+        report "fail_o2B:    " & integer'image(fail_o2B)        severity note;
 
         wait;
     end process;

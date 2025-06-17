@@ -14,7 +14,55 @@ use work.Pipeline_Types.all;
 use work.initialize_records.all;
 use work.ENUM_T.all;
 package body MyFunctions is
-
+    
+    -- generate 32 bits data
+    function get_32bits_val(rand_real : real) return data_32 is
+    begin
+        return std_logic_vector(to_unsigned(integer(rand_real * 2147483648.0), 32)); 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- generate 12 bits data
+    function get_imm12_val(rand_real : real) return data_12 is
+    begin
+        return std_logic_vector(to_unsigned(integer(rand_real * 4096.0), 12)); 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- generate 20 bits data
+    function get_imm20_val(rand_real : real) return data_20 is
+    begin
+        return std_logic_vector(to_unsigned(integer(rand_real * 1048576.0), 20)); 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- generate 7 bits data for opcode
+    function get_op (rand_real : real) return data_op is
+    variable temp : std_logic_vector(OPCODE_WIDTH-1 downto 0) := ZERO_7bits;
+    begin    
+        if    rand_real < 0.3  then temp := LOAD;
+        elsif rand_real < 0.45  then temp := S_TYPE;
+        elsif rand_real < 0.8  then temp := B_TYPE;
+        elsif rand_real < 0.9  then temp := I_IMME;
+        else temp := R_TYPE; end if;
+        return temp; 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- Generate forwarding status to determine the source of operands
+    function get_forwStats (rand : real) return HAZ_SIG is
+    variable temp : HAZ_SIG := NONE;
+    begin
+        if    rand < 0.2 then temp := EX_MEM_A;
+        elsif rand < 0.4 then temp := EX_MEM_B;
+        elsif rand < 0.6 then temp := MEM_WB_A;
+        elsif rand < 0.8 then temp := MEM_WB_B;
+        else  temp := NONE; end if;
+        return temp; 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- Generate decoded value
     function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type is
     variable temp           : Decoder_Type                             := EMPTY_DECODER;
     variable imm12          : std_logic_vector(IMM12_WIDTH-1 downto 0) := ZERO_12bits;
@@ -95,8 +143,10 @@ package body MyFunctions is
            
         return temp;    
     end function;
+    
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
+    -- Generate control signal
     function Get_Control(opcode : std_logic_vector(OPCODE_WIDTH-1 downto 0)) return control_Type is
     variable temp : control_Type := EMPTY_control_Type;
     begin
@@ -141,6 +191,7 @@ package body MyFunctions is
 
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
+    -- Generate Hazard signal
    function get_hazard_sig  (ID      : DECODER_N_INSTR;   
                              ID_EX   : DECODER_N_INSTR; 
                              ID_EX_c : control_Type_N;    
@@ -230,4 +281,122 @@ package body MyFunctions is
         return temp;
     end function;
     
+
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- generate operandA value
+    function get_operandA ( forwStats : HAZ_SIG; is_valid : HAZ_SIG;
+                            EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
+                            EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
+                            reg   : data_32 ) return data_32 is
+    variable result : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+    begin    
+        if is_valid = HOLD_B then
+            result := ZERO_32bits;
+        else
+            case forwStats is
+                when EX_MEM_A    => result := EX_MEM_valA;
+                when EX_MEM_B    => result := EX_MEM_valB;
+                when MEM_WB_A    => result := MEM_WB_valA; 
+                when MEM_WB_B    => result := MEM_WB_valB; 
+                when others      => result := reg; 
+            end case;
+        end if;
+        return result; 
+    end function;
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- generate operandB value
+    function get_operandB ( op : data_op; forwStats : HAZ_SIG; is_valid : HAZ_SIG;
+                            EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
+                            EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
+                            reg : data_32; imm12 : data_12; imm20 : data_20      
+                           ) return data_32 is
+    variable result : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+    begin    
+        if is_valid = HOLD_B then
+            result := ZERO_32bits;
+        else
+            case forwStats is
+                when EX_MEM_A => result := EX_MEM_valA;
+                when EX_MEM_B => result := EX_MEM_valB;
+                when MEM_WB_A => result := MEM_WB_valA; 
+                when MEM_WB_B => result := MEM_WB_valB; 
+                when others => 
+                    case op is
+                        when R_TYPE | B_TYPE => result := reg;
+                        when I_IMME | LOAD => result := std_logic_vector(resize(signed(imm12), 32));
+                        when S_TYPE => result := std_logic_vector(resize(signed(imm12), 32));
+                        when others => result := (others => '0');
+                    end case; 
+            end case;
+        end if;
+        
+        return result; 
+    end function;
+    
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
+    -- GENERATE Forwarding Unit Result
+    function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
+                            WB        : WB_CONTENT_N_INSTR;
+                            ID_EX     : DECODER_N_INSTR;
+                            reg       : REG_DATAS;
+                            Forw      : HDU_OUT_N
+                         ) return EX_OPERAND_N is
+    variable result : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
+    variable is_B : HAZ_SIG;
+    begin    
+         case Forw.A.forwA is
+            when EX_MEM_A    => result.one.A := EX_MEM.A.alu.result;
+            when EX_MEM_B    => result.one.A := EX_MEM.B.alu.result;
+            when MEM_WB_A    => result.one.A := WB.A.data; 
+            when MEM_WB_B    => result.one.A := WB.B.data; 
+            when others      => result.one.A := reg.one.A; 
+        end case;
+        
+        case Forw.A.forwB is
+            when EX_MEM_A    => result.one.B := EX_MEM.A.alu.result;
+            when EX_MEM_B    => result.one.B := EX_MEM.B.alu.result;
+            when MEM_WB_A    => result.one.B := WB.A.data; 
+            when MEM_WB_B    => result.one.B := WB.B.data; 
+            when others      => 
+                case ID_EX.A.op is
+                    when R_TYPE | B_TYPE => result.one.B := reg.one.B;
+                    when I_IMME | LOAD => result.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
+                    when S_TYPE => result.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));  
+                    when others =>result.one.B := (others => '0');
+                end case;        
+        end case;
+        
+        is_B := B_INVALID;
+        if Forw.B.is_hold = NONE then
+            case Forw.B.forwA is
+                when EX_MEM_A    => result.two.A := EX_MEM.A.alu.result;
+                when EX_MEM_B    => result.two.A := EX_MEM.B.alu.result;
+                when MEM_WB_A    => result.two.A := WB.A.data; 
+                when MEM_WB_B    => result.two.A := WB.B.data; 
+                when others      => result.two.A := reg.two.A; 
+            end case;
+            
+            case Forw.B.forwB is
+                when EX_MEM_A    => result.two.B := EX_MEM.A.alu.result;
+                when EX_MEM_B    => result.two.B := EX_MEM.B.alu.result;
+                when MEM_WB_A    => result.two.B := WB.A.data; 
+                when MEM_WB_B    => result.two.B := WB.B.data; 
+                when others      => 
+                    case ID_EX.B.op is
+                        when R_TYPE | B_TYPE => result.two.B := reg.two.B;
+                        when I_IMME | LOAD => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
+                        when S_TYPE => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
+                        when others => result.two.B := (others => '0');
+                    end case;
+            end case;
+            
+            is_B := NONE;
+         end if;  
+        return result; 
+    end function;
+    
 end MyFunctions;
+

@@ -123,5 +123,12 @@ package initialize_records is
         A          => EMPTY_WB_CONTENT,
         B          => EMPTY_WB_CONTENT
     );
+    
+    constant EMPTY_EX_OPERAND_N : EX_OPERAND_N := (
+        one        => EMPTY_REG_DATA_PER,
+        is_valid   => NONE,
+        two        => EMPTY_REG_DATA_PER     
+    );
+
    
 end package;
