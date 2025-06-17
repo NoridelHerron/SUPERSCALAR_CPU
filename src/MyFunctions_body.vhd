@@ -53,10 +53,10 @@ package body MyFunctions is
     function get_forwStats (rand : real) return HAZ_SIG is
     variable temp : HAZ_SIG := NONE;
     begin
-        if    rand < 0.2 then temp := EX_MEM_A;
-        elsif rand < 0.4 then temp := EX_MEM_B;
-        elsif rand < 0.6 then temp := MEM_WB_A;
-        elsif rand < 0.8 then temp := MEM_WB_B;
+        if    rand < 0.05 then temp := EX_MEM_A;
+        elsif rand < 0.1  then temp := EX_MEM_B;
+        elsif rand < 0.15 then temp := MEM_WB_A;
+        elsif rand < 0.2 then temp := MEM_WB_B;
         else  temp := NONE; end if;
         return temp; 
     end function;
@@ -344,9 +344,10 @@ package body MyFunctions is
                             reg       : REG_DATAS;
                             Forw      : HDU_OUT_N
                          ) return EX_OPERAND_N is
-    variable result : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
-    variable is_B : HAZ_SIG;
-    begin    
+    variable result : EX_OPERAND_N := EMPTY_EX_OPERAND_N; 
+    begin
+         result.S_data1 := ZERO_32bits;
+         result.S_data2 := ZERO_32bits;    
          case Forw.A.forwA is
             when EX_MEM_A    => result.one.A := EX_MEM.A.alu.result;
             when EX_MEM_B    => result.one.A := EX_MEM.B.alu.result;
@@ -365,11 +366,12 @@ package body MyFunctions is
                     when R_TYPE | B_TYPE => result.one.B := reg.one.B;
                     when I_IMME | LOAD => result.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
                     when S_TYPE => result.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));  
+                         result.S_data1 := reg.one.B;
                     when others =>result.one.B := (others => '0');
                 end case;        
         end case;
         
-        is_B := B_INVALID;
+        result.is_valid := B_INVALID;
         if Forw.B.is_hold = NONE then
             case Forw.B.forwA is
                 when EX_MEM_A    => result.two.A := EX_MEM.A.alu.result;
@@ -389,11 +391,12 @@ package body MyFunctions is
                         when R_TYPE | B_TYPE => result.two.B := reg.two.B;
                         when I_IMME | LOAD => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
                         when S_TYPE => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
+                             result.S_data2 := reg.two.B;
                         when others => result.two.B := (others => '0');
                     end case;
             end case;
             
-            is_B := NONE;
+            result.is_valid := NONE;
          end if;  
         return result; 
     end function;

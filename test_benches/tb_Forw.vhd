@@ -64,7 +64,7 @@ begin
     variable r_EX_MEM, r_WB, reg, r_imm12, r_imm20 : real;
     variable rand, r_op                            : real;
     variable seed1, seed2                          : positive              := 12345;
-    variable total_tests                           : integer               := 20000;
+    variable total_tests, def                      : integer               := 20000;
     variable pass, fail, fail_o1A, fail_o1B        : integer               := 0; -- Keep track test
     variable fail_o2A, fail_o2B                    : integer               := 0; -- Keep track test
     variable EX_MEM_v                              : EX_CONTENT_N_INSTR    := EMPTY_EX_CONTENT_N_INSTR; 
@@ -103,53 +103,59 @@ begin
             uniform(seed1, seed2, rand); Forw_v.A.forwB            := get_forwStats (rand);
             uniform(seed1, seed2, rand); Forw_v.B.forwA            := get_forwStats (rand);
             uniform(seed1, seed2, rand); Forw_v.B.forwB            := get_forwStats (rand);
-            
+
             -- Generate intra-dependency status between instruction A and B of the same cycle
             uniform(seed1, seed2, rand);
-            if    rand < 0.1 then Forw_v.B.is_hold := HOLD_B;
-            else Forw_v.B.is_hold := NONE; end if;
+            if    rand < 0.1 then 
+                Forw_v.B.is_hold    := HOLD_B; 
+            else 
+                Forw_v.B.is_hold    := NONE; 
+            end if;
             
             -- Get the expected output (see MyFuntions.vhd and MyFuntions_body.vhd)
-            exp_result_v := get_operands ( EX_MEM, MEM_WB, ID_EX, reg_val, Forw );
-            exp_result  <= exp_result_v;             
-            
-            counter <= i;
+            exp_result_v := get_operands ( EX_MEM_v, MEM_WB_v, ID_EX_v, reg_v, Forw_v );
+            exp_result  <= exp_result_v;
             -- Assign inputs
             Forw        <= Forw_v;
             EX_MEM      <= EX_MEM_v;
             MEM_WB      <= MEM_WB_v;
             ID_EX       <= ID_EX_v;
             reg_val     <= reg_v;
-            
-            wait until rising_edge(clk);  
+            counter <= i;
+
+           -- wait until rising_edge(clk);  
             -- Compare fields
-            if act_result = exp_result then
+            if act_result.one = exp_result.one and act_result.two = exp_result.two then
                 pass := pass + 1; 
             else
-                fail := fail + 1;
-                if act_result.one.A /= exp_result.one.A then
-                    report "fail_o1A: " & integer'image(i);
-                    fail_o1A := fail_o1A + 1;
-                end if;
-                
-                if act_result.one.B /= exp_result.one.B then
-                    report "fail_o1B: " & integer'image(i);
-                    fail_o1B := fail_o1B + 1;
-                end if;
-                
-                if Forw_v.B.is_hold = B_INVALID then 
-                    pass := pass + 1;
-                else     
-                    if act_result.two.A /= exp_result.two.A then
-                        report "fail_o2A: " & integer'image(i);
-                        fail_o2A := fail_o2A + 1;
+                if Forw_v.B.is_hold = HOLD_B then
+                    pass := pass + 1;  
+                else
+                    if act_result.one.A /= exp_result.one.A then
+                        report "fail_o1A: " & integer'image(i);
+                        fail_o1A := fail_o1A + 1;
                     end if;
                     
-                    if act_result.two.B /= exp_result.two.B then
-                        report "fail_o2B: " & integer'image(i);
-                        fail_o2B := fail_o2B + 1;
+                    if act_result.one.B /= exp_result.one.B then
+                        report "fail_o1B: " & integer'image(i);
+                        fail_o1B := fail_o1B + 1;
                     end if;
-                end if;
+                    
+                    if Forw_v.B.is_hold = B_INVALID then 
+                        pass := pass + 1;
+                    else     
+                        if act_result.two.A /= exp_result.two.A then
+                            report "fail_o2A: " & integer'image(i);
+                            fail_o2A := fail_o2A + 1;
+                        end if;
+                        
+                        if act_result.two.B /= exp_result.two.B then
+                            report "fail_o2B: " & integer'image(i);
+                            fail_o2B := fail_o2B + 1;
+                        end if;
+                    end if;
+                    fail := fail + 1;
+                end if; 
             end if;            
  
             wait for 10 ns;
