@@ -58,9 +58,7 @@ begin
                     when I_IMME | LOAD =>
                         operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
                     when S_TYPE => 
-                        operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm12 & '0'), 32));
-                     when JAL =>
-                        operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm20 & '0'), 32));
+                        operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm12), 32)); 
                     when others      => operands.one.B <= (others => '0');
                 end case;        
         end case;
@@ -82,17 +80,14 @@ begin
                 when MEM_WB_B    => operands.two.B <= WB.B.data; 
                 when others      => 
                     case ID_EX.B.op is
-                    when R_TYPE | B_TYPE => 
-                        operands.two.B <= reg.two.B;
-                    when I_IMME | LOAD =>
-                        operands.two.B <= std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
-                    when S_TYPE => 
-                        operands.two.B <= std_logic_vector(resize(signed(ID_EX.A.imm12 & '0'), 32));
-                    when JAL =>
-                        operands.two.B <= std_logic_vector(resize(signed(ID_EX.A.imm20 & '0'), 32));
-                    when others      => operands.two.B <= (others => '0');
-                end case;
-                 
+                        when R_TYPE | B_TYPE => 
+                            operands.two.B <= reg.two.B;
+                        when I_IMME | LOAD =>
+                            operands.two.B <= std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
+                        when S_TYPE => 
+                            operands.two.B <= std_logic_vector(resize(signed(ID_EX.B.imm12), 32));            
+                        when others      => operands.two.B <= (others => '0');
+                    end case;                 
             end case;
             
             is_B := NONE;
