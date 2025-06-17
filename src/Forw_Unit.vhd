@@ -36,64 +36,70 @@ architecture Behavioral of Forw_Unit is
 
 begin
     process (EX_MEM, WB, ID_EX, reg, Forw)
-    variable is_B : HAZ_SIG;
+    variable temp       : EX_OPERAND_N                            := EMPTY_EX_OPERAND_N;
     begin
+        temp.S_data1 := ZERO_32bits;
+        temp.S_data2 := ZERO_32bits;
+        temp.two.A   := ZERO_32bits;  
+        temp.two.B   := ZERO_32bits;   
         case Forw.A.forwA is
-            when EX_MEM_A    => operands.one.A <= EX_MEM.A.alu.result;
-            when EX_MEM_B    => operands.one.A <= EX_MEM.B.alu.result;
-            when MEM_WB_A    => operands.one.A <= WB.A.data; 
-            when MEM_WB_B    => operands.one.A <= WB.B.data; 
-            when others      => operands.one.A <= reg.one.A; 
+            when EX_MEM_A    => temp.one.A := EX_MEM.A.alu.result;
+            when EX_MEM_B    => temp.one.A := EX_MEM.B.alu.result;
+            when MEM_WB_A    => temp.one.A := WB.A.data; 
+            when MEM_WB_B    => temp.one.A := WB.B.data; 
+            when others      => temp.one.A := reg.one.A; 
         end case;
         
         case Forw.A.forwB is
-            when EX_MEM_A    => operands.one.B <= EX_MEM.A.alu.result;
-            when EX_MEM_B    => operands.one.B <= EX_MEM.B.alu.result;
-            when MEM_WB_A    => operands.one.B <= WB.A.data; 
-            when MEM_WB_B    => operands.one.B <= WB.B.data; 
+            when EX_MEM_A    => temp.one.B := EX_MEM.A.alu.result;
+            when EX_MEM_B    => temp.one.B := EX_MEM.B.alu.result;
+            when MEM_WB_A    => temp.one.B := WB.A.data; 
+            when MEM_WB_B    => temp.one.B := WB.B.data; 
             when others      => 
                 case ID_EX.A.op is
                     when R_TYPE | B_TYPE => 
-                        operands.one.B <= reg.one.B;
+                        temp.one.B := reg.one.B;
                     when I_IMME | LOAD =>
-                        operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
+                        temp.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
                     when S_TYPE => 
-                        operands.one.B <= std_logic_vector(resize(signed(ID_EX.A.imm12), 32)); 
+                        temp.one.B   := std_logic_vector(resize(signed(ID_EX.A.imm12), 32)); 
+                        temp.S_data1 := reg.one.B;
                     when others      => operands.one.B <= (others => '0');
                 end case;        
         end case;
         
-        is_B := B_INVALID;
+        temp.is_valid := B_INVALID;
         if Forw.B.is_hold = NONE then
             case Forw.B.forwA is
-                when EX_MEM_A    => operands.two.A <= EX_MEM.A.alu.result;
-                when EX_MEM_B    => operands.two.A <= EX_MEM.B.alu.result;
-                when MEM_WB_A    => operands.two.A <= WB.A.data; 
-                when MEM_WB_B    => operands.two.A <= WB.B.data; 
-                when others      => operands.two.A <= reg.two.A; 
+                when EX_MEM_A    => temp.two.A := EX_MEM.A.alu.result;
+                when EX_MEM_B    => temp.two.A := EX_MEM.B.alu.result;
+                when MEM_WB_A    => temp.two.A := WB.A.data; 
+                when MEM_WB_B    => temp.two.A := WB.B.data; 
+                when others      => temp.two.A := reg.two.A; 
             end case;
             
             case Forw.B.forwB is
-                when EX_MEM_A    => operands.two.B <= EX_MEM.A.alu.result;
-                when EX_MEM_B    => operands.two.B <= EX_MEM.B.alu.result;
-                when MEM_WB_A    => operands.two.B <= WB.A.data; 
-                when MEM_WB_B    => operands.two.B <= WB.B.data; 
+                when EX_MEM_A    => temp.two.B := EX_MEM.A.alu.result;
+                when EX_MEM_B    => temp.two.B := EX_MEM.B.alu.result;
+                when MEM_WB_A    => temp.two.B := WB.A.data; 
+                when MEM_WB_B    => temp.two.B := WB.B.data; 
                 when others      => 
                     case ID_EX.B.op is
                         when R_TYPE | B_TYPE => 
-                            operands.two.B <= reg.two.B;
+                            temp.two.B := reg.two.B;
                         when I_IMME | LOAD =>
-                            operands.two.B <= std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
+                            temp.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
                         when S_TYPE => 
-                            operands.two.B <= std_logic_vector(resize(signed(ID_EX.B.imm12), 32));            
+                            temp.two.B   := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));   
+                            temp.S_data2 := reg.two.B;         
                         when others      => operands.two.B <= (others => '0');
                     end case;                 
             end case;
             
-            is_B := NONE;
+            temp.is_valid := NONE;
          end if;  
          -- If B is dependent to A, no need to send anything, but we need an identifier if the value shown is invalid.
-         operands.is_valid <= is_B; 
+         operands <= temp; 
     end process;
 
 end Behavioral;
