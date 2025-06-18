@@ -18,6 +18,8 @@ package const_Types is
     constant FLAGs_WIDTH    : integer := 3;
     constant SHIFT_WIDTH    : integer := 5;
     constant MAX            : integer := 2147483647;
+    constant FIVE           : integer := 5;
+    constant FOUR           : integer := 4;
     
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';

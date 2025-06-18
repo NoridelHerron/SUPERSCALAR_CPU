@@ -283,63 +283,10 @@ package body MyFunctions is
     
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
-    -- generate operandA value
-    function get_operandA ( forwStats : HAZ_SIG; is_valid : HAZ_SIG;
-                            EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
-                            EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
-                            reg   : data_32 ) return data_32 is
-    variable result : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
-    begin    
-        if is_valid = HOLD_B then
-            result := ZERO_32bits;
-        else
-            case forwStats is
-                when EX_MEM_A    => result := EX_MEM_valA;
-                when EX_MEM_B    => result := EX_MEM_valB;
-                when MEM_WB_A    => result := MEM_WB_valA; 
-                when MEM_WB_B    => result := MEM_WB_valB; 
-                when others      => result := reg; 
-            end case;
-        end if;
-        return result; 
-    end function;
-    -----------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------
-    -- generate operandB value
-    function get_operandB ( op : data_op; forwStats : HAZ_SIG; is_valid : HAZ_SIG;
-                            EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
-                            EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
-                            reg : data_32; imm12 : data_12; imm20 : data_20      
-                           ) return data_32 is
-    variable result : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
-    begin    
-        if is_valid = HOLD_B then
-            result := ZERO_32bits;
-        else
-            case forwStats is
-                when EX_MEM_A => result := EX_MEM_valA;
-                when EX_MEM_B => result := EX_MEM_valB;
-                when MEM_WB_A => result := MEM_WB_valA; 
-                when MEM_WB_B => result := MEM_WB_valB; 
-                when others => 
-                    case op is
-                        when R_TYPE | B_TYPE => result := reg;
-                        when I_IMME | LOAD => result := std_logic_vector(resize(signed(imm12), 32));
-                        when S_TYPE => result := std_logic_vector(resize(signed(imm12), 32));
-                        when others => result := (others => '0');
-                    end case; 
-            end case;
-        end if;
-        
-        return result; 
-    end function;
-    
-    -----------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------
     -- GENERATE Forwarding Unit Result
     function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
-                            WB        : WB_CONTENT_N_INSTR;
-                            ID_EX     : DECODER_N_INSTR;
+                            WB        : WB_data_N_INSTR;
+                            ID_EX     : DecForw_N_INSTR;
                             reg       : REG_DATAS;
                             Forw      : HDU_OUT_N
                          ) return EX_OPERAND_N is
@@ -348,18 +295,18 @@ package body MyFunctions is
          result.S_data1 := ZERO_32bits;
          result.S_data2 := ZERO_32bits;    
          case Forw.A.forwA is
-            when EX_MEM_A    => result.one.A := EX_MEM.A.alu.result;
-            when EX_MEM_B    => result.one.A := EX_MEM.B.alu.result;
-            when MEM_WB_A    => result.one.A := WB.A.data; 
-            when MEM_WB_B    => result.one.A := WB.B.data; 
+            when EX_MEM_A    => result.one.A := EX_MEM.A;
+            when EX_MEM_B    => result.one.A := EX_MEM.B;
+            when MEM_WB_A    => result.one.A := WB.A; 
+            when MEM_WB_B    => result.one.A := WB.B; 
             when others      => result.one.A := reg.one.A; 
         end case;
         
         case Forw.A.forwB is
-            when EX_MEM_A    => result.one.B := EX_MEM.A.alu.result;
-            when EX_MEM_B    => result.one.B := EX_MEM.B.alu.result;
-            when MEM_WB_A    => result.one.B := WB.A.data; 
-            when MEM_WB_B    => result.one.B := WB.B.data; 
+            when EX_MEM_A    => result.one.B := EX_MEM.A;
+            when EX_MEM_B    => result.one.B := EX_MEM.B;
+            when MEM_WB_A    => result.one.B := WB.A; 
+            when MEM_WB_B    => result.one.B := WB.B; 
             when others      => 
                 case ID_EX.A.op is
                     when R_TYPE | B_TYPE => result.one.B := reg.one.B;
@@ -373,18 +320,18 @@ package body MyFunctions is
         result.is_valid := B_INVALID;
         if Forw.B.is_hold = NONE then
             case Forw.B.forwA is
-                when EX_MEM_A    => result.two.A := EX_MEM.A.alu.result;
-                when EX_MEM_B    => result.two.A := EX_MEM.B.alu.result;
-                when MEM_WB_A    => result.two.A := WB.A.data; 
-                when MEM_WB_B    => result.two.A := WB.B.data; 
+                when EX_MEM_A    => result.two.A := EX_MEM.A;
+                when EX_MEM_B    => result.two.A := EX_MEM.B;
+                when MEM_WB_A    => result.two.A := WB.A; 
+                when MEM_WB_B    => result.two.A := WB.B; 
                 when others      => result.two.A := reg.two.A; 
             end case;
             
             case Forw.B.forwB is
-                when EX_MEM_A    => result.two.B := EX_MEM.A.alu.result;
-                when EX_MEM_B    => result.two.B := EX_MEM.B.alu.result;
-                when MEM_WB_A    => result.two.B := WB.A.data; 
-                when MEM_WB_B    => result.two.B := WB.B.data; 
+                when EX_MEM_A    => result.two.B := EX_MEM.A;
+                when EX_MEM_B    => result.two.B := EX_MEM.B;
+                when MEM_WB_A    => result.two.B := WB.A; 
+                when MEM_WB_B    => result.two.B := WB.B; 
                 when others      => 
                     case ID_EX.B.op is
                         when R_TYPE | B_TYPE => result.two.B := reg.two.B;
