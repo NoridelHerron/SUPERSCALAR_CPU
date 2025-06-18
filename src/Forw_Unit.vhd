@@ -24,8 +24,8 @@ use work.initialize_records.all;
 entity Forw_Unit is
     Port ( 
             EX_MEM      : in EX_CONTENT_N_INSTR; 
-            WB          : in WB_CONTENT_N_INSTR;
-            ID_EX       : in DECODER_N_INSTR;
+            WB          : in WB_data_N_INSTR;
+            ID_EX       : in DecForw_N_INSTR;
             reg         : in REG_DATAS;
             Forw        : in HDU_OUT_N;   
             operands    : out EX_OPERAND_N
@@ -36,25 +36,25 @@ architecture Behavioral of Forw_Unit is
 
 begin
     process (EX_MEM, WB, ID_EX, reg, Forw)
-    variable temp       : EX_OPERAND_N                            := EMPTY_EX_OPERAND_N;
+    variable temp       : EX_OPERAND_N    := EMPTY_EX_OPERAND_N;
     begin
         temp.S_data1 := ZERO_32bits;
         temp.S_data2 := ZERO_32bits;
         temp.two.A   := ZERO_32bits;  
         temp.two.B   := ZERO_32bits;   
         case Forw.A.forwA is
-            when EX_MEM_A    => temp.one.A := EX_MEM.A.alu.result;
-            when EX_MEM_B    => temp.one.A := EX_MEM.B.alu.result;
-            when MEM_WB_A    => temp.one.A := WB.A.data; 
-            when MEM_WB_B    => temp.one.A := WB.B.data; 
+            when EX_MEM_A    => temp.one.A := EX_MEM.A;
+            when EX_MEM_B    => temp.one.A := EX_MEM.B;
+            when MEM_WB_A    => temp.one.A := WB.A; 
+            when MEM_WB_B    => temp.one.A := WB.B; 
             when others      => temp.one.A := reg.one.A; 
         end case;
         
         case Forw.A.forwB is
-            when EX_MEM_A    => temp.one.B := EX_MEM.A.alu.result;
-            when EX_MEM_B    => temp.one.B := EX_MEM.B.alu.result;
-            when MEM_WB_A    => temp.one.B := WB.A.data; 
-            when MEM_WB_B    => temp.one.B := WB.B.data; 
+            when EX_MEM_A    => temp.one.B := EX_MEM.A;
+            when EX_MEM_B    => temp.one.B := EX_MEM.B;
+            when MEM_WB_A    => temp.one.B := WB.A; 
+            when MEM_WB_B    => temp.one.B := WB.B; 
             when others      => 
                 case ID_EX.A.op is
                     when R_TYPE | B_TYPE => 
@@ -71,18 +71,18 @@ begin
         temp.is_valid := B_INVALID;
         if Forw.B.is_hold = NONE then
             case Forw.B.forwA is
-                when EX_MEM_A    => temp.two.A := EX_MEM.A.alu.result;
-                when EX_MEM_B    => temp.two.A := EX_MEM.B.alu.result;
-                when MEM_WB_A    => temp.two.A := WB.A.data; 
-                when MEM_WB_B    => temp.two.A := WB.B.data; 
+                when EX_MEM_A    => temp.two.A := EX_MEM.A;
+                when EX_MEM_B    => temp.two.A := EX_MEM.B;
+                when MEM_WB_A    => temp.two.A := WB.A; 
+                when MEM_WB_B    => temp.two.A := WB.B; 
                 when others      => temp.two.A := reg.two.A; 
             end case;
             
             case Forw.B.forwB is
-                when EX_MEM_A    => temp.two.B := EX_MEM.A.alu.result;
-                when EX_MEM_B    => temp.two.B := EX_MEM.B.alu.result;
-                when MEM_WB_A    => temp.two.B := WB.A.data; 
-                when MEM_WB_B    => temp.two.B := WB.B.data; 
+                when EX_MEM_A    => temp.two.B := EX_MEM.A;
+                when EX_MEM_B    => temp.two.B := EX_MEM.B;
+                when MEM_WB_A    => temp.two.B := WB.A; 
+                when MEM_WB_B    => temp.two.B := WB.B; 
                 when others      => 
                     case ID_EX.B.op is
                         when R_TYPE | B_TYPE => 

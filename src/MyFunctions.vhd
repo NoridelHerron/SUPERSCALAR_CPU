@@ -48,23 +48,10 @@ package MyFunctions is
                             EX_MEM  : RD_CTRL_N_INSTR; 
                             MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N;
                             
-  -- generate operandA value
-  function get_operandA ( forwStats : HAZ_SIG; is_valid : HAZ_SIG;
-                          EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
-                          EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
-                          reg   : data_32 ) return data_32;
-                        
-  -- generate operandB value
-  function get_operandB ( op : data_op; forwStats : HAZ_SIG; is_valid : HAZ_SIG;
-                          EX_MEM_valA : data_32; MEM_WB_valA : data_32;   
-                          EX_MEM_valB : data_32; MEM_WB_valB : data_32;  
-                          reg : data_32; imm12 : data_12; imm20 : data_20      
-                         ) return data_32;
-  
   -- generate operandB value
   function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
-                          WB        : WB_CONTENT_N_INSTR;
-                          ID_EX     : DECODER_N_INSTR;
+                          WB        : WB_data_N_INSTR;
+                          ID_EX     : DecForw_N_INSTR;
                           reg       : REG_DATAS;
                           Forw      : HDU_OUT_N
                          ) return EX_OPERAND_N;                       

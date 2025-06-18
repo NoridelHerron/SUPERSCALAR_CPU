@@ -99,17 +99,6 @@ package Pipeline_Types is
         C           : FLAG_TYPE;
         N           : FLAG_TYPE;
     end record;
-    
-   type EX_CONTENT is record
-        instrType  : INSTRUCTION_T;
-        reg_values : REG_DATA_PER;
-        alu        : ALU_out; 
-    end record;
-    
-    type EX_CONTENT_N_INSTR is record
-        A           : EX_CONTENT;
-        B           : EX_CONTENT;
-    end record;
 
     type BranchAndJump_Type is record
         target      : std_logic_vector(DATA_WIDTH-1 downto 0);
@@ -119,6 +108,7 @@ package Pipeline_Types is
     -----------------------------------------MEM STAGE------------------------------------------
     
     -----------------------------------------WB STAGE------------------------------------------ 
+    
     type WB_CONTENT is record
         data        : std_logic_vector(DATA_WIDTH-1 downto 0);
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
@@ -137,5 +127,29 @@ package Pipeline_Types is
         two      : REG_DATA_PER;
         S_data2  : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
-   
+    
+    -----------------------------------------FORWARDING UNIT------------------------------------------ 
+    type DecForw_Type is record
+        op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
+        imm12       : std_logic_vector(IMM12_WIDTH-1 downto 0); 
+        imm20       : std_logic_vector(IMM20_WIDTH-1 downto 0); 
+    end record;
+    
+    type DecForw_N_INSTR is record
+        A           : DecForw_Type;
+        B           : DecForw_Type;
+    end record;
+
+    type EX_CONTENT_N_INSTR is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0);  
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);  
+    end record;
+    
+    type WB_data_N_INSTR is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0);
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);
+    end record;
+    
+    
+    
 end package;

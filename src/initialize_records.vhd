@@ -96,17 +96,6 @@ package initialize_records is
         C           => NONE,
         N           => NONE
     );
-
-    constant EMPTY_EX_CONTENT : EX_CONTENT := (
-        instrType   => NONE,
-        reg_values  => EMPTY_REG_DATA_PER,
-        alu         => EMPTY_ALU_out
-    );
-    
-    constant EMPTY_EX_CONTENT_N_INSTR : EX_CONTENT_N_INSTR := (
-        A          => EMPTY_EX_CONTENT,
-        B          => EMPTY_EX_CONTENT
-    );
     
     constant EMPTY_BranchAndJump_Type : BranchAndJump_Type := (
         target      => ZERO_32bits,
@@ -123,7 +112,7 @@ package initialize_records is
         A          => EMPTY_WB_CONTENT,
         B          => EMPTY_WB_CONTENT
     );
-    
+
     constant EMPTY_EX_OPERAND_N : EX_OPERAND_N := (
         one        => EMPTY_REG_DATA_PER,
         S_data1    => ZERO_32bits,
@@ -132,5 +121,25 @@ package initialize_records is
         S_data2    => ZERO_32bits     
     );
 
-   
+    -----------------------------------------FORWARDING UNIT------------------------------------------ 
+    constant EMPTY_DecForw : DecForw_Type := (
+        op          => ZERO_7bits,
+        imm12       => ZERO_12bits,
+        imm20       => ZERO_20bits
+    );
+    
+    constant EMPTY_DecForw_N_INSTR : DecForw_N_INSTR := (
+        A          => EMPTY_DecForw,
+        B          => EMPTY_DecForw
+    );
+    
+    constant EMPTY_EX_CONTENT_N_INSTR : EX_CONTENT_N_INSTR := (
+        A          => ZERO_32bits,
+        B          => ZERO_32bits
+    );
+    
+    constant EMPTY_WB_data_N_INSTR : WB_data_N_INSTR := (
+        A          => ZERO_32bits,
+        B          => ZERO_32bits
+    );
 end package;
