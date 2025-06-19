@@ -67,9 +67,8 @@ begin
                     when others      => operands.one.B <= (others => '0');
                 end case;        
         end case;
-        
-        temp.is_valid := B_INVALID;
-        if Forw.B.is_hold = NONE then
+
+        if Forw.B.forwA /= FORW_FROM_A then
             case Forw.B.forwA is
                 when EX_MEM_A    => temp.two.A := EX_MEM.A;
                 when EX_MEM_B    => temp.two.A := EX_MEM.B;
@@ -77,7 +76,9 @@ begin
                 when MEM_WB_B    => temp.two.A := WB.B; 
                 when others      => temp.two.A := reg.two.A; 
             end case;
-            
+        end if;
+        
+        if Forw.B.forwB /= FORW_FROM_A then    
             case Forw.B.forwB is
                 when EX_MEM_A    => temp.two.B := EX_MEM.A;
                 when EX_MEM_B    => temp.two.B := EX_MEM.B;
@@ -95,8 +96,6 @@ begin
                         when others      => operands.two.B <= (others => '0');
                     end case;                 
             end case;
-            
-            temp.is_valid := NONE;
          end if;  
          -- If B is dependent to A, no need to send anything, but we need an identifier if the value shown is invalid.
          operands <= temp; 

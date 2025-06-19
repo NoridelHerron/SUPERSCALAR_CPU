@@ -197,9 +197,8 @@ package body MyFunctions is
                              ID_EX_c : control_Type_N;    
                              EX_MEM  : RD_CTRL_N_INSTR; 
                              MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N is
-    variable temp            : HDU_OUT_N := EMPTY_HDU_OUT_N;
+    variable temp : HDU_OUT_N := EMPTY_HDU_OUT_N;
     begin
-        temp.B.is_hold := NONE; 
          -- Forwarding logic (always active)
  -------------------------------------------------- INSTRUCTION A --------------------------------------------------
          -- Forward A
@@ -267,9 +266,8 @@ package body MyFunctions is
         end if;
  
         -- STALL B
-        if temp.B.ForwA = FORW_FROM_A or temp.B.ForwB = FORW_FROM_A or temp.A.stall /= NONE then
+        if temp.A.stall /= NONE then
             temp.B.stall := STALL_FROM_A; 
-            temp.B.is_hold := HOLD_B; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
@@ -317,8 +315,7 @@ package body MyFunctions is
                 end case;        
         end case;
         
-        result.is_valid := B_INVALID;
-        if Forw.B.is_hold = NONE then
+        if Forw.B.forwA /= FORW_FROM_A then
             case Forw.B.forwA is
                 when EX_MEM_A    => result.two.A := EX_MEM.A;
                 when EX_MEM_B    => result.two.A := EX_MEM.B;
@@ -326,7 +323,9 @@ package body MyFunctions is
                 when MEM_WB_B    => result.two.A := WB.B; 
                 when others      => result.two.A := reg.two.A; 
             end case;
-            
+        end if;  
+        
+        if Forw.B.forwB /= FORW_FROM_A then  
             case Forw.B.forwB is
                 when EX_MEM_A    => result.two.B := EX_MEM.A;
                 when EX_MEM_B    => result.two.B := EX_MEM.B;
@@ -341,8 +340,7 @@ package body MyFunctions is
                         when others => result.two.B := (others => '0');
                     end case;
             end case;
-            
-            result.is_valid := NONE;
+
          end if;  
         return result; 
     end function;

@@ -107,9 +107,16 @@ begin
             -- Generate intra-dependency status between instruction A and B of the same cycle
             uniform(seed1, seed2, rand);
             if    rand < 0.1 then 
-                Forw_v.B.is_hold    := HOLD_B; 
+                Forw_v.B.forwA    := FORW_FROM_A; 
             else 
-                Forw_v.B.is_hold    := NONE; 
+                Forw_v.B.forwA    := NONE; 
+            end if;
+            
+            uniform(seed1, seed2, rand);
+            if    rand < 0.1 then 
+                Forw_v.B.forwB    := FORW_FROM_A; 
+            else 
+                Forw_v.B.forwB    := NONE; 
             end if;
             
             -- Get the expected output (see MyFuntions.vhd and MyFuntions_body.vhd)
@@ -128,7 +135,7 @@ begin
             if act_result.one = exp_result.one and act_result.two = exp_result.two then
                 pass := pass + 1; 
             else
-                if Forw_v.B.is_hold = HOLD_B then
+                if Forw_v.B.forwA = FORW_FROM_A then
                     pass := pass + 1;  
                 else
                     if act_result.one.A /= exp_result.one.A then
@@ -141,7 +148,7 @@ begin
                         fail_o1B := fail_o1B + 1;
                     end if;
                     
-                    if Forw_v.B.is_hold = B_INVALID then 
+                    if Forw_v.B.forwB = FORW_FROM_A then 
                         pass := pass + 1;
                     else     
                         if act_result.two.A /= exp_result.two.A then

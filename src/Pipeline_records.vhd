@@ -47,7 +47,6 @@ package Pipeline_Types is
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
         stall       : HAZ_SIG;
-        is_hold     : HAZ_SIG;
     end record;
     
     type HDU_OUT_N is record
@@ -123,7 +122,6 @@ package Pipeline_Types is
     type EX_OPERAND_N is record
         one      : REG_DATA_PER;
         S_data1  : std_logic_vector(DATA_WIDTH-1 downto 0); 
-        is_valid : HAZ_SIG; 
         two      : REG_DATA_PER;
         S_data2  : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
@@ -149,7 +147,5 @@ package Pipeline_Types is
         A           : std_logic_vector(DATA_WIDTH-1 downto 0);
         B           : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
-    
-    
-    
+
 end package;
