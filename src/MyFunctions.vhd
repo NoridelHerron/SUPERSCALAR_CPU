@@ -49,12 +49,18 @@ package MyFunctions is
                             MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N;
                             
   -- generate operandB value
-  function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
-                          WB        : WB_data_N_INSTR;
-                          ID_EX     : DecForw_N_INSTR;
+  function get_operands ( EX_MEM    : EX_CONTENT_N; 
+                          WB        : WB_CONTENT_N_INSTR;
+                          ID_EX     : DECODER_N_INSTR;
                           reg       : REG_DATAS;
                           Forw      : HDU_OUT_N
-                         ) return EX_OPERAND_N;                       
+                         ) return EX_OPERAND_N;      
+                         
+  function get_alu_res ( f3 : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
+                         f7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
+                         A  : std_logic_vector(DATA_WIDTH-1 downto 0);
+                         B  : std_logic_vector(DATA_WIDTH-1 downto 0)
+                         ) return  ALU_out;                       
  
 
 end MyFunctions;

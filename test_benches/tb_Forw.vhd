@@ -31,9 +31,9 @@ signal Forw         : HDU_OUT_N             := EMPTY_HDU_OUT_N;
 signal act_result   : EX_OPERAND_N          := EMPTY_EX_OPERAND_N; 
 signal exp_result   : EX_OPERAND_N          := EMPTY_EX_OPERAND_N; 
 
-signal EX_MEM       : EX_CONTENT_N_INSTR    := EMPTY_EX_CONTENT_N_INSTR; 
-signal MEM_WB       : WB_data_N_INSTR       := EMPTY_WB_data_N_INSTR; 
-signal ID_EX        : DecForw_N_INSTR       := EMPTY_DecForw_N_INSTR; 
+signal EX_MEM       : EX_CONTENT_N          := EMPTY_EX_CONTENT_N; 
+signal MEM_WB       : WB_CONTENT_N_INSTR    := EMPTY_WB_CONTENT_N_INSTR; 
+signal ID_EX        : DECODER_N_INSTR       := EMPTY_DECODER_N_INSTR; 
 signal reg_val      : REG_DATAS             := EMPTY_REG_DATAS; 
 
 begin
@@ -63,16 +63,16 @@ begin
     -- randomized used for generating values
     variable r_EX_MEM, r_WB, reg, r_imm12, r_imm20 : real;
     variable rand, r_op                            : real;
-    variable seed1, seed2                          : positive              := 12345;
-    variable total_tests, def                      : integer               := 20000;
-    variable pass, fail, fail_o1A, fail_o1B        : integer               := 0; -- Keep track test
-    variable fail_o2A, fail_o2B                    : integer               := 0; -- Keep track test
-    variable EX_MEM_v                              : EX_CONTENT_N_INSTR    := EMPTY_EX_CONTENT_N_INSTR; 
-    variable MEM_WB_v                              : WB_data_N_INSTR       := EMPTY_WB_data_N_INSTR;
-    variable ID_EX_v                               : DecForw_N_INSTR       := EMPTY_DecForw_N_INSTR;
-    variable reg_v                                 : REG_DATAS             := EMPTY_REG_DATAS;
-    variable Forw_v                                : HDU_OUT_N             := EMPTY_HDU_OUT_N;  
-    variable exp_result_v                          : EX_OPERAND_N          := EMPTY_EX_OPERAND_N;  
+    variable seed1, seed2                          : positive           := 12345;
+    variable total_tests, def                      : integer            := 20000;
+    variable pass, fail, fail_o1A, fail_o1B        : integer            := 0; -- Keep track test
+    variable fail_o2A, fail_o2B                    : integer            := 0; -- Keep track test
+    variable EX_MEM_v                              : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+    variable MEM_WB_v                              : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
+    variable ID_EX_v                               : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
+    variable reg_v                                 : REG_DATAS          := EMPTY_REG_DATAS;
+    variable Forw_v                                : HDU_OUT_N          := EMPTY_HDU_OUT_N;  
+    variable exp_result_v                          : EX_OPERAND_N       := EMPTY_EX_OPERAND_N;  
     begin
         rst <= '1';
         wait for clk_period;
@@ -81,18 +81,18 @@ begin
         
         for i in 1 to total_tests loop
             -- GENERATE value for possible source operands based on forwarding status
-            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.A       := get_32bits_val(r_EX_MEM); 
-            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.B       := get_32bits_val(r_EX_MEM); 
-            uniform(seed1, seed2, r_WB);     MEM_WB_v.A       := get_32bits_val(r_WB); 
-            uniform(seed1, seed2, r_WB);     MEM_WB_v.B       := get_32bits_val(r_WB); 
-            uniform(seed1, seed2, reg);      reg_v.one.A      := get_32bits_val(reg); 
-            uniform(seed1, seed2, reg);      reg_v.one.B      := get_32bits_val(reg);  
-            uniform(seed1, seed2, reg);      reg_v.two.A      := get_32bits_val(reg); 
-            uniform(seed1, seed2, reg);      reg_v.two.B      := get_32bits_val(reg); 
-            uniform(seed1, seed2, r_imm12);  ID_EX_v.A.imm12  := get_imm12_val(r_imm12);
-            uniform(seed1, seed2, r_imm12);  ID_EX_v.B.imm12  := get_imm12_val(r_imm12);
-            uniform(seed1, seed2, r_imm20);  ID_EX_v.A.imm20  := get_imm20_val(r_imm20);
-            uniform(seed1, seed2, r_imm20);  ID_EX_v.B.imm20  := get_imm20_val(r_imm20);
+            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.A.alu.result  := get_32bits_val(r_EX_MEM); 
+            uniform(seed1, seed2, r_EX_MEM); EX_MEM_v.B.alu.result  := get_32bits_val(r_EX_MEM); 
+            uniform(seed1, seed2, r_WB);     MEM_WB_v.A.data        := get_32bits_val(r_WB); 
+            uniform(seed1, seed2, r_WB);     MEM_WB_v.B.data        := get_32bits_val(r_WB); 
+            uniform(seed1, seed2, reg);      reg_v.one.A            := get_32bits_val(reg); 
+            uniform(seed1, seed2, reg);      reg_v.one.B            := get_32bits_val(reg);  
+            uniform(seed1, seed2, reg);      reg_v.two.A            := get_32bits_val(reg); 
+            uniform(seed1, seed2, reg);      reg_v.two.B            := get_32bits_val(reg); 
+            uniform(seed1, seed2, r_imm12);  ID_EX_v.A.imm12        := get_imm12_val(r_imm12);
+            uniform(seed1, seed2, r_imm12);  ID_EX_v.B.imm12        := get_imm12_val(r_imm12);
+            uniform(seed1, seed2, r_imm20);  ID_EX_v.A.imm20        := get_imm20_val(r_imm20);
+            uniform(seed1, seed2, r_imm20);  ID_EX_v.B.imm20        := get_imm20_val(r_imm20);
             
             -- GENERATE opcode value for operand B of 1st and 2nd instructions just in case no forwarding is needed
             uniform(seed1, seed2, r_op);     ID_EX_v.A.op     := get_op(r_op);
@@ -109,14 +109,14 @@ begin
             if    rand < 0.1 then 
                 Forw_v.B.forwA    := FORW_FROM_A; 
             else 
-                Forw_v.B.forwA    := NONE; 
+                Forw_v.B.forwA    := NONE_h; 
             end if;
             
             uniform(seed1, seed2, rand);
             if    rand < 0.1 then 
                 Forw_v.B.forwB    := FORW_FROM_A; 
             else 
-                Forw_v.B.forwB    := NONE; 
+                Forw_v.B.forwB    := NONE_h; 
             end if;
             
             -- Get the expected output (see MyFuntions.vhd and MyFuntions_body.vhd)

@@ -51,13 +51,14 @@ package body MyFunctions is
     -----------------------------------------------------------------------------------------------------------
     -- Generate forwarding status to determine the source of operands
     function get_forwStats (rand : real) return HAZ_SIG is
-    variable temp : HAZ_SIG := NONE;
+    variable temp : HAZ_SIG := NONE_h;
     begin
-        if    rand < 0.05 then temp := EX_MEM_A;
-        elsif rand < 0.1  then temp := EX_MEM_B;
-        elsif rand < 0.15 then temp := MEM_WB_A;
-        elsif rand < 0.2 then temp := MEM_WB_B;
-        else  temp := NONE; end if;
+        if    rand < 0.1  then temp := EX_MEM_A;
+        elsif rand < 0.2  then temp := EX_MEM_B;
+        elsif rand < 0.3  then temp := MEM_WB_A;
+        elsif rand < 0.4  then temp := MEM_WB_B;
+        elsif rand < 0.5  then temp := FORW_FROM_A;
+        else  temp := NONE_h; end if;
         return temp; 
     end function;
     -----------------------------------------------------------------------------------------------------------
@@ -151,9 +152,9 @@ package body MyFunctions is
     variable temp : control_Type := EMPTY_control_Type;
     begin
         -- Default settings
-        temp.target := NONE;
+        temp.target := NONE_c;
         temp.alu    := IMM;
-        temp.mem    := NONE;
+        temp.mem    := NONE_c;
         temp.wb     := REG_WRITE;
     
         case opcode is
@@ -171,16 +172,16 @@ package body MyFunctions is
             when S_TYPE =>
                 temp.target := MEM_REG;
                 temp.mem    := MEM_WRITE;
-                temp.wb     := NONE;
+                temp.wb     := NONE_c;
     
             when B_TYPE =>
                 temp.alu    := RS2;
-                temp.wb     := NONE;
+                temp.wb     := NONE_c;
                 temp.target := BRANCH;
     
             when JAL =>
                 temp.target := JUMP;
-                temp.alu    := NONE;
+                temp.alu    := NONE_c;
     
             when others =>
                 temp := EMPTY_control_Type;
@@ -211,7 +212,7 @@ package body MyFunctions is
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs1 then
             temp.A.ForwA := MEM_WB_B;
         else
-            temp.A.ForwA := NONE;
+            temp.A.ForwA := NONE_h;
         end if;
         -- Forward B
         if EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs2 then
@@ -223,7 +224,7 @@ package body MyFunctions is
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs2 then
             temp.A.ForwB := MEM_WB_B;
         else
-            temp.A.ForwB := NONE;
+            temp.A.ForwB := NONE_h;
         end if;
         
         -- STALL A
@@ -232,7 +233,7 @@ package body MyFunctions is
         elsif ID_EX.B.op = LOAD and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
             temp.A.stall := B_STALL;     
         else
-            temp.A.stall := NONE;
+            temp.A.stall := NONE_h;
         end if;
 
 -------------------------------------------------- INSTRUCTION B --------------------------------------------------
@@ -248,7 +249,7 @@ package body MyFunctions is
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs1 then
             temp.B.ForwA := MEM_WB_B;
         else
-            temp.B.ForwA := NONE;
+            temp.B.ForwA := NONE_h;
         end if;
         
         if ID_EX_c.A.wb = REG_WRITE and ID_EX.B.rs2 = ID_EX.A.rd and ID_EX.A.rd /= ZERO_5bits then
@@ -262,18 +263,18 @@ package body MyFunctions is
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs2 then
             temp.B.ForwB := MEM_WB_B;
         else
-            temp.B.ForwB := NONE;
+            temp.B.ForwB := NONE_h;
         end if;
  
         -- STALL B
-        if temp.A.stall /= NONE then
+        if temp.A.stall /= NONE_h then
             temp.B.stall := STALL_FROM_A; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
             temp.B.stall := B_STALL;    
         else
-            temp.B.stall := NONE;
+            temp.B.stall := NONE_h;
         end if;
         
         return temp;
@@ -282,9 +283,9 @@ package body MyFunctions is
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
     -- GENERATE Forwarding Unit Result
-    function get_operands ( EX_MEM    : EX_CONTENT_N_INSTR; 
-                            WB        : WB_data_N_INSTR;
-                            ID_EX     : DecForw_N_INSTR;
+    function get_operands ( EX_MEM    : EX_CONTENT_N; 
+                            WB        : WB_CONTENT_N_INSTR;
+                            ID_EX     : DECODER_N_INSTR;
                             reg       : REG_DATAS;
                             Forw      : HDU_OUT_N
                          ) return EX_OPERAND_N is
@@ -293,19 +294,16 @@ package body MyFunctions is
          result.S_data1 := ZERO_32bits;
          result.S_data2 := ZERO_32bits;    
          case Forw.A.forwA is
-            when EX_MEM_A    => result.one.A := EX_MEM.A;
-            when EX_MEM_B    => result.one.A := EX_MEM.B;
-            when MEM_WB_A    => result.one.A := WB.A; 
-            when MEM_WB_B    => result.one.A := WB.B; 
-            when others      => result.one.A := reg.one.A; 
+            when NONE_h      => result.one.A := reg.one.A; 
+            when EX_MEM_A    => result.one.A := EX_MEM.A.alu.result;
+            when EX_MEM_B    => result.one.A := EX_MEM.B.alu.result;
+            when MEM_WB_A    => result.one.A := WB.A.data; 
+            when MEM_WB_B    => result.one.A := WB.B.data; 
+            when others      => result.one.A := ZERO_32bits;
         end case;
         
         case Forw.A.forwB is
-            when EX_MEM_A    => result.one.B := EX_MEM.A;
-            when EX_MEM_B    => result.one.B := EX_MEM.B;
-            when MEM_WB_A    => result.one.B := WB.A; 
-            when MEM_WB_B    => result.one.B := WB.B; 
-            when others      => 
+            when NONE_h      => 
                 case ID_EX.A.op is
                     when R_TYPE | B_TYPE => result.one.B := reg.one.B;
                     when I_IMME | LOAD => result.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
@@ -313,36 +311,139 @@ package body MyFunctions is
                          result.S_data1 := reg.one.B;
                     when others =>result.one.B := (others => '0');
                 end case;        
+            when EX_MEM_A    => result.one.B := EX_MEM.A.alu.result;
+            when EX_MEM_B    => result.one.B := EX_MEM.B.alu.result;
+            when MEM_WB_A    => result.one.B := WB.A.data; 
+            when MEM_WB_B    => result.one.B := WB.B.data; 
+            when others      => result.one.B := ZERO_32bits;
+                
         end case;
         
         if Forw.B.forwA /= FORW_FROM_A then
             case Forw.B.forwA is
-                when EX_MEM_A    => result.two.A := EX_MEM.A;
-                when EX_MEM_B    => result.two.A := EX_MEM.B;
-                when MEM_WB_A    => result.two.A := WB.A; 
-                when MEM_WB_B    => result.two.A := WB.B; 
-                when others      => result.two.A := reg.two.A; 
+                when NONE_h      => result.two.A := reg.two.A; 
+                when EX_MEM_A    => result.two.A := EX_MEM.A.alu.result;
+                when EX_MEM_B    => result.two.A := EX_MEM.B.alu.result;
+                when MEM_WB_A    => result.two.A := WB.A.data; 
+                when MEM_WB_B    => result.two.A := WB.B.data; 
+                when others      => result.two.A := ZERO_32bits;
             end case;
         end if;  
         
         if Forw.B.forwB /= FORW_FROM_A then  
             case Forw.B.forwB is
-                when EX_MEM_A    => result.two.B := EX_MEM.A;
-                when EX_MEM_B    => result.two.B := EX_MEM.B;
-                when MEM_WB_A    => result.two.B := WB.A; 
-                when MEM_WB_B    => result.two.B := WB.B; 
-                when others      => 
+                when NONE_h      => 
                     case ID_EX.B.op is
                         when R_TYPE | B_TYPE => result.two.B := reg.two.B;
                         when I_IMME | LOAD => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
                         when S_TYPE => result.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
                              result.S_data2 := reg.two.B;
                         when others => result.two.B := (others => '0');
-                    end case;
+                    end case; 
+                when EX_MEM_A    => result.two.B := EX_MEM.A.alu.result;
+                when EX_MEM_B    => result.two.B := EX_MEM.B.alu.result;
+                when MEM_WB_A    => result.two.B := WB.A.data; 
+                when MEM_WB_B    => result.two.B := WB.B.data; 
+                when others      => result.two.B := ZERO_32bits;
+                    
             end case;
 
          end if;  
         return result; 
     end function;
+    
+    function get_alu_res ( f3 : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
+                           f7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
+                           A  : std_logic_vector(DATA_WIDTH-1 downto 0);
+                           B  : std_logic_vector(DATA_WIDTH-1 downto 0)
+                         ) return  ALU_out is
+    variable temp : ALU_out := EMPTY_ALU_out; 
+    -- for C Flag
+    variable sum_ext, sub_ext : unsigned(32 downto 0);    
+    begin
+        case f3 is
+            when "000" =>  -- ADD/SUB
+                if f7 = ZERO_7bits then
+                    sum_ext := resize(unsigned(A), DATA_WIDTH+1) + resize(unsigned(B), DATA_WIDTH+1);
+                    temp.result     := std_logic_vector(sum_ext(DATA_WIDTH-1 downto 0));
+                    temp.operation  := ALU_ADD;
+                    if sum_ext(DATA_WIDTH) = '1' then 
+                        temp.C := Cf; 
+                    else 
+                        temp.C := NONE; 
+                    end if;                      
+                    
+                    if ((A(DATA_WIDTH - 1) = B(DATA_WIDTH - 1)) and 
+                       (temp.result(DATA_WIDTH - 1) /= A(DATA_WIDTH - 1))) then
+                        temp.V := V; 
+                    else 
+                        temp.V := NONE; 
+                    end if;
+                    
+                else
+                    sub_ext := resize(unsigned(A), DATA_WIDTH+1) - resize(unsigned(B), DATA_WIDTH+1);
+                    temp.result     := std_logic_vector(sub_ext(31 downto 0));
+                    temp.operation  := ALU_SUB;
+
+                    if sub_ext(DATA_WIDTH) = '0' then 
+                        temp.C := Cf;  -- No borrow → C = 1
+                    else 
+                        temp.C := NONE;  -- Borrow → C = 0
+                    end if;
+                
+                    if ((A(DATA_WIDTH - 1) /= B(DATA_WIDTH - 1)) and 
+                       (temp.result(DATA_WIDTH - 1) /= A(DATA_WIDTH - 1))) then
+                        temp.V := V; 
+                    else 
+                        temp.V := NONE; 
+                    end if;
+
+                end if;   
+                
+            when "001" => -- SLL
+                temp.result := std_logic_vector(shift_left(unsigned(A), to_integer(unsigned(B(SHIFT_WIDTH - 1 downto 0)))));
+                temp.operation  := ALU_SLL;
+                
+            when "010" => -- SLT
+                 if signed(A) < signed(B) then
+                    temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
+                    temp.operation := ALU_SLT;
+                else
+                    temp := EMPTY_ALU_out;
+                end if;
+                
+            when "011" => -- SLTU
+                 if unsigned(A) < unsigned(B) then
+                    temp.result := (DATA_WIDTH - 1 downto 1 => '0') & '1';
+                    temp.operation := ALU_SLTU;
+                else
+                    temp := EMPTY_ALU_out;
+                end if;
+   
+            when "100" => -- XOR
+                temp.result := A xor B;
+                temp.operation  := ALU_XOR;
+               
+            when "101" => -- SRL/SRA
+                if f7 = ZERO_7bits then 
+                    temp.result := std_logic_vector(shift_right(unsigned(A), to_integer(unsigned(B(SHIFT_WIDTH - 1 downto 0)))));
+                    temp.operation  := ALU_SRL;
+                else 
+                    temp.result := std_logic_vector(shift_right(signed(A), to_integer(unsigned(B(SHIFT_WIDTH - 1 downto 0)))));
+                    temp.operation  := ALU_SRA;                   
+                end if;
+               
+            when "110" =>  -- OR 
+                temp.result := A or B;
+                temp.operation  := ALU_OR;
+
+            when "111" => -- AND
+                temp.result := A and B;
+                temp.operation  := ALU_AND;
+                
+            when others => null;
+        end case;
+        return temp; 
+    end function;                
     
 end MyFunctions;
