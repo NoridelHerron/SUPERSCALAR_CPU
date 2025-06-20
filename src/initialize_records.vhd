@@ -9,7 +9,7 @@ use work.ENUM_T.all;
 package initialize_records is
 
     constant EMPTY_inst_pc : Inst_PC := (
-        is_valid    => NONE,
+        is_valid    => NONE_c,
         instr       => NOP,
         pc          => ZERO_32bits
     );
@@ -42,10 +42,9 @@ package initialize_records is
     );
 
     constant EMPTY_HDU_r : HDU_r := (
-        forwA      => NONE,
-        forwB      => NONE,
-        stall      => NONE,
-        is_hold    => NONE
+        forwA      => NONE_h,
+        forwB      => NONE_h,
+        stall      => NONE_h
     );
     
     constant EMPTY_HDU_OUT_N : HDU_OUT_N := (
@@ -54,10 +53,10 @@ package initialize_records is
     );
     
     constant EMPTY_control_Type : control_Type := ( 
-        target      => NONE,
-        alu         => NONE,
-        mem         => NONE,
-        wb          => NONE
+        target      => NONE_c,
+        alu         => NONE_c,
+        mem         => NONE_c,
+        wb          => NONE_c
     );
     
     constant EMPTY_control_Type_N : control_Type_N := (
@@ -105,7 +104,7 @@ package initialize_records is
     constant EMPTY_WB_CONTENT : WB_CONTENT := (
         data        => ZERO_32bits,
         rd          => ZERO_5bits,
-        we          => NONE
+        we          => NONE_c
     );
     
     constant EMPTY_WB_CONTENT_N_INSTR : WB_CONTENT_N_INSTR := (
@@ -116,30 +115,22 @@ package initialize_records is
     constant EMPTY_EX_OPERAND_N : EX_OPERAND_N := (
         one        => EMPTY_REG_DATA_PER,
         S_data1    => ZERO_32bits,
-        is_valid   => NONE,
         two        => EMPTY_REG_DATA_PER,
         S_data2    => ZERO_32bits     
     );
 
     -----------------------------------------FORWARDING UNIT------------------------------------------ 
-    constant EMPTY_DecForw : DecForw_Type := (
-        op          => ZERO_7bits,
-        imm12       => ZERO_12bits,
-        imm20       => ZERO_20bits
+
+    constant EMPTY_EX_CONTENT : EX_CONTENT := (  
+        operand    => EMPTY_REG_DATA_PER,
+        alu        => EMPTY_ALU_out,
+        S_data     => ZERO_32bits,
+        rd         => ZERO_5bits
     );
     
-    constant EMPTY_DecForw_N_INSTR : DecForw_N_INSTR := (
-        A          => EMPTY_DecForw,
-        B          => EMPTY_DecForw
+    constant EMPTY_EX_CONTENT_N : EX_CONTENT_N := (
+        A          => EMPTY_EX_CONTENT,
+        B          => EMPTY_EX_CONTENT
     );
     
-    constant EMPTY_EX_CONTENT_N_INSTR : EX_CONTENT_N_INSTR := (
-        A          => ZERO_32bits,
-        B          => ZERO_32bits
-    );
-    
-    constant EMPTY_WB_data_N_INSTR : WB_data_N_INSTR := (
-        A          => ZERO_32bits,
-        B          => ZERO_32bits
-    );
 end package;

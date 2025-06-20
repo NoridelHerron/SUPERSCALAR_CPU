@@ -31,7 +31,6 @@ begin
     process (ID, ID_EX, ID_EX_c, EX_MEM, MEM_WB)
     variable temp         : HDU_OUT_N := EMPTY_HDU_OUT_N;
     begin
-        temp.B.is_hold := NONE; 
          -- Forwarding logic (always active)
  -------------------------------------------------- INSTRUCTION A --------------------------------------------------
         -- Forward A
@@ -44,7 +43,7 @@ begin
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs1 then
             temp.A.ForwA := MEM_WB_B;
         else
-            temp.A.ForwA := NONE;
+            temp.A.ForwA := NONE_h;
         end if;
         -- Forward B
         if EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs2 then
@@ -56,7 +55,7 @@ begin
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs2 then
             temp.A.ForwB := MEM_WB_B;
         else
-            temp.A.ForwB := NONE;
+            temp.A.ForwB := NONE_h;
         end if;
         
         -- STALL A
@@ -65,7 +64,7 @@ begin
         elsif ID_EX.B.op = LOAD and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
             temp.A.stall := B_STALL;     
         else
-            temp.A.stall := NONE;
+            temp.A.stall := NONE_h;
         end if;
 
 -------------------------------------------------- INSTRUCTION B --------------------------------------------------
@@ -81,7 +80,7 @@ begin
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs1 then
             temp.B.ForwA := MEM_WB_B;
         else
-            temp.B.ForwA := NONE;
+            temp.B.ForwA := NONE_h;
         end if;
         
         if ID_EX_c.A.wb = REG_WRITE and ID_EX.B.rs2 = ID_EX.A.rd and ID_EX.A.rd /= ZERO_5bits then
@@ -95,19 +94,18 @@ begin
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs2 then
             temp.B.ForwB := MEM_WB_B;
         else
-            temp.B.ForwB := NONE;
+            temp.B.ForwB := NONE_h;
         end if;
  
         -- STALL B
-        if temp.B.ForwA = FORW_FROM_A or temp.B.ForwB = FORW_FROM_A or temp.A.stall /= NONE then
+        if temp.A.stall /= NONE_h then
             temp.B.stall := STALL_FROM_A; 
-            temp.B.is_hold := HOLD_B; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
             temp.B.stall := B_STALL;    
         else
-            temp.B.stall := NONE;
+            temp.B.stall := NONE_h;
         end if;
 
         result  <= temp;  

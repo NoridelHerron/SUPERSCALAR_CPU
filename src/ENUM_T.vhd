@@ -20,7 +20,7 @@ package ENUM_T is
         -- instruction type
         R_TYPE_i, I_IMM_i, LOAD_i, S_TYPE_i, B_TYPE_i,
         JAL_i, JALR_i, LUI_i, AUIPC_i, ECALL_i, 
-        NOP_i, NONE
+        NOP_i, NONE_i
     );
 
     type CONTROL_SIG is ( 
@@ -31,14 +31,14 @@ package ENUM_T is
         BRANCH, JUMP, 
         RS2, IMM,            -- for operand 2
         VALID, INVALID, 
-        NONE
+        NONE_c
     );
     
     -- HAZARD signal
     type HAZ_SIG is ( 
         A_STALL, B_STALL, STALL_FROM_A, STALL_FROM_B,
         EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A, HOLD_B, B_INVALID, 
-        NONE
+        NONE_h
     );
 
 end package;

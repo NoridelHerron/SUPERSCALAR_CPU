@@ -47,7 +47,6 @@ package Pipeline_Types is
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
         stall       : HAZ_SIG;
-        is_hold     : HAZ_SIG;
     end record;
     
     type HDU_OUT_N is record
@@ -123,33 +122,22 @@ package Pipeline_Types is
     type EX_OPERAND_N is record
         one      : REG_DATA_PER;
         S_data1  : std_logic_vector(DATA_WIDTH-1 downto 0); 
-        is_valid : HAZ_SIG; 
         two      : REG_DATA_PER;
         S_data2  : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
     
     -----------------------------------------FORWARDING UNIT------------------------------------------ 
-    type DecForw_Type is record
-        op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
-        imm12       : std_logic_vector(IMM12_WIDTH-1 downto 0); 
-        imm20       : std_logic_vector(IMM20_WIDTH-1 downto 0); 
+
+    type EX_CONTENT is record
+        operand  : REG_DATA_PER;
+        alu      : ALU_out;
+        S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        rd       : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
     end record;
     
-    type DecForw_N_INSTR is record
-        A           : DecForw_Type;
-        B           : DecForw_Type;
+    type EX_CONTENT_N is record
+        A           : EX_CONTENT; 
+        B           : EX_CONTENT;  
     end record;
 
-    type EX_CONTENT_N_INSTR is record
-        A           : std_logic_vector(DATA_WIDTH-1 downto 0);  
-        B           : std_logic_vector(DATA_WIDTH-1 downto 0);  
-    end record;
-    
-    type WB_data_N_INSTR is record
-        A           : std_logic_vector(DATA_WIDTH-1 downto 0);
-        B           : std_logic_vector(DATA_WIDTH-1 downto 0);
-    end record;
-    
-    
-    
 end package;
