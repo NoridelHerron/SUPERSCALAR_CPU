@@ -54,6 +54,33 @@ This hierarchy ensures correct data forwarding and minimal pipeline stalling whi
 ![Hazard diagram](images/HDU.png)
 The image above demonstrates that the hazard detection unit is functioning correctly. Several dependency cases have been highlighted to illustrate how hazards are identified and handled. Additional screenshots are included to show more examples of detected hazards across different scenarios for both instruction A and B.
 
+### EXECUTION (EX) STAGE
+The EX stage was initially developed in Verilog and integrated into my VHDL-based pipeline using wrapper modules. However, I later refactored the EX stage back to VHDL for several reasons:
+- Reduced complexity: Managing both VHDL and Verilog added unnecessary complications to the integrated pipeline.
+- Maintainability: Verilog’s lack of native enum support required extra conversion logic, especially in testbenches.
+- Cleaner testbench integration: Refactoring to VHDL streamlined simulation and significantly reduced debugging overhead.
+- Scalability and flexibility: Working fully in VHDL made it easier to scale up the number of supported instructions and refactor modules efficiently, thanks to the structured nature of my existing VHDL records and design conventions.
+
+**Verification Progress**
+To verify the EX stage, I wrote both SystemVerilog and VHDL testbenches, each serving a unique purpose:
+- A SystemVerilog testbench helped me identify and resolve a bug in the forwarding unit where it failed to return zero for undefined cases. This issue has been **fixed and re-verified**. Writing this testbench also allowed me to catch and address various edge cases, with all signals showing clean waveform activity.
+- A VHDL testbench gave me fine-grained control over input signals to closely observe the behavior of the integrated module. It was especially useful for monitoring intra-cycle dependencies—such as forw_from_A behavior—to confirm that my design logic performs as expected. The waveform confirms correct forwarding behavior in these cases.
+
+Although the simulations show that the EX stage is functioning correctly, I recognize the limitations of waveform-only verification and that passing simulation doesn’t always guarantee correct hardware behavior.
+
+**Looking for collaborator**
+As I work on developing a more robust testbench for the full integration, I’d love to get feedback or connect with others interested in HDL verification. Whether you’re curious, experienced, or looking to build your skills — your insights or collaboration would mean a lot!
+Let’s verify this together — and **push it beyond** just “**it looks right in the waveform.**”
+
+**Known Issues & Considerations**
+If my intra-dependency hazard logic ends up being problematic during synthesis, I’m prepared to explore other options. One path I’m considering is whether instruction B truly needs to stall — or if it’s possible to reorder in-flight instructions (while keeping execution in-order) to avoid unnecessary delays.
+
+**Additional Notes**
+In my testbenches, I did not add temporary registers to hold data in the MEM/WB (or WB) stage. My focus was on validating whether the EX stage selects the correct operand based on the forwarding logic and additional internal mechanisms. Specifically, I wanted to verify that the result of instruction A is forwarded correctly for instruction B when intra-instruction dependencies occur.
+
+![Forward from A](images/forw_from_A.png)
+**Note**:  The highlighted waveform confirms that, during an intra-dependency, instruction A's result is being forwarded and used as instruction B’s operand.
+
 ### ALU UNIT
 I refactored both the adder and subtractor modules to make them reusable by removing flag generation from their logic. Instead, result computation and flag generation are now centralized in the ALU unit. Additionally, I introduced an enumerated type for ALU operations to improve code readability and simplify debugging. After refactoring, the adder, subtractor, and ALU unit were fully re-verified with 20,000 test cases.
 
@@ -78,6 +105,10 @@ The use of a record output improves clarity and modularity, making the control l
 - Madhu
     - Refactor Data Memory with testbench
 
+**Note**: 
+- The **extra** contains the original Verilog implementation of the EX stage, along with wrapper modules for the **ALU** and **forwarding unit**, and the **SystemVerilog** testbench used during that phase.
+- Please be aware that this code is **not directly compatible** with the current VHDL-based design — I removed some unused record fields and restructured parts of the interface during the refactor.
+- That said, the Verilog version was **fully functional** before those changes were made, and can still serve as a useful reference for the logic or testing approach.
 
 ## 👤 Authors
 **Noridel Herron**  
@@ -86,8 +117,8 @@ Senior in Computer Engineering – University of Missouri
 GitHub: [@NoridelHerron](https://github.com/NoridelHerron)
 
 ## 👤 Contributors
-**Venkateshwarlu Yejella**
-**Madhu Kanithi**
+- **Venkateshwarlu Yejella**
+- **Madhu Kanithi**
 
 
 
