@@ -28,16 +28,16 @@ signal clk                           : std_logic := '0';
 signal rst                           : std_logic := '1';
 
 signal ID_EX     : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
-signal Forw      : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
 signal reg       : REG_DATAS          := EMPTY_REG_DATAS; 
 signal EX_MEM    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
 signal EX_MEM_c1 : control_Type       := EMPTY_control_Type;
 signal EX_MEM_c2 : control_Type       := EMPTY_control_Type;
 signal WB        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR; 
-
+signal Forw      : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
 signal ex_out    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
-
+signal expected  : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
 constant clk_period                 : time := 10 ns;
+
 begin
 
 UUT : entity work.ex_stage port map (
@@ -70,7 +70,6 @@ UUT : entity work.ex_stage port map (
     variable temp_Forw     : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
     variable temp_ex_out   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
     variable E_c1, E_c2    : control_Type       := EMPTY_control_Type;
-    variable we1, we2      : CONTROL_SIG        := NONE_c;
     variable operands      : EX_OPERAND_N       := EMPTY_EX_OPERAND_N;  
     -- randomized used for generating values
     variable rand1, rand2  : real;
@@ -78,6 +77,7 @@ UUT : entity work.ex_stage port map (
     variable seed1, seed2  : positive     := 12345;
     -- Keep track test
     variable pass, fail    : integer      := 0;
+    variable faA, frA, foA, fsA, faB, frB, foB, fsB : integer := 0;
 
     begin
         rst <= '1';
@@ -86,6 +86,7 @@ UUT : entity work.ex_stage port map (
         wait for clk_period;
         
         for i in 1 to total_tests loop
+
             -- This will cover all instructions in riscv
             uniform(seed1, seed2, rand1);
             uniform(seed1, seed2, rs1);
@@ -117,36 +118,20 @@ UUT : entity work.ex_stage port map (
                 uniform(seed1, seed2, rand1); 
                 temp_Forw.A.forwB := get_forwStats(rand1);
             end loop;
+            uniform(seed1, seed2, rand1); temp_Forw.A.stall := get_stall (temp_ID_EX.A.op, rand1);
+            while temp_Forw.A.stall /= A_STALL and temp_Forw.A.stall /= B_STALL 
+                  and temp_Forw.A.stall /= NONE_h loop
+                uniform(seed1, seed2, rand1); 
+                temp_Forw.A.stall := get_stall (temp_ID_EX.A.op, rand1);
+            end loop;
             
             uniform(seed1, seed2, rand2); temp_Forw.B.forwA := get_forwStats(rand2);
             uniform(seed1, seed2, rand2); temp_Forw.B.forwB := get_forwStats(rand2);
+            uniform(seed1, seed2, rand2); temp_Forw.B.stall := get_stall (temp_ID_EX.B.op, rand2);
             
-            if (ID_EX.A.op = LOAD) then
-                if rand1 < 0.05 then
-                    temp_Forw.A.stall := A_STALL;
-                elsif rand1 < 0.1 then
-                     temp_Forw.A.stall := B_STALL;
-                elsif rand1 < 0.15 then
-                     temp_Forw.A.stall := STALL_FROM_A;     
-                elsif rand1 < 0.2 then
-                     temp_Forw.A.stall := STALL_FROM_B; 
-                else
-                     temp_Forw.A.stall := NONE_h;    
-                end if;
-                
-                if rand2 < 0.05 then
-                    temp_Forw.B.stall := A_STALL;
-                elsif rand2 < 0.1 then
-                     temp_Forw.B.stall := B_STALL;
-                elsif rand2 < 0.15 then
-                     temp_Forw.B.stall := STALL_FROM_A;     
-                elsif rand2 < 0.2 then
-                     temp_Forw.B.stall := STALL_FROM_B; 
-                else
-                     temp_Forw.B.stall := NONE_h;    
-                end if;
-            end if;
-             
+            expected    <= temp_EX_MEM;
+            wait until rising_edge(clk);  
+
             temp_EX_MEM.A.rd  := ID_EX.A.rd;
             temp_EX_MEM.B.rd  := ID_EX.B.rd;
             E_c1              := Get_Control(ID_EX.A.op);
@@ -156,12 +141,21 @@ UUT : entity work.ex_stage port map (
             temp_WB.B.data    := EX_MEM.B.alu.result;
             temp_WB.A.rd      := EX_MEM.A.rd;
             temp_WB.B.rd      := EX_MEM.B.rd;
-            we1               := EX_MEM_c1.wb;
-            we2               := EX_MEM_c2.wb;
+            temp_WB.A.we      := EX_MEM_c1.wb;
+            temp_WB.B.we      := EX_MEM_c2.wb;
             
-            operands := get_operands ( temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
+            operands          := get_operands ( temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
             temp_EX_MEM.A.alu := get_alu_res (temp_ID_EX.A.funct3, temp_ID_EX.A.funct7, operands.one.A, operands.one.B);
             temp_EX_MEM.B.alu := get_alu_res (temp_ID_EX.B.funct3, temp_ID_EX.B.funct7, operands.two.A, operands.two.B);
+            
+            temp_ex_out.A.operand := operands.one;
+            temp_ex_out.A.S_data  := operands.S_data1;
+            temp_ex_out.A.alu     := temp_EX_MEM.A.alu;
+            temp_ex_out.A.rd      := temp_EX_MEM.A.rd;
+            temp_ex_out.B.operand := operands.two;
+            temp_ex_out.B.S_data  := operands.S_data2;
+            temp_ex_out.B.alu     := temp_EX_MEM.B.alu;
+            temp_ex_out.B.rd      := temp_EX_MEM.B.rd;
             
             Forw        <= temp_Forw;
             ID_EX       <= temp_ID_EX;
@@ -171,18 +165,63 @@ UUT : entity work.ex_stage port map (
             EX_MEM_c2   <= E_c2;
             WB          <= temp_WB; 
             
-            wait until rising_edge(clk);  -- Decoder captures input
-            wait for 1 ns;                -- Let ID_content settle
-
             
-        end loop;
+            wait until rising_edge(clk);  
+            wait for 1 ns;                
+            
+            if expected = ex_out then
+                pass := pass + 1;
+            else
+                fail := fail + 1;
+                if expected.A.operand /= ex_out.A.operand then
+                    foA := foA + 1;
+                end if;
+                
+                if expected.A.S_data /= ex_out.A.S_data then
+                    fsA := fsA + 1;
+                end if;
+                
+                if expected.A.alu /= ex_out.A.alu then
+                    faA := faA + 1;
+                end if;
+                
+                if expected.A.rd /= ex_out.A.rd then
+                    frA := frA + 1;
+                end if;
+                
+                if expected.B.operand /= ex_out.B.operand then
+                    foB := foB + 1;
+                end if;
+                
+                if expected.B.S_data /= ex_out.B.S_data then
+                    fsB := fsB + 1;
+                end if;
+                
+                if expected.B.alu /= ex_out.B.alu then
+                    faB := faB + 1;
+                end if;
+                
+                if expected.B.rd /= ex_out.B.rd then
+                    frB := frB + 1;
+                end if;
+            end if;
 
+        end loop;
         -- Summary report
         report "======= TEST SUMMARY =======" severity note;
         report "Total tests: " & integer'image(total_tests)     severity note;
         report "Passed:      " & integer'image(pass)            severity note;
         report "Failed:      " & integer'image(fail)            severity note;
-
+        report "======= A =======" severity note;
+        report "OPERAND:     " & integer'image(foA)             severity note;
+        report "ALU:         " & integer'image(faA)             severity note;
+        report "RD:          " & integer'image(frA)             severity note;
+        report "S_data:      " & integer'image(fsA)             severity note;
+        report "======= B =======" severity note;
+        report "OPERAND:     " & integer'image(foB)             severity note;
+        report "ALU:         " & integer'image(faB)             severity note;
+        report "RD:          " & integer'image(frB)             severity note;
+        report "S_data:      " & integer'image(fsB)             severity note;
         wait;
     end process;
 

@@ -63,6 +63,30 @@ package body MyFunctions is
     end function;
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
+    -- Generate forwarding status to determine the source of operands
+    function get_stall (op : std_logic_vector(OPCODE_WIDTH-1 downto 0); rand : real) return HAZ_SIG is
+    variable temp : HAZ_SIG := NONE_h;
+    begin
+        if (op = LOAD) then
+            if rand < 0.05 then
+                temp := A_STALL;
+            elsif rand < 0.1 then
+                 temp := B_STALL;
+            elsif rand < 0.15 then
+                 temp := STALL_FROM_A;     
+            elsif rand < 0.2 then
+                 temp := STALL_FROM_B; 
+            else
+                 temp := NONE_h;    
+            end if;
+        else 
+            temp := NONE_h;    
+        end if;
+        return temp; 
+    end function;
+    
+    -----------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------
     -- Generate decoded value
     function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type is
     variable temp           : Decoder_Type                             := EMPTY_DECODER;
@@ -444,6 +468,7 @@ package body MyFunctions is
             when others => null;
         end case;
         return temp; 
-    end function;                
+    end function; 
+    
     
 end MyFunctions;
