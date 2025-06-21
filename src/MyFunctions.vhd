@@ -36,6 +36,8 @@ package MyFunctions is
   -- Generate forwarding status to determine the source of operands
   function get_forwStats (rand : real) return HAZ_SIG;
   
+  function get_stall (op : std_logic_vector(OPCODE_WIDTH-1 downto 0); rand : real) return HAZ_SIG;
+  
   -- Generate decoded value
   function get_decoded_val (rand_real, rs1, rs2, rd : real) return Decoder_Type;
   
@@ -60,7 +62,8 @@ package MyFunctions is
                          f7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
                          A  : std_logic_vector(DATA_WIDTH-1 downto 0);
                          B  : std_logic_vector(DATA_WIDTH-1 downto 0)
-                         ) return  ALU_out;                       
- 
+                         ) return  ALU_out;     
+                         
+  
 
 end MyFunctions;
