@@ -93,13 +93,13 @@ package body MyFunctions is
     variable imm12          : std_logic_vector(IMM12_WIDTH-1 downto 0) := ZERO_12bits;
     variable imm20          : std_logic_vector(IMM20_WIDTH-1 downto 0) := ZERO_20bits;
     begin
-        if    rand_real < 0.02 then temp.op := ECALL;     
-        elsif rand_real < 0.04 then temp.op := U_AUIPC;
-        elsif rand_real < 0.06 then temp.op := U_LUI;
-        elsif rand_real < 0.08 then temp.op := JALR;
-        elsif rand_real < 0.4  then temp.op := LOAD;
+       -- if    rand_real < 0.02 then temp.op := ECALL;     
+      --  elsif rand_real < 0.04 then temp.op := U_AUIPC;
+      --  elsif rand_real < 0.06 then temp.op := U_LUI;
+      --  elsif rand_real < 0.08 then temp.op := JALR;
+        if    rand_real < 0.4  then temp.op := LOAD;
         elsif rand_real < 0.5  then temp.op := S_TYPE;
-        elsif rand_real < 0.55  then temp.op := JAL;
+       -- elsif rand_real < 0.55  then temp.op := JAL;
         elsif rand_real < 0.6  then temp.op := B_TYPE;
         elsif rand_real < 0.9  then temp.op := I_IMME;
         else temp.op := R_TYPE;
@@ -377,15 +377,16 @@ package body MyFunctions is
         return result; 
     end function;
     
-    function get_alu_res ( f3 : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
-                           f7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
-                           A  : std_logic_vector(DATA_WIDTH-1 downto 0);
-                           B  : std_logic_vector(DATA_WIDTH-1 downto 0)
+    function get_alu_res ( f3     : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
+                           f7     : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
+                           A      : std_logic_vector(DATA_WIDTH-1 downto 0);
+                           B      : std_logic_vector(DATA_WIDTH-1 downto 0)
                          ) return  ALU_out is
     variable temp : ALU_out := EMPTY_ALU_out; 
     -- for C Flag
-    variable sum_ext, sub_ext : unsigned(32 downto 0);    
+    variable sum_ext, sub_ext : unsigned(32 downto 0);
     begin
+       
         case f3 is
             when "000" =>  -- ADD/SUB
                 if f7 = ZERO_7bits then
@@ -468,9 +469,72 @@ package body MyFunctions is
                 
             when others => null;
         end case;
+        -- Z flag
+        if temp.result = ZERO_32bits then temp.Z := Z; else temp.Z := NONE; end if;
+        
+        -- N flag
+        if temp.result(DATA_WIDTH - 1) = ONE then temp.N := N; else temp.N := NONE; end if;
         return temp; 
     end function; 
     
-    
+    function get_alu1_input ( ID_EX       : DECODER_N_INSTR;
+                              operands    : EX_OPERAND_N    
+                          ) return  ALU_in is    
+    variable temp : ALU_in := EMPTY_ALU_in; 
+    begin
+        -- Forward A operand
+        temp.A   := operands.one.A;
+        temp.B   := operands.one.B;
+        if ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE then
+            -- since f3 of lw and sw is 2, i need to modify it here without changing the actual f3 or f7
+            temp.f3  := ZERO_3bits;
+            temp.f7  := ZERO_7bits;
+            -- We will be using the flags for branching. 
+            -- So, the flags will help us determine if rs1 =, /=, >, <, >=, <=
+        elsif ID_EX.A.op = B_TYPE then
+            temp.f3  := ZERO_3bits;
+            temp.f7  := FUNC7_SUB;
+        else
+            temp.f3  := ID_EX.A.funct3;
+            temp.f7  := ID_EX.A.funct7;
+        end if;
+        return temp; 
+    end function; 
+   
+    function get_alu2_input ( reg   : EX_OPERAND_N;
+                              Forw  : HDU_OUT_N;  
+                              ID_EX : DECODER_N_INSTR;
+                              alu1  : ALU_out
+                            ) return  ALU_in is 
+    variable temp : ALU_in := EMPTY_ALU_in; 
+    begin
+        -- Forward A operand
+        if Forw.B.forwA = FORW_FROM_A then
+            temp.A := alu1.result;
+        else
+            temp.A := reg.two.A;
+        end if;
+
+        -- Forward B operand
+        if Forw.B.forwB = FORW_FROM_A then
+            temp.B := alu1.result;
+        else
+            temp.B := reg.two.B;
+        end if;
+
+        -- Function codes for second ALU
+        if ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE then
+            temp.f3  := ZERO_3bits;
+            temp.f7  := ZERO_7bits;  
+        elsif ID_EX.B.op = B_TYPE then
+            temp.f3  := ZERO_3bits;
+            temp.f7  := FUNC7_SUB;
+        else
+            temp.f3  := ID_EX.B.funct3;
+            temp.f7  := ID_EX.B.funct7;
+        end if;
+
+    return temp; 
+    end function; 
 end MyFunctions;
 

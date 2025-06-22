@@ -56,28 +56,13 @@ begin
     --------------------------------------------------------------------------
     -- First ALU Input Assignment
     --------------------------------------------------------------------------
+    input_ALU1 : entity work.alu1_input
+        port map (
+            ID_EX    => ID_EX,
+            operands => operands, 
+            alu1     => alu_in1
+        );
     
-    process (ID_EX, operands )
-        variable temp_alu_in1 : ALU_in := EMPTY_ALU_in;
-    begin
-    temp_alu_in1.A   := operands.one.A;
-    temp_alu_in1.B   := operands.one.B;
-    if ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE then
-        -- since f3 of lw and sw is 2, i need to modify it here without changing the actual f3 or f7
-        temp_alu_in1.f3  := ZERO_3bits;
-        temp_alu_in1.f7  := ZERO_7bits;
-        -- We will be using the flags for branching. 
-        -- So, the flags will help us determine if rs1 =, /=, >, <, >=, <=
-    elsif ID_EX.A.op = B_TYPE then
-        temp_alu_in1.f3  := ZERO_3bits;
-        temp_alu_in1.f7  := FUNC7_SUB;
-    else
-        temp_alu_in1.f3  := ID_EX.A.funct3;
-        temp_alu_in1.f7  := ID_EX.A.funct7;
-    end if;
-    
-    alu_in1 <= temp_alu_in1;
-    end process;
     
     --------------------------------------------------------------------------
     -- First ALU Instantiation
@@ -91,29 +76,14 @@ begin
     --------------------------------------------------------------------------
     -- Second ALU Input Assignment with Forwarding Logic
     --------------------------------------------------------------------------
-    process (Forw, alu_out1, operands, ID_EX)
-        variable temp_alu_in2 : ALU_in := EMPTY_ALU_in;
-    begin
-        -- Forward A operand
-        if Forw.B.forwA = FORW_FROM_A then
-            temp_alu_in2.A := alu_out1.result;
-        else
-            temp_alu_in2.A := operands.two.A;
-        end if;
-
-        -- Forward B operand
-        if Forw.B.forwB = FORW_FROM_A then
-            temp_alu_in2.B := alu_out1.result;
-        else
-            temp_alu_in2.B := operands.two.B;
-        end if;
-
-        -- Function codes for second ALU
-        temp_alu_in2.f3 := ID_EX.B.funct3;
-        temp_alu_in2.f7 := ID_EX.B.funct7;
-
-        alu_in2 <= temp_alu_in2;
-    end process;
+    ALU2_input: entity work.Forw_case
+        port map (
+            reg     => operands,
+            Forw    => Forw,
+            ID_EX   => ID_EX,
+            alu1    => alu_out1,
+            alu2    => alu_in2
+        );
 
     --------------------------------------------------------------------------
     -- Second ALU Instantiation
