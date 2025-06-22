@@ -36,6 +36,7 @@ signal WB        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 signal Forw      : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
 signal ex_out    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
 signal exp       : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+signal counter   : integer            := 0; 
 
 constant clk_period                 : time := 10 ns;
 
@@ -71,7 +72,8 @@ UUT : entity work.ex_stage port map (
     variable temp_Forw     : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
     variable temp_ex_out   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
     variable E_c1, E_c2    : control_Type       := EMPTY_control_Type;
-    variable operands      : EX_OPERAND_N       := EMPTY_EX_OPERAND_N;  
+    variable operands      : EX_OPERAND_N       := EMPTY_EX_OPERAND_N; 
+    variable alu1_in       : ALU_in             := EMPTY_ALU_in;  
     variable alu2_in       : ALU_in             := EMPTY_ALU_in; 
     -- randomized used for generating values
     variable rand1, rand2  : real;
@@ -125,7 +127,7 @@ UUT : entity work.ex_stage port map (
             uniform(seed1, seed2, rand2); temp_Forw.B.stall := get_stall (temp_ID_EX.B.op, rand2);
             
             wait until rising_edge(clk);  
-
+            
             temp_EX_MEM.A.rd  := ID_EX.A.rd;
             temp_EX_MEM.B.rd  := ID_EX.B.rd;
             E_c1              := Get_Control(ID_EX.A.op);
@@ -145,28 +147,32 @@ UUT : entity work.ex_stage port map (
             EX_MEM_c1   <= E_c1;
             EX_MEM_c2   <= E_c2;
             WB          <= temp_WB; 
+
             
             operands          := get_operands ( temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
-            temp_EX_MEM.A.alu := get_alu_res (temp_ID_EX.A.op, temp_ID_EX.A.funct3, temp_ID_EX.A.funct7, operands.one.A, operands.one.B);
-            alu2_in           := get_alu2_input ( operands, temp_Forw, temp_ID_EX, temp_EX_MEM.A.alu );       
-            temp_EX_MEM.B.alu := get_alu_res (temp_ID_EX.B.op, temp_ID_EX.B.funct3, temp_ID_EX.B.funct7, alu2_in.A, alu2_in.B);
+            alu1_in           := get_alu1_input ( temp_ID_EX, operands);    
+            temp_EX_MEM.A.alu := get_alu_res ( alu1_in.f3, alu1_in.f7, alu1_in.A, alu1_in.B);
+            alu2_in           := get_alu2_input ( operands, temp_Forw, temp_ID_EX, temp_EX_MEM.A.alu );   
+            temp_EX_MEM.B.alu := get_alu_res (alu2_in.f3, alu2_in.f7, alu2_in.A, alu2_in.B);
+            temp_ex_out             := temp_EX_MEM;
             
-            temp_ex_out.A.operand       := operands.one;
-            temp_ex_out.A.S_data        := operands.S_data1;
-            temp_ex_out.A.alu           := temp_EX_MEM.A.alu;
-            temp_ex_out.A.rd            := temp_ID_EX.A.rd;
-            temp_ex_out.B.operand.A     := alu2_in.A;
-            temp_ex_out.B.operand.B     := alu2_in.B;
-            temp_ex_out.B.S_data        := operands.S_data2;
-            temp_ex_out.B.alu           := temp_EX_MEM.B.alu;
-            temp_ex_out.B.rd            := temp_ID_EX.B.rd;
-            exp <= temp_ex_out;
+            temp_ex_out.A.rd        := temp_ID_EX.A.rd;    
+            temp_ex_out.A.operand.A := alu1_in.A;
+            temp_ex_out.A.operand.B := alu1_in.B;
+            temp_ex_out.A.S_data    := operands.S_data1;
+
+            temp_ex_out.B.rd        := temp_ID_EX.B.rd;
+            temp_ex_out.B.operand.A := alu2_in.A;
+            temp_ex_out.B.operand.B := alu2_in.B;    
+            temp_ex_out.B.S_data    := operands.S_data2;
+            
+            counter <= i;
+            exp     <= temp_ex_out;
 
             wait until rising_edge(clk);  
-           -- wait for 1 ns;                
+            wait for 1 ns;                
             
             if ex_out = exp then
-           -- if expected = ex_out and expected = ex_out then
                 pass := pass + 1;
             else
                 fail := fail + 1;
@@ -201,8 +207,10 @@ UUT : entity work.ex_stage port map (
                 if exp.B.rd /= ex_out.B.rd then
                     frB := frB + 1;
                 end if;
+                
+                report "Error at counter = : " & integer'image(i) severity note;
             end if;
-
+            
         end loop;
         -- Summary report
         report "======= TEST SUMMARY =======" severity note;

@@ -56,28 +56,13 @@ begin
     --------------------------------------------------------------------------
     -- First ALU Input Assignment
     --------------------------------------------------------------------------
+    input_ALU1 : entity work.alu1_input
+        port map (
+            ID_EX    => ID_EX,
+            operands => operands, 
+            alu1     => alu_in1
+        );
     
-    process (ID_EX, operands )
-        variable temp_alu_in1 : ALU_in := EMPTY_ALU_in;
-    begin
-    temp_alu_in1.A   := operands.one.A;
-    temp_alu_in1.B   := operands.one.B;
-    if ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE then
-        -- since f3 of lw and sw is 2, i need to modify it here without changing the actual f3 or f7
-        temp_alu_in1.f3  := ZERO_3bits;
-        temp_alu_in1.f7  := ZERO_7bits;
-        -- We will be using the flags for branching. 
-        -- So, the flags will help us determine if rs1 =, /=, >, <, >=, <=
-    elsif ID_EX.A.op = B_TYPE then
-        temp_alu_in1.f3  := ZERO_3bits;
-        temp_alu_in1.f7  := FUNC7_SUB;
-    else
-        temp_alu_in1.f3  := ID_EX.A.funct3;
-        temp_alu_in1.f7  := ID_EX.A.funct7;
-    end if;
-    
-    alu_in1 <= temp_alu_in1;
-    end process;
     
     --------------------------------------------------------------------------
     -- First ALU Instantiation

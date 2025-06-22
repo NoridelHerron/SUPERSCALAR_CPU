@@ -66,6 +66,8 @@ To verify the EX stage, I wrote both SystemVerilog and VHDL testbenches, each se
 - A SystemVerilog testbench helped me identify and resolve a bug in the forwarding unit where it failed to return zero for undefined cases. This issue has been **fixed and re-verified**. Writing this testbench also allowed me to catch and address various edge cases, with all signals showing clean waveform activity.
 - A VHDL testbench gave me fine-grained control over input signals to closely observe the behavior of the integrated module. It was especially useful for monitoring intra-cycle dependencies—such as forw_from_A behavior—to confirm that my design logic performs as expected. The waveform confirms correct forwarding behavior in these cases.
 
+During this process, I also discovered a misleading failure caused by the inclusion of the JAL instruction in the opcode generator. Since JAL bypasses the ALU and EX stage, it appeared as an error in output comparisons. After commenting it out in the helper function for opcode generation, the results aligned exactly as expected — with no actual logic issue.
+
 Although the simulations show that the EX stage is functioning correctly, I recognize the limitations of waveform-only verification and that passing simulation doesn’t always guarantee correct hardware behavior.
 
 **Looking for collaborator**
