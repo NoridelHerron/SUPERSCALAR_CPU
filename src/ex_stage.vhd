@@ -91,29 +91,14 @@ begin
     --------------------------------------------------------------------------
     -- Second ALU Input Assignment with Forwarding Logic
     --------------------------------------------------------------------------
-    process (Forw, alu_out1, operands, ID_EX)
-        variable temp_alu_in2 : ALU_in := EMPTY_ALU_in;
-    begin
-        -- Forward A operand
-        if Forw.B.forwA = FORW_FROM_A then
-            temp_alu_in2.A := alu_out1.result;
-        else
-            temp_alu_in2.A := operands.two.A;
-        end if;
-
-        -- Forward B operand
-        if Forw.B.forwB = FORW_FROM_A then
-            temp_alu_in2.B := alu_out1.result;
-        else
-            temp_alu_in2.B := operands.two.B;
-        end if;
-
-        -- Function codes for second ALU
-        temp_alu_in2.f3 := ID_EX.B.funct3;
-        temp_alu_in2.f7 := ID_EX.B.funct7;
-
-        alu_in2 <= temp_alu_in2;
-    end process;
+    ALU2_input: entity work.Forw_case
+        port map (
+            reg     => operands,
+            Forw    => Forw,
+            ID_EX   => ID_EX,
+            alu1    => alu_out1,
+            alu2    => alu_in2
+        );
 
     --------------------------------------------------------------------------
     -- Second ALU Instantiation

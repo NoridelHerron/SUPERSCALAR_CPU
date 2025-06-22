@@ -58,12 +58,17 @@ package MyFunctions is
                           Forw      : HDU_OUT_N
                          ) return EX_OPERAND_N;      
                          
-  function get_alu_res ( f3 : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
-                         f7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
-                         A  : std_logic_vector(DATA_WIDTH-1 downto 0);
-                         B  : std_logic_vector(DATA_WIDTH-1 downto 0)
-                         ) return  ALU_out;     
+  function get_alu_res ( op     : std_logic_vector(OPCODE_WIDTH-1 downto 0);
+                         funct3 : std_logic_vector(FUNCT3_WIDTH-1 downto 0); 
+                         funct7 : std_logic_vector(FUNCT7_WIDTH-1 downto 0); 
+                         A      : std_logic_vector(DATA_WIDTH-1 downto 0);
+                         B      : std_logic_vector(DATA_WIDTH-1 downto 0)
+                       ) return  ALU_out;     
                          
-  
+  function get_alu2_input ( reg   : EX_OPERAND_N;
+                            Forw  : HDU_OUT_N;  
+                            ID_EX : DECODER_N_INSTR;
+                            alu1  : ALU_out        
+                          ) return  ALU_in;     
 
 end MyFunctions;
