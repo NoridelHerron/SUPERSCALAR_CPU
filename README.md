@@ -108,11 +108,11 @@ If my intra-dependency hazard logic ends up being problematic during synthesis, 
 ---
 
 ### ALU UNIT
-Addition and subtraction are implemented directly inside the ALU using + and - operators, rather than through gate-level or modular adder/subtractor components. As a result, condition flag generation (C, V, etc.) is handled within the ALU itself, where all relevant inputs are readily available.
+Addition and subtraction are now handled directly within the ALU using the + and - operators, rather than through separate gate-level or modular components. Since the operations and results are computed inside the ALU, it made sense to generate the condition flags (C, V, etc.) there as well, where all required inputs are readily available.
 
-This decision was influenced by feedback from **Frank Bruno**, who recommended avoiding gate-level arithmetic in favor of behavioral operators. He noted that synthesis tools are highly effective at optimizing arithmetic operations and that device-specific implementations can vary—for example, ripple-carry adders are often preferred in FPGAs due to built-in logic support, whereas ASICs may benefit from carry-lookahead or carry-save architectures.
+While centralizing the flag logic was a necessary design choice based on how the ALU operates, feedback from **Frank Bruno** confirmed that this approach aligns with best practices. He noted that synthesis tools are highly effective at optimizing arithmetic operations and that device-specific implementations can vary—for example, ripple-carry adders are often preferred in FPGAs due to built-in logic support, whereas ASICs may benefit from carry-lookahead or carry-save architectures.
 
-The original gate-level adder and subtractor modules have been moved to the extra/ folder for reference. These modules perform arithmetic only and exclude flag logic, helping maintain a clear separation between calculation and control.
+The original gate-level adder and subtractor modules have been moved to the extra/ folder for reference. These legacy modules perform arithmetic only and do not include flag logic, preserving design history while clearly separating computation from control.
 
 ---
 
