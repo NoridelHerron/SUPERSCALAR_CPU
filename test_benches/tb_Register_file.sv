@@ -26,7 +26,7 @@ module tb_Register_file();
     // DUT signals
     logic [4:0] rd1, rd2;
     logic [31:0] wb_data1, wb_data2;
-    logic wb_we1, wb_we2;
+    logic [3:0] wb_we1, wb_we2;
     logic [4:0] rs1, rs2, rs3, rs4;
     logic [31:0] rs1_data, rs2_data, rs3_data, rs4_data;
 
@@ -50,8 +50,7 @@ module tb_Register_file();
     class RegTest;
         rand bit [4:0] wr_idx1, wr_idx2;
         rand bit [31:0] wr_data1, wr_data2;
-        rand bit we1, we2;
-
+        rand bit [3:0] we1, we2;
         rand bit [4:0] rd_idx1, rd_idx2, rd_idx3, rd_idx4;
 
         constraint unique_addrs {
@@ -59,6 +58,11 @@ module tb_Register_file();
             wr_idx2 != 0;
             wr_idx1 != wr_idx2;
         }
+        
+        constraint we_constraint {
+        we1 inside {4'd2, 4'd11};
+        we2 inside {4'd2, 4'd11};
+    }
 
         function void apply();
             // Apply writes
@@ -70,9 +74,9 @@ module tb_Register_file();
             wb_data2 = wr_data2;
 
             // Update reference model on posedge clk
-            if (we1 && wr_idx1 != 0)
+            if (we1 == 4'd2 && wr_idx1 != 0)
                 golden_regs[wr_idx1] = wr_data1;
-            if (we2 && wr_idx2 != 0 && !(we1 && wr_idx1 == wr_idx2))
+            if (we2 == 4'd2 && wr_idx2 != 0 && !(we1 == 4'd2 && wr_idx1 == wr_idx2))
                 golden_regs[wr_idx2] = wr_data2;
 
             // Apply reads

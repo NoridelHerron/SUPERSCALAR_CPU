@@ -29,14 +29,14 @@ module Register_file(
 //wb_data=write_input
 
     // Write Port 1
-    input [4:0] rd1,
+    input [4:0]  rd1,
     input [31:0] wb_data1,
-    input wb_we1,
+    input [3:0]  wb_we1,
 
     // Write Port 2
-    input [4:0] rd2,
+    input [4:0]  rd2,
     input [31:0] wb_data2,
-    input wb_we2,
+    input [3:0]  wb_we2,
 
     // Read Ports
     input [4:0] rs1, rs2, rs3, rs4,
@@ -54,11 +54,11 @@ module Register_file(
     always @(posedge clk) begin
         
         // Write Port 1 (higher priority)
-        if (wb_we1 && rd1 != 5'd0)
+        if (wb_we1 == 4'd2 && rd1 != 5'd0)
             regs[rd1] <= wb_data1;
 
         // Write Port 2 (only if not same as rd1)
-        if (wb_we2 && rd2 != 5'd0 && !(wb_we1 && rd1 == rd2))
+        if (wb_we2 == 4'd2 && rd2 != 5'd0 && !(wb_we1 == 4'd2 && rd1 == rd2))
             regs[rd2] <= wb_data2;
 
     end

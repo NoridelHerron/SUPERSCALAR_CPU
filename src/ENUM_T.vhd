@@ -33,7 +33,9 @@ package ENUM_T is
         VALID, INVALID, 
         NONE_c
     );
-    
+    attribute enum_encoding : string;
+    attribute enum_encoding of CONTROL_SIG : type is 
+        "0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011";
     -- HAZARD signal
     type HAZ_SIG is ( 
         A_STALL, B_STALL, STALL_FROM_A, STALL_FROM_B,

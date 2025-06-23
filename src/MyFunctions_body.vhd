@@ -536,4 +536,24 @@ package body MyFunctions is
 
     return temp; 
     end function; 
+    
+    function encode_control_sig(sig : CONTROL_SIG) return std_logic_vector is
+    variable temp : std_logic_vector(CNTRL_WIDTH-1 downto 0); 
+    begin
+        case sig is
+        when MEM_READ  => return "0000";
+        when MEM_WRITE => return "0001";
+        when REG_WRITE => return "0010";
+        when MEM_REG   => return "0011";
+        when ALU_REG   => return "0100";
+        when BRANCH    => return "0101";
+        when JUMP      => return "0110";
+        when RS2       => return "0111";
+        when IMM       => return "1000";
+        when VALID     => return "1001";
+        when INVALID   => return "1010";
+        when NONE_c    => return "1011";
+    end case;
+    return temp; 
+    end function;
 end MyFunctions;

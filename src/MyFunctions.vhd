@@ -72,6 +72,8 @@ package MyFunctions is
                             Forw  : HDU_OUT_N;  
                             ID_EX : DECODER_N_INSTR;
                             alu1  : ALU_out        
-                          ) return  ALU_in;     
+                          ) return  ALU_in;    
+  -- Convert enum to std_logic_vector                        
+ function encode_control_sig(sig : CONTROL_SIG) return std_logic_vector; 
 
 end MyFunctions;

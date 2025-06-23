@@ -20,6 +20,7 @@ package const_Types is
     constant MAX            : integer := 2147483647;
     constant FIVE           : integer := 5;
     constant FOUR           : integer := 4;
+    constant CNTRL_WIDTH    : integer := 4;
     
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';
