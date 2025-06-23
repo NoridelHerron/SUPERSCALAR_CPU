@@ -5,6 +5,8 @@ It extends the concepts of a classic 5-stage pipeline by allowing the CPU to fet
 
 The design uses a combination of VHDL and Verilog modules to support team collaboration and maintain flexibility across different toolchains.
 
+---
+
 ## Key Features
 - 2-way superscalar pipeline (dual-issue)
 - Mixed VHDL + Verilog design (team-friendly and tool-friendly)
@@ -21,6 +23,8 @@ The design uses a combination of VHDL and Verilog modules to support team collab
 - Build a solid base for future out-of-order CPU
 - Practice mixed VHDL + Verilog integration (real-world skill)
 - Document progress for portfolio and collaboration
+
+---
 
 ## Designs
 ### HAZARD DETECTION UNIT (HDU)
@@ -68,6 +72,8 @@ By handling instruction B’s special case explicitly, the pipeline avoids subtl
 ![Hazard diagram](images/HDU.png)
 The image above demonstrates that the hazard detection unit is functioning correctly. Several dependency cases have been highlighted to illustrate how hazards are identified and handled. Additional screenshots are included to show more examples of detected hazards across different scenarios for both instruction A and B.
 
+---
+
 ### EXECUTION (EX) STAGE
 The **EX stage** was initially developed in Verilog and integrated into my VHDL-based pipeline using wrapper modules. However, I later refactored the EX stage back to VHDL for several reasons:
 - Reduced complexity: Managing both VHDL and Verilog added unnecessary complications to the integrated pipeline.
@@ -99,44 +105,65 @@ If my intra-dependency hazard logic ends up being problematic during synthesis, 
 ![Forward from A](images/forw_from_A.png)
 **Note**:  The highlighted waveform confirms that, during an intra-dependency, instruction A's result is being forwarded and used as instruction B’s operand.
 
+---
+
 ### ALU UNIT
-I refactored both the adder and subtractor modules to make them reusable by removing flag generation from their logic. Instead, result computation and flag generation are now centralized in the ALU unit. Additionally, I introduced an enumerated type for ALU operations to improve code readability and simplify debugging. After refactoring, the adder, subtractor, and ALU unit were fully re-verified with 20,000 test cases.
+Addition and subtraction are implemented directly inside the ALU using + and - operators, rather than through gate-level or modular adder/subtractor components. As a result, condition flag generation (C, V, etc.) is handled within the ALU itself, where all relevant inputs are readily available.
+
+This decision was influenced by feedback from **Frank Bruno**, who recommended avoiding gate-level arithmetic in favor of behavioral operators. He noted that synthesis tools are highly effective at optimizing arithmetic operations and that device-specific implementations can vary—for example, ripple-carry adders are often preferred in FPGAs due to built-in logic support, whereas ASICs may benefit from carry-lookahead or carry-save architectures.
+
+The original gate-level adder and subtractor modules have been moved to the extra/ folder for reference. These modules perform arithmetic only and exclude flag logic, helping maintain a clear separation between calculation and control.
+
+---
 
 ### DECODER
 The Decoder module is designed with a single 32-bit instruction input and a single output structured as a record type. This output aggregates all decoded fields, including opcode, function codes, register indices, and the unshifted immediate value. Resizing and alignment of the immediate field are deferred to the top-level logic within the Instruction Decode (ID) stage. It was also fully verified with 20,000 test cases.
 
 The decoder is fully compliant with the RISC-V instruction set reference and supports all instruction formats. For verification, a dedicated testbench was developed that generates randomized 32-bit values, constrained to ensure only valid RISC-V instructions are produced.
 
+---
+
 ### Control Unit
 The Control Unit accepts a single input: the 7-bit opcode extracted from the instruction. Based on the opcode, it outputs a structured record containing all relevant control signals required by the datapath. Each control signal is deterministically derived from the opcode type, enabling precise configuration of the processor’s behavior for each instruction class (e.g., R-type, I-type, S-type, etc.).
 
 The use of a record output improves clarity and modularity, making the control logic easier to extend or debug in future design iterations.
 
+---
+
 ## Status
 **In progress**:
 - Nori
-    - Architecture planning complete
-    - Hazard Detection Unit with testbench
+    - Register File wrapper
+    - Integration of the ff components for the ID stage:
+        - HDU
+        - Decoders
+        - Register
+        - Control Unit    
 - Venkateshwarlu
-    - Register file (4R / 2W) being implemented (Verilog) with testbench
+    - Register file (4R / 2W) being implemented (Verilog) with testbench (completed)
     - Branch unit with testbench
 - Madhu
-    - Refactor Data Memory with testbench
+    - Refactor Data Memory with testbench (completed)
+
+---
 
 **Note**: 
 - The **extra** contains the original Verilog implementation of the EX stage, along with wrapper modules for the **ALU** and **forwarding unit**, and the **SystemVerilog** testbench used during that phase.
 - Please be aware that this code is **not directly compatible** with the current VHDL-based design — I removed some unused record fields and restructured parts of the interface during the refactor.
 - That said, the Verilog version was **fully functional** before those changes were made, and can still serve as a useful reference for the logic or testing approach.
 
-## 👤 Authors
+---
+
+## 👤 Contributors
+- **Venkateshwarlu Yejella**
+- **Madhu Kanithi**
+
+## 👤 Author
 **Noridel Herron**  
 Senior in Computer Engineering – University of Missouri  
 ✉️ noridel.herron@gmail.com  
 GitHub: [@NoridelHerron](https://github.com/NoridelHerron)
 
-## 👤 Contributors
-- **Venkateshwarlu Yejella**
-- **Madhu Kanithi**
 
 
 

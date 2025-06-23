@@ -23,11 +23,24 @@ end ALU;
 
 architecture Behavioral of ALU is
 
-begin
+    signal add_temp : ALU_add_sub := EMPTY_ALU_add_sub;
+    signal sub_temp : ALU_add_sub := EMPTY_ALU_add_sub;
     
-    process (input)
+begin
+
+    Add: entity work.adder port map (
+            A           => input.A, 
+            B           => input.B,         
+            output      => add_temp
+        );
+    Sub: entity work.subtractor port map (
+            A           => input.A, 
+            B           => input.B,         
+            output      => sub_temp
+    );
+
+    process (input, add_temp, sub_temp)
     variable res_temp : ALU_out := EMPTY_ALU_out;
-    variable temp     : unsigned(DATA_WIDTH downto 0);
     begin
         -- C and V flags
         res_temp.C := NONE;
@@ -36,42 +49,37 @@ begin
             when FUNC3_ADD_SUB =>  -- ADD/SUB
                 case input.f7 is
                     when FUNC7_ADD =>    -- ADD
-                        temp := resize(unsigned(input.A), DATA_WIDTH+1) + 
-                                resize(unsigned(input.B), DATA_WIDTH+1);
-                        res_temp.result     := std_logic_vector(temp(DATA_WIDTH-1 downto 0));
-                        res_temp.operation  := ALU_ADD;
-                        if temp(DATA_WIDTH) = '1' then 
+                        res_temp.result := add_temp.result;
+                        res_temp.operation := ALU_ADD;
+                        if add_temp.CB = '1' then   
                             res_temp.C := Cf; 
                         else 
                             res_temp.C := NONE; 
-                        end if;                      
+                        end if;
                         
                         if ((input.A(DATA_WIDTH - 1) = input.B(DATA_WIDTH - 1)) and 
                            (res_temp.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
-                            res_temp.V := V; 
+                           res_temp.V := V; 
                         else 
                             res_temp.V := NONE; 
                         end if;
   
                     when FUNC7_SUB =>   -- SUB (RISC-V uses 0b0100000 = 32 decimal)
-                        temp := resize(unsigned(input.A), DATA_WIDTH+1) - 
-                                resize(unsigned(input.B), DATA_WIDTH+1);
-                        res_temp.result     := std_logic_vector(temp(DATA_WIDTH-1 downto 0));
-                        res_temp.operation  := ALU_SUB;
- 
-                        if temp(DATA_WIDTH) = '0' then 
-                            res_temp.C := Cf;  -- No borrow → C = 1
+                        res_temp.result := sub_temp.result;
+                        res_temp.operation := ALU_SUB;
+                        if sub_temp.CB = '0' then 
+                            res_temp.C := Cf; 
                         else 
-                            res_temp.C := NONE;  -- Borrow → C = 0
+                            res_temp.C := NONE; 
                         end if;
-                    
+                        
                         if ((input.A(DATA_WIDTH - 1) /= input.B(DATA_WIDTH - 1)) and 
                            (res_temp.result(DATA_WIDTH - 1) /= input.A(DATA_WIDTH - 1))) then
                             res_temp.V := V; 
                         else 
                             res_temp.V := NONE; 
                         end if;
-  
+                        
                     when others =>
                         res_temp := EMPTY_ALU_out;  
                 end case;
