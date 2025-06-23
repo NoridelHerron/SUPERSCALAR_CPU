@@ -108,12 +108,11 @@ If my intra-dependency hazard logic ends up being problematic during synthesis, 
 ---
 
 ### ALU UNIT
-Addition and subtraction are now handled directly within the ALU using the + and - operators, rather than through separate gate-level or modular components. Since the operations and results are computed inside the ALU, it made sense to generate the condition flags (C, V, etc.) there as well, where all required inputs are readily available.
+Addition and subtraction are now handled directly within the ALU using the + and - operators, rather than through separate gate-level or modular components. Because the operations and their results are computed inside the ALU, it was a necessary design decision to centralize the generation of condition flags (C, V, etc.) there, where all required inputs are readily available.
 
-While centralizing the flag logic was a necessary design choice based on how the ALU operates, feedback from **Frank Bruno** confirmed that this approach aligns with best practices. He noted that synthesis tools are highly effective at optimizing arithmetic operations and that device-specific implementations can vary—for example, ripple-carry adders are often preferred in FPGAs due to built-in logic support, whereas ASICs may benefit from carry-lookahead or carry-save architectures.
+Feedback from **Frank Bruno**, technical expert, confirmed that using behavioral arithmetic operations (+, -) aligns well with best practices. He noted that synthesis tools are highly effective at optimizing these operations and that device-specific implementations can vary—for example, ripple-carry adders are often preferred in FPGAs due to built-in hardware support, whereas ASICs may benefit from carry-lookahead or carry-save architectures.
 
 The original gate-level adder and subtractor modules have been moved to the extra/ folder for reference. These legacy modules perform arithmetic only and do not include flag logic, preserving design history while clearly separating computation from control.
-
 ---
 
 ### DECODER
