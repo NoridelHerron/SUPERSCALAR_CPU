@@ -14,6 +14,11 @@ package initialize_records is
         pc          => ZERO_32bits
     );
     
+    constant EMPTY_inst_pc_N : Inst_PC_N := (
+        A          => EMPTY_inst_pc,
+        B          => EMPTY_inst_pc
+    );
+    
     -----------------------------------------ID STAGE------------------------------------------
     constant EMPTY_REG_DATA_PER : REG_DATA_PER := (
         A          => ZERO_32bits,

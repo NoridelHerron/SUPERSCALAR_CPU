@@ -13,6 +13,12 @@ package Pipeline_Types is
         instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         is_valid    : CONTROL_SIG;
     end record;
+    
+    -- PC and instruction
+    type Inst_PC_N is record
+        A           : Inst_PC;     
+        B           : Inst_PC;   
+    end record;
        
 -----------------------------------------ID STAGE------------------------------------------
     -- RS values 
