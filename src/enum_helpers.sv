@@ -8,19 +8,6 @@
 // enum_helpers.sv
 package enum_helpers;
 
-    typedef enum logic [6:0] {
-        ECALL    = 7'b1110011,
-        U_AUIPC  = 7'b0010111,
-        U_LUI    = 7'b0110111,
-        JALR     = 7'b1100111,
-        LOAD     = 7'b0000011,
-        S_TYPE   = 7'b0100011,
-        JAL      = 7'b1101111,
-        B_TYPE   = 7'b1100011,
-        I_IMME   = 7'b0010011,
-        R_TYPE   = 7'b0110011
-    } opcode_t;
-
     typedef enum logic [4:0] {
         //R-type
         ALU_ADD   = 5'h0,   ALU_SUB   = 5'h1,
