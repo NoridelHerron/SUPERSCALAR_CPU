@@ -33,12 +33,17 @@ package enum_helpers;
     
     typedef enum logic [3:0]{
         // memory and register control signal
-        MEM_READ, MEM_WRITE, // for load or store
-        REG_WRITE,           // wb
-        MEM_REG, ALU_REG,    // source result whether from alu or memory
-        BRANCH, JUMP, 
-        RS2, IMM,            // for operand 2
-        VALID, INVALID, 
+        MEM_READ = 0, 
+        MEM_WRITE, 
+        REG_WRITE,           
+        MEM_REG, 
+        ALU_REG,    
+        BRANCH, 
+        JUMP, 
+        RS2, 
+        IMM,            
+        VALID, 
+        INVALID, 
         NONE_c
     } control_signal_t;
     

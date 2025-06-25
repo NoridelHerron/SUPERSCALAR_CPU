@@ -50,8 +50,8 @@ package struct_helpers;
     } id_ex_t;
 
     typedef struct packed {
-        hazard_signal_t forwA;
-        hazard_signal_t forwB;
+        hazard_signal_t ForwA;
+        hazard_signal_t ForwB;
         hazard_signal_t stall;
     } haz_per_t;
     
@@ -112,5 +112,16 @@ package struct_helpers;
         logic [4:0]  opB;
     } alu_t;
     
+    typedef struct packed {
+        control_signal_t target;
+        control_signal_t alu;
+        control_signal_t mem;
+        control_signal_t wb;
+    } ctrl_t;
+    
+    typedef struct packed {
+        ctrl_t A;
+        ctrl_t B;
+    } ctrl_N_t;
     
 endpackage
