@@ -26,14 +26,14 @@ package enum_helpers;
 
     typedef enum logic [3:0]{
         // instruction type
-        R_TYPE_i, I_IMM_i, LOAD_i, S_TYPE_i, B_TYPE_i,
+        R_TYPE_i = 4'h0, I_IMM_i, LOAD_i, S_TYPE_i, B_TYPE_i,
         JAL_i, JALR_i, LUI_i, AUIPC_i, ECALL_i, 
         NOP_i, NONE_i
     } instruction_t;
     
     typedef enum logic [3:0]{
         // memory and register control signal
-        MEM_READ = 0, 
+        MEM_READ = 4'h0, 
         MEM_WRITE, 
         REG_WRITE,           
         MEM_REG, 
@@ -49,7 +49,7 @@ package enum_helpers;
     
     // HAZARD signal
     typedef enum logic [3:0]{
-        A_STALL, B_STALL, STALL_FROM_A, STALL_FROM_B,
+        A_STALL = 4'h0, B_STALL, STALL_FROM_A, STALL_FROM_B,
         EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A, 
         NONE_h
     } hazard_signal_t;

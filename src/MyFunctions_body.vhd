@@ -556,4 +556,22 @@ package body MyFunctions is
     end case;
     return temp; 
     end function;
+    
+    function slv_to_control_sig(slv : std_logic_vector(3 downto 0)) return CONTROL_SIG is
+    begin
+      case slv is
+        when "0000" => return MEM_READ;
+        when "0001" => return MEM_WRITE;
+        when "0010" => return REG_WRITE;
+        when "0011" => return MEM_REG;
+        when "0100" => return ALU_REG;
+        when "0101" => return BRANCH;
+        when "0110" => return JUMP;
+        when "0111" => return RS2;
+        when "1000" => return IMM;
+        when "1001" => return VALID;
+        when "1010" => return INVALID;
+        when others => return NONE_c;
+      end case;
+    end function;
 end MyFunctions;

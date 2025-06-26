@@ -28,11 +28,11 @@ package InstrGenPkg;
         // Select opcode based on probability ranges
         if (rand_real < 0.10)
             op = LOAD;
-        else if (rand_real < 0.20)
+        else if (rand_real < 0.15)
             op = S_TYPE;
-        else if (rand_real < 0.30)
+        else if (rand_real < 0.20)
             op = JAL;
-        else if (rand_real < 0.60)
+        else if (rand_real < 0.25)
             op = B_TYPE;
         else if (rand_real < 0.80)
             op = I_IMME;
@@ -75,7 +75,9 @@ package InstrGenPkg;
     function automatic decoder_t decode(input logic [31:0] instr);
         decoder_t result = '0;
         decoder_t temp   = '0;
-
+        logic [11:0] imm12 = '0; 
+        logic [19:0] imm20 = '0;
+    
         temp.op      = instr[6:0];
         temp.rd      = instr[11:7];
         temp.funct3  = instr[14:12];
@@ -93,13 +95,17 @@ package InstrGenPkg;
             // Handle S_TYPE instruction
             S_TYPE: begin temp.imm12   = {instr[31:25], instr[11:7]}; end
             // Handle JAL instruction
-            JAL: begin temp.imm20   = {instr[31], instr[19], instr[18:12],  instr[30:20]}; end
+            JAL: begin 
+                imm20   = {instr[31], instr[19], instr[18:12],  instr[30:20]};
+                temp.imm20 = imm20[19] & imm20[7:0] & imm20[8] & imm20[18:9]; end
             // Handle B_TYPE instruction
-            B_TYPE: begin temp.imm12 = {instr[31], instr[7], instr[30:25],  instr[11:8]}; end
+            B_TYPE: begin 
+                imm12 = {instr[31], instr[7], instr[30:25],  instr[11:8]};
+                temp.imm12 = { imm12[11], imm12[0], imm12[10:5], imm12[4:1]} ; end
             // Handle I_IMME instruction
             I_IMME: begin temp.imm12   = instr[31:20]; end
             // Handle unknown opcode
-            default: temp = '0;
+            default: temp = '{default: 0};
         endcase
     
     result = temp;
@@ -108,7 +114,7 @@ package InstrGenPkg;
     
     // Function that decode instruction
     function automatic ctrl_t cntrl_gen(input logic [6:0] op);
-        ctrl_t result, temp;
+        ctrl_t temp;
         temp.target = NONE_c;
         temp.alu    = IMM;
         temp.mem    = NONE_c;
@@ -121,100 +127,96 @@ package InstrGenPkg;
             S_TYPE: begin temp.target = MEM_REG; temp.mem = MEM_WRITE; temp.wb = NONE_c; end       
             B_TYPE: begin temp.target = BRANCH; temp.alu = RS2; temp.wb = NONE_c; end 
             JAL:    begin temp.target = JUMP; temp.alu = NONE_c; end 
-            default: temp = '0;
-     
+            default: begin temp.alu = NONE_c; temp.wb = NONE_c; end 
         endcase
     
-        return result;
+        return temp;
     endfunction
-    
+
     // Function that decode instruction
-    function automatic haz_t haz_gen(input id_ex_t ID, id_ex_t ID_EX, ctrl_N_t ID_EX_c, rd_ctrl_N_t EX_MEM, rd_ctrl_N_t MEM_WB);
-        haz_t result, temp;
-         // Forward A
-        if (EX_MEM.A.cntrl == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs1) begin
+    function automatic haz_t haz_gen(
+        input id_ex_t ID,
+        input id_ex_t ID_EX,
+        input ctrl_N_t ID_EX_c,
+        input rd_ctrl_N_t EX_MEM,
+        input rd_ctrl_N_t MEM_WB
+    );
+        haz_t temp;
+    
+        // Forwarding A
+        if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs1)
             temp.A.ForwA = EX_MEM_A;
-        end
-        else if (EX_MEM.B.cntrl == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs1) begin
+        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs1)
             temp.A.ForwA = EX_MEM_B;
-        end
-        else if (MEM_WB.A.cntrl == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs1) begin
+        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs1)
             temp.A.ForwA = MEM_WB_A;
-        end
-        else if (MEM_WB.B.cntrl == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs1) begin
+        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs1)
             temp.A.ForwA = MEM_WB_B;
-        end
-        else begin
+        else
             temp.A.ForwA = NONE_h;
-        end 
-        // Forward B
-        if (EX_MEM.A.cntrl == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs2) begin
+    
+        // Forwarding B
+        if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs2)
             temp.A.ForwB = EX_MEM_A;
-        end else if (EX_MEM.B.cntrl == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs2) begin
+        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs2)
             temp.A.ForwB = EX_MEM_B;
-        end else if (MEM_WB.A.cntrl == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs2) begin
+        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs2)
             temp.A.ForwB = MEM_WB_A;
-        end else if (MEM_WB.B.cntrl == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs2) begin
+        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs2)
             temp.A.ForwB = MEM_WB_B;
-        end else begin
+        else
             temp.A.ForwB = NONE_h;
-        end 
-
-        // STALL A
+    
+        // Stall A
         if (ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0 &&
-            (ID_EX.A.rd == ID.A.rs1 || ID_EX.A.rd == ID.A.rs2)) begin
+            (ID_EX.A.rd == ID.A.rs1 || ID_EX.A.rd == ID.A.rs2))
             temp.A.stall = A_STALL;
-        end else if (ID_EX.B.op == LOAD && ID_EX.B.rd != 5'd0 &&
-                     (ID_EX.B.rd == ID.A.rs1 || ID_EX.B.rd == ID.A.rs2)) begin
+        else if (ID_EX.B.op == LOAD && ID_EX.B.rd != 5'd0 &&
+                 (ID_EX.B.rd == ID.A.rs1 || ID_EX.B.rd == ID.A.rs2))
             temp.A.stall = B_STALL;
-        end else begin
+        else
             temp.A.stall = NONE_h;
-        end
-
-        // Forward A
-        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs1 == ID_EX.A.rd && ID_EX.A.rd != 5'd0) begin
+    
+        // Forwarding for ID_EX.B
+        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs1 == ID_EX.A.rd && ID_EX.A.rd != 5'd0)
             temp.B.ForwA = FORW_FROM_A;
-        end else if (EX_MEM.A.cntrl == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs1) begin
+        else if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs1)
             temp.B.ForwA = EX_MEM_A;
-        end else if (EX_MEM.B.cntrl == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs1) begin
+        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs1)
             temp.B.ForwA = EX_MEM_B;
-        end else if (MEM_WB.A.cntrl == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs1) begin
+        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs1)
             temp.B.ForwA = MEM_WB_A;
-        end else if (MEM_WB.B.cntrl == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs1) begin
+        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs1)
             temp.B.ForwA = MEM_WB_B;
-        end else begin
+        else
             temp.B.ForwA = NONE_h;
-        end
-        
-        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs2 == ID_EX.A.rd && ID_EX.A.rd != 5'd0) begin
+    
+        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs2 == ID_EX.A.rd && ID_EX.A.rd != 5'd0)
             temp.B.ForwB = FORW_FROM_A;
-        end else if (EX_MEM.A.cntrl == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs2) begin
+        else if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs2)
             temp.B.ForwB = EX_MEM_A;
-        end else if (EX_MEM.B.cntrl == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs2) begin
+        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs2)
             temp.B.ForwB = EX_MEM_B;
-        end else if (MEM_WB.A.cntrl == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs2) begin
+        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs2)
             temp.B.ForwB = MEM_WB_A;
-        end else if (MEM_WB.B.cntrl == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs2) begin
+        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs2)
             temp.B.ForwB = MEM_WB_B;
-        end else begin
+        else
             temp.B.ForwB = NONE_h;
-        end
-
-        // STALL B
-        if (temp.A.stall != NONE_h) begin
+    
+        // Stall B
+        if (temp.A.stall != NONE_h)
             temp.B.stall = STALL_FROM_A;
-        end else if (ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0 &&
-                     (ID_EX.A.rd == ID.B.rs1 || ID_EX.A.rd == ID.B.rs2)) begin
+        else if (ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0 &&
+                 (ID_EX.A.rd == ID.B.rs1 || ID_EX.A.rd == ID.B.rs2))
             temp.B.stall = A_STALL;
-        end else if (ID_EX_c.B.mem == MEM_READ && ID_EX.B.rd != 5'd0 &&
-                     (ID_EX.B.rd == ID.B.rs1 || ID_EX.B.rd == ID.B.rs2)) begin
+        else if (ID_EX_c.B.mem == MEM_READ && ID_EX.B.rd != 5'd0 &&
+                 (ID_EX.B.rd == ID.B.rs1 || ID_EX.B.rd == ID.B.rs2))
             temp.B.stall = B_STALL;
-        end else begin
+        else
             temp.B.stall = NONE_h;
-        end 
-
-        result = temp;
-        return result;
+    
+        return temp;
     endfunction
 
 endpackage

@@ -98,16 +98,6 @@ package struct_helpers;
     } mem_wb_t;
     
     typedef struct packed {
-        control_signal_t cntrl;
-        logic [4:0]      rd;
-    } rd_ctrl_t;
-    
-    typedef struct packed {
-        rd_ctrl_t A;
-        rd_ctrl_t B;
-    } rd_ctrl_N_t;
-    
-    typedef struct packed {
         logic [4:0]  opA; 
         logic [4:0]  opB;
     } alu_t;
@@ -124,4 +114,28 @@ package struct_helpers;
         ctrl_t B;
     } ctrl_N_t;
     
+    typedef struct packed {
+        control_signal_t target;
+        control_signal_t alu;
+        control_signal_t mem;
+        control_signal_t wb;
+        logic [4:0] rd;
+    } rd_ctrl_t;
+    
+    typedef struct packed {
+        rd_ctrl_t A;
+        rd_ctrl_t B;
+    } rd_ctrl_N_t;
+    
+    typedef struct packed {
+        logic [31:0]     data; 
+        logic [4:0]      rd;
+        control_signal_t we;
+    } wb_per_t;
+    
+    typedef struct packed {
+        wb_per_t A;
+        wb_per_t B;
+    } wb_t;
+
 endpackage

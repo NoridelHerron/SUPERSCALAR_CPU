@@ -22,14 +22,20 @@ entity ID_STAGE is
             instr1   : in  std_logic_vector(DATA_WIDTH-1 downto 0);      
             instr2   : in  std_logic_vector(DATA_WIDTH-1 downto 0);
             ID_EX    : in  DECODER_N_INSTR; -- from the register between this stage and the ex stage
-            EX_MEM   : in  RD_CTRL_N_INSTR; -- from register between ex and mem stage
-            MEM_WB   : in  RD_CTRL_N_INSTR; -- from register between mem and wb stage
+            ex_rd1   : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0); -- from register between ex and mem stage
+            ex_c1    : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
+            ex_rd2   : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+            ex_c2    : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
+            m_rd1    : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0); -- from register between ex and mem stage
+            m_c1     : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
+            m_rd2    : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+            m_c2     : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
             rd1      : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
             wb_data1 : in  std_logic_vector(DATA_WIDTH-1 downto 0);
             wb_we1   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
             rd2      : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
             wb_data2 : in  std_logic_vector(DATA_WIDTH-1 downto 0);
-            wb_we2   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
+            wb_we2   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);  
             ID_out   : out DECODER_N_INSTR;
             cntrl    : out control_Type_N;
             haz      : out HDU_OUT_N;       -- output from hdu
@@ -43,6 +49,9 @@ signal decoded      : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR;
 signal cntrl_temp   : control_Type_N  := EMPTY_control_Type_N;
 signal haz_temp     : HDU_OUT_N       := EMPTY_HDU_OUT_N;
 signal datas_temp   : REG_DATAS       := EMPTY_REG_DATAS;
+signal EX_MEM       : RD_CTRL_N_INSTR   := EMPTY_RD_CTRL_N_INSTR; 
+signal MEM_WB       : RD_CTRL_N_INSTR   := EMPTY_RD_CTRL_N_INSTR; 
+
 
 begin
 --------------------------------------------------------
@@ -75,7 +84,17 @@ begin
         );
 --------------------------------------------------------
 -- Detect Hazards
---------------------------------------------------------        
+--------------------------------------------------------     
+    EX_MEM.A.cntrl.wb <= slv_to_control_sig(ex_c1);
+    EX_MEM.A.rd       <= ex_rd1;
+    EX_MEM.B.cntrl.wb <= slv_to_control_sig(ex_c2);
+    EX_MEM.B.rd       <= ex_rd2;
+    
+    MEM_WB.A.cntrl.wb <= slv_to_control_sig(m_c1);
+    MEM_WB.A.rd       <= m_rd1;
+    MEM_WB.B.cntrl.wb <= slv_to_control_sig(m_c2);
+    MEM_WB.B.rd       <= m_rd2;
+     
     HAZARD_DETECTOR: entity work.HDU
         port map (
             ID          => decoded, 
@@ -88,7 +107,6 @@ begin
 --------------------------------------------------------
 -- write or read data to/from the register
 --------------------------------------------------------  
-
 REGS: entity work.RegFile_wrapper
         port map (
                    clk      => clk, 
