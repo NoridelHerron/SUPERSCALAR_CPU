@@ -151,8 +151,8 @@ begin
                   --  temp.imm20  := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;   
 
                 when JAL =>  
-                    imm20       := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;
-                    temp.imm20  := imm20(19) & imm20(7 downto 0) & imm20(8) & imm20(18 downto 9);        
+                    temp.imm20 := temp.funct7(6) & temp.rs1(3 downto 0) & temp.funct3 & 
+                                  temp.rs1(4) & temp.funct7(5 downto 0) & temp.rs2;       
                     
                 when others => temp := EMPTY_DECODER;
                     

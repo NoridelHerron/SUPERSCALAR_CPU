@@ -53,8 +53,7 @@ begin
                 temp.rd     := ZERO_5bits;       
                 
             when B_TYPE => 
-                imm12       := ID(31 downto 25) & ID(11 downto 7); -- or temp.funct7 & temp.rd
-                temp.imm12  := imm12(11) & imm12(0) & imm12(10 downto 5) & imm12(4 downto 1);  
+                temp.imm12  := ID(31) & ID(7) & ID(30 downto 25) & ID(11 downto 8);  
                 temp.funct7 := ZERO_7bits;
                 temp.rd     := ZERO_5bits;     
                 
@@ -65,9 +64,8 @@ begin
                 temp        := EMPTY_DECODER;
                 temp.rd     := ID(11 downto 7);
                 temp.op     := ID(6 downto 0);
-                imm20       := ID(31 downto 12);
-                temp.imm20  := imm20(19) & imm20(7 downto 0) & imm20(8) & imm20(18 downto 9);    
-                    
+                temp.imm20  := ID(31) & ID(18 downto 12) & ID(19) & ID(30 downto 20); 
+                     
             when others => temp := EMPTY_DECODER;
         end case;
 

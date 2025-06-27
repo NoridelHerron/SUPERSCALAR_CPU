@@ -26,15 +26,15 @@ package InstrGenPkg;
         rand_real = $urandom_range(0, 10000) / 10000.0;
 
         // Select opcode based on probability ranges
-        if (rand_real < 0.10)
+        if (rand_real < 0.20)
             op = LOAD;
-        else if (rand_real < 0.15)
+        else if (rand_real < 0.4)
             op = S_TYPE;
-        else if (rand_real < 0.20)
+        else if (rand_real < 0.6)
             op = JAL;
-        else if (rand_real < 0.25)
+        else if (rand_real < 0.8)
             op = B_TYPE;
-        else if (rand_real < 0.80)
+        else if (rand_real < 0.9)
             op = I_IMME;
         else
             op = R_TYPE;
@@ -91,19 +91,40 @@ package InstrGenPkg;
             // Handle R_TYPE instruction
             R_TYPE: begin end
             // Handle LOAD instruction
-            LOAD: begin temp.imm12   = instr[31:20]; end
+            LOAD: begin 
+                temp.imm12   = instr[31:20]; 
+                temp.funct7  = 7'd0;
+                temp.rs2     = 5'd0;
+            end
+            
             // Handle S_TYPE instruction
-            S_TYPE: begin temp.imm12   = {instr[31:25], instr[11:7]}; end
+            S_TYPE: begin 
+                temp.imm12   = {instr[31:25], instr[11:7]}; 
+                temp.funct7  = 7'd0;
+                temp.rd      = 5'd0; 
+            end
+            
             // Handle JAL instruction
             JAL: begin 
-                imm20   = {instr[31], instr[19], instr[18:12],  instr[30:20]};
-                temp.imm20 = imm20[19] & imm20[7:0] & imm20[8] & imm20[18:9]; end
+                temp       = '{default: 0};
+                temp.rd    = instr[11:7];
+                temp.op    = instr[6:0];
+                temp.imm20 = {instr[31], instr[18:12], instr[19], instr[30:20]}; 
+               
+            end
+            
             // Handle B_TYPE instruction
             B_TYPE: begin 
-                imm12 = {instr[31], instr[7], instr[30:25],  instr[11:8]};
-                temp.imm12 = { imm12[11], imm12[0], imm12[10:5], imm12[4:1]} ; end
+                temp.imm12 = { instr[31], instr[7], instr[30:25],  instr[11:8]};
+                temp.funct7  = 7'd0;
+                temp.rd      = 5'd0; 
+            end
             // Handle I_IMME instruction
-            I_IMME: begin temp.imm12   = instr[31:20]; end
+            I_IMME: begin 
+                temp.imm12   = instr[31:20];
+                temp.funct7  = 7'd0;
+                temp.rs2     = 5'd0; 
+            end
             // Handle unknown opcode
             default: temp = '{default: 0};
         endcase
