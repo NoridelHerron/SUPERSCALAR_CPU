@@ -574,4 +574,24 @@ package body MyFunctions is
         when others => return NONE_c;
       end case;
     end function;
+    
+    function encode_HAZ_sig(sig : HAZ_SIG) return std_logic_vector is
+    variable temp : std_logic_vector(CNTRL_WIDTH-1 downto 0); 
+    begin
+        case sig is
+        when A_STALL        => return "0000";
+        when B_STALL        => return "0001";
+        when STALL_FROM_A   => return "0010";
+        when STALL_FROM_B   => return "0011";
+        when EX_MEM_A       => return "0100";
+        when EX_MEM_B       => return "0101";
+        when MEM_WB_A       => return "0110";
+        when MEM_WB_B       => return "0111";
+        when FORW_FROM_A    => return "1000";
+        when HOLD_B         => return "1001";
+        when B_INVALID      => return "1010";
+        when NONE_H         => return "1011";
+    end case;
+    return temp; 
+    end function;
 end MyFunctions;

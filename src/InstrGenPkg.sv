@@ -239,5 +239,23 @@ package InstrGenPkg;
     
         return temp;
     endfunction
+    
+    function automatic hazard_signal_t encode_HAZ_sig(input logic [3:0] sig);
+    case (sig)
+        4'b0000: return A_STALL;
+        4'b0001: return B_STALL;
+        4'b0010: return STALL_FROM_A;
+        4'b0011: return STALL_FROM_B;
+        4'b0100: return EX_MEM_A;
+        4'b0101: return EX_MEM_B;
+        4'b0110: return MEM_WB_A;
+        4'b0111: return MEM_WB_B;
+        4'b1000: return FORW_FROM_A;
+        4'b1001: return HOLD_B;
+        4'b1010: return B_INVALID;
+        4'b1011: return NONE_h;
+        default: return NONE_h; // optional: catch-all for safety
+    endcase
+endfunction
 
 endpackage

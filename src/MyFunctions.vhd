@@ -76,5 +76,6 @@ package MyFunctions is
   -- Convert enum to std_logic_vector                        
  function encode_control_sig(sig : CONTROL_SIG) return std_logic_vector; 
  function slv_to_control_sig(slv : std_logic_vector(3 downto 0)) return CONTROL_SIG;
+ function encode_HAZ_sig(sig : HAZ_SIG) return std_logic_vector;
 
 end MyFunctions;

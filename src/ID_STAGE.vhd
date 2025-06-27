@@ -37,8 +37,8 @@ entity ID_STAGE is
             wb_data2 : in  std_logic_vector(DATA_WIDTH-1 downto 0);
             wb_we2   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);  
             ID_out   : out DECODER_N_INSTR;
-            cntrl    : out control_Type_N;
-            haz      : out HDU_OUT_N;       -- output from hdu
+            cntrl    : out control_Type_NV;
+            haz      : out HDU_OUT_NV;       -- output from hdu
             datas    : out REG_DATAS        -- otput from the register
     );
 end ID_STAGE;
@@ -46,11 +46,12 @@ end ID_STAGE;
 architecture Behavioral of ID_STAGE is
 
 signal decoded      : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
+signal dec_to_c     : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
 signal cntrl_temp   : control_Type_N  := EMPTY_control_Type_N;
 signal haz_temp     : HDU_OUT_N       := EMPTY_HDU_OUT_N;
 signal datas_temp   : REG_DATAS       := EMPTY_REG_DATAS;
-signal EX_MEM       : RD_CTRL_N_INSTR   := EMPTY_RD_CTRL_N_INSTR; 
-signal MEM_WB       : RD_CTRL_N_INSTR   := EMPTY_RD_CTRL_N_INSTR; 
+signal EX_MEM       : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
+signal MEM_WB       : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
 
 
 begin
@@ -70,16 +71,21 @@ begin
         );
 --------------------------------------------------------
 -- Generate Control Signal
---------------------------------------------------------       
+--------------------------------------------------------     
+process (decoded)
+begin
+    dec_to_c <= decoded;
+end process;
+  
     CONTROl_UNIT_1: entity work.control_gen
         port map (
-            opcode      => decoded.A.op, 
+            opcode      => dec_to_c.A.op, 
             ctrl_sig    => cntrl_temp.A
         );
         
     CONTROl_UNIT_2: entity work.control_gen
         port map (
-            opcode      => decoded.B.op, 
+            opcode      => dec_to_c.B.op, 
             ctrl_sig    => cntrl_temp.B
         );
 --------------------------------------------------------
@@ -124,8 +130,25 @@ REGS: entity work.RegFile_wrapper
             );
 
 -- output assignment
+
+cntrl.A.target <= encode_control_sig(cntrl_temp.A.target);
+cntrl.A.alu    <= encode_control_sig(cntrl_temp.A.alu);
+cntrl.A.mem    <= encode_control_sig(cntrl_temp.A.mem);
+cntrl.A.wb     <= encode_control_sig(cntrl_temp.A.wb);
+
+cntrl.B.target <= encode_control_sig(cntrl_temp.B.target);
+cntrl.B.alu    <= encode_control_sig(cntrl_temp.B.alu);
+cntrl.B.mem    <= encode_control_sig(cntrl_temp.B.mem);
+cntrl.B.wb     <= encode_control_sig(cntrl_temp.B.wb);
+
+haz.A.forwA    <= encode_HAZ_sig(haz_temp.A.forwA);
+haz.A.forwB    <= encode_HAZ_sig(haz_temp.A.forwB);
+haz.A.stall    <= encode_HAZ_sig(haz_temp.A.stall);
+
+haz.B.forwA    <= encode_HAZ_sig(haz_temp.B.forwA);
+haz.B.forwB    <= encode_HAZ_sig(haz_temp.B.forwB);
+haz.B.stall    <= encode_HAZ_sig(haz_temp.B.stall);
+
 ID_out  <= decoded;
-cntrl   <= cntrl_temp;
-haz     <= haz_temp;
 datas   <= datas_temp;
 end Behavioral;

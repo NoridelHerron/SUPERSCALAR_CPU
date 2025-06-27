@@ -51,7 +51,7 @@ package enum_helpers;
     typedef enum logic [3:0]{
         A_STALL = 4'h0, B_STALL, STALL_FROM_A, STALL_FROM_B,
         EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A, 
-        NONE_h
+        HOLD_B, B_INVALID, NONE_h
     } hazard_signal_t;
 
     // Convert vector to enum

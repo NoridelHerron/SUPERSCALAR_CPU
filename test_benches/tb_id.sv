@@ -11,15 +11,20 @@ module tb_id;
     always #5 clk = ~clk; // Clock: 10ns period
     // Actual
     logic [31:0] instr1, instr2;
-    id_ex_t      ID, ID_exp, ID_EX, ID_EX_exp;
+    id_ex_t      ID, ID_exp;
     ctrl_N_t     cntrl, cntrl_exp;
-    haz_t        haz, haz_exp;
+    id_ex_t      ID_EX, ID_EX_exp;
+    haz_t        temp_haz, haz_exp;
     regs_t       datas, data_exp;
     rd_ctrl_N_t  EX_MEM, EX_MEM_exp, MEM_WB, MEM_WB_exp;
     wb_t         WB, WB_exp;
 
     logic [31:0] golden_regs[31:0];
-
+    // 
+    id_ex_t  temp_ID;
+    ctrl_N_t temp_cntrl;
+    haz_t    haz;
+    
     ID_STAGE dut (
         .clk(clk),
         .instr1(instr1),
@@ -46,55 +51,34 @@ module tb_id;
     // Transaction class for stimulus
     class IDTest;
         rand bit [31:0] wr_data1, wr_data2;
-        rand control_signal_t  we1, we2, ex1, ex2, m1, m2;
-
-        constraint we_constraint {
-        we1 inside {REG_WRITE, NONE_c};
-        we2 inside {REG_WRITE, NONE_c};
-        ex1 inside {REG_WRITE, NONE_c};
-        ex2 inside {REG_WRITE, NONE_c};
-        m1  inside {REG_WRITE, NONE_c};
-        m2  inside {REG_WRITE, NONE_c};
-        }
-    
+        
         task automatic apply();
+        
+            temp_haz.A = '{encode_HAZ_sig(haz.A.ForwA), encode_HAZ_sig(haz.A.ForwB), encode_HAZ_sig(haz.A.stall)};
+            temp_haz.B = '{encode_HAZ_sig(haz.B.ForwA), encode_HAZ_sig(haz.B.ForwB), encode_HAZ_sig(haz.B.stall)};
             instr1 = gen_random_instr(seed);
             instr2 = gen_random_instr(seed);
             
             ID_EX           <= ID;
-            EX_MEM.A.target = NONE_c;
-            EX_MEM.A.alu    = NONE_c;
-            EX_MEM.A.mem    = NONE_c;
-            EX_MEM.A.wb     = ex1;
-            EX_MEM.A.rd     <= ID_EX.A.rd;
-            MEM_WB.A.target = NONE_c;
-            MEM_WB.A.alu    = NONE_c;
-            MEM_WB.A.mem    = NONE_c;
-            MEM_WB.A.wb     = m1;
-            MEM_WB.A.rd     <= EX_MEM.A.rd;
-            EX_MEM.B.target = NONE_c;
-            EX_MEM.B.alu    = NONE_c;
-            EX_MEM.B.mem    = NONE_c;
-            EX_MEM.B.wb     = ex2;
-            EX_MEM.B.rd     <= ID_EX.B.rd;
-            MEM_WB.B.target = NONE_c;
-            MEM_WB.B.alu    = NONE_c;
-            MEM_WB.B.mem    = NONE_c;
-            MEM_WB.B.wb     = m2; 
-            MEM_WB.B.rd     <= EX_MEM.B.rd;
-            WB.A            = '{wr_data1, MEM_WB.A.rd, we1};
-            WB.B            = '{wr_data2, MEM_WB.B.rd, we2};
+            EX_MEM.A        <= '{cntrl.A.target, cntrl.A.alu, cntrl.A.mem, cntrl.A.wb, ID_EX.A.rd};
+            EX_MEM.B        <= '{cntrl.B.target, cntrl.B.alu, cntrl.B.mem, cntrl.B.wb, ID_EX.B.rd}; 
+            MEM_WB          <= EX_MEM;
+            WB.A            <= '{wr_data1, MEM_WB.A.rd, MEM_WB.A.wb};
+            WB.B            <= '{wr_data2, MEM_WB.B.rd, MEM_WB.B.wb};
             
-            ID_exp          = '{decode(instr1), decode(instr2)};
-            cntrl_exp       = '{cntrl_gen(ID_exp.A.op), cntrl_gen(ID_exp.B.op)};
+            temp_ID         = '{decode(instr1), decode(instr2)};
+            temp_cntrl      = '{cntrl_gen(temp_ID.A.op), cntrl_gen(temp_ID.B.op)};  
+            ID_exp          <= temp_ID;
+            cntrl_exp       <= temp_cntrl;
             ID_EX_exp       <= ID_exp;
-            EX_MEM_exp.A    = '{NONE_c, NONE_c, NONE_c, cntrl_exp.A.wb, ID_EX_exp.A.rd};
-            EX_MEM_exp.B    = '{NONE_c, NONE_c, NONE_c, cntrl_exp.B.wb, ID_EX_exp.B.rd};
-            MEM_WB_exp      = EX_MEM_exp;
-            WB_exp.A        = '{wr_data1, MEM_WB_exp.A.rd, we1};
-            WB_exp.B        = '{wr_data2, MEM_WB_exp.B.rd, we2};
+            EX_MEM_exp.A    <= '{cntrl_exp.A.target, cntrl_exp.A.alu, cntrl_exp.A.mem, cntrl_exp.A.wb, ID_EX_exp.A.rd};
+            EX_MEM_exp.B    <= '{cntrl_exp.B.target, cntrl_exp.B.alu, cntrl_exp.B.mem, cntrl_exp.B.wb, ID_EX_exp.B.rd};
+            MEM_WB_exp      <= EX_MEM_exp;
+            WB_exp.A        <= '{wr_data1, MEM_WB_exp.A.rd, MEM_WB.A.wb};
+            WB_exp.B        <= '{wr_data2, MEM_WB_exp.B.rd, MEM_WB.B.wb};
+            haz_exp         <= haz_gen(temp_ID, ID_EX_exp, temp_cntrl, EX_MEM_exp, MEM_WB_exp);
             
-            haz_exp       = haz_gen(ID_exp, ID_EX_exp, cntrl_exp, EX_MEM_exp, MEM_WB_exp);
+            
     
         if ((WB_exp.A.we == REG_WRITE) && (WB_exp.A.rd != 0))
             golden_regs[WB_exp.A.rd] = WB_exp.A.data;
@@ -113,8 +97,7 @@ module tb_id;
         #1;
         if ((ID === ID_exp) && (ID_EX === ID_EX_exp) && (EX_MEM === EX_MEM_exp) &&
             (EX_MEM === EX_MEM_exp) && (MEM_WB === MEM_WB_exp) && (haz === haz_exp) &&
-            (cntrl === cntrl_exp) && (datas === data_exp) && 
-            (WB === WB_exp)) begin
+            (cntrl === cntrl_exp) && (datas === data_exp) && (WB === WB_exp)) begin
             pass++;
         end else begin
             fail++;
@@ -145,7 +128,7 @@ module tb_id;
                 fid++;
             end 
             if (ID_EX !== ID_EX_exp)   fidex++;
-            if (EX_MEM !== EX_MEM_exp) fe++;
+            if ((EX_MEM.A.wb !== EX_MEM_exp.A.wb) & (EX_MEM.B.wb !== EX_MEM_exp.B.wb)) fe++;
             if (MEM_WB !== MEM_WB_exp) fm++;
             if (WB !== WB_exp)         fw++;
             if (haz !== haz_exp)       fh++;
@@ -162,12 +145,11 @@ module tb_id;
          
         instr1      = '0; instr2 = '0;
         datas       = '0; data_exp = '0;
-        ID          = '{default: 0}; ID_EX = '{default: 0};
-        ID_exp      = '{default: 0}; ID_EX_exp = '{default: 0};
-        cntrl       = '{A: '{default: NONE_c}, B: '{default: NONE_c}};
-        cntrl_exp   = cntrl;
+        ID = '{default: 0}; temp_ID = ID; ID_EX = ID; ID_exp = ID; ID_EX_exp = ID; 
+        cntrl_exp   = '{A: '{default: NONE_c}, B: '{default: NONE_c}};
+        temp_cntrl = cntrl_exp; cntrl = cntrl_exp;
         haz         = '{A: '{default: NONE_h}, B: '{default: NONE_h}};
-        haz_exp     = haz;
+        haz_exp = haz; temp_haz = haz;
         EX_MEM      = '{A: '{default: NONE_c, rd: 5'd0}, B: '{default: NONE_c, rd: 5'd0}};
         MEM_WB      = EX_MEM;
         WB          = '{A: '{data: 0, rd: 0, we: NONE_c}, B: '{data: 0, rd: 0, we: NONE_c}};
@@ -189,6 +171,7 @@ module tb_id;
         end
         if (pass == total_tests) begin
             $display("All %0d tests passed!", pass);
+            $display("YAHAYYYYYY! I did it!!!");
         end else begin
             $display("%0d tests failed out of %0d", fail, total_tests);
             if (fid !== 0) begin
@@ -210,15 +193,16 @@ module tb_id;
                 $display("B : %0d", idb2);
                 $display("----------------");
             end 
-            $display("ID_EX mismatches  : %0d", fidex);
-            $display("EX_MEM mismatches : %0d", fe);
-            $display("EX_MEM correc     : %0d", pe);
+            
+            if (fidex !== 0) $display("ID_EX mismatches  : %0d", fidex);
+            $display("EX_MEM mismatches : %0d", fe);          
             $display("MEM_WB mismatches : %0d", fm);
             $display("WB mismatches     : %0d", fw);
             $display("Hazard mismatches : %0d", fh);
             $display("Control mismatches: %0d", fc);
             $display("Data mismatches   : %0d", fd);
         end
+        
         $stop;
     end
     

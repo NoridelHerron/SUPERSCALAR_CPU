@@ -60,6 +60,17 @@ package Pipeline_Types is
         B          : HDU_r;
     end record;
     
+    type HDU_rV is record
+        forwA       : std_logic_vector(HAZ_WIDTH-1 downto 0);
+        forwB       : std_logic_vector(HAZ_WIDTH-1 downto 0);
+        stall       : std_logic_vector(HAZ_WIDTH-1 downto 0);
+    end record;
+    
+    type HDU_OUT_NV is record
+        A          : HDU_rV;
+        B          : HDU_rV;
+    end record;
+    
     -- control signals
     type control_Type is record
         target     : CONTROL_SIG; -- operand2, branch and jump control signal
@@ -71,6 +82,18 @@ package Pipeline_Types is
     type control_Type_N is record
         A          : control_Type;
         B          : control_Type;
+    end record;
+    
+    type control_TypeV is record
+        target     : std_logic_vector(CNTRL_WIDTH-1 downto 0);   -- operand2, branch and jump control signal
+        alu        : std_logic_vector(CNTRL_WIDTH-1 downto 0);   -- which data to send as 2nd operand rs2 or imm  
+        mem        : std_logic_vector(CNTRL_WIDTH-1 downto 0);   -- for read or write
+        wb         : std_logic_vector(CNTRL_WIDTH-1 downto 0);   -- reg
+    end record;
+    
+    type control_Type_NV is record
+        A          : control_TypeV;
+        B          : control_TypeV;
     end record;
     
     type RD_CTRL is record
