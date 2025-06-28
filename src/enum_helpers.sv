@@ -26,9 +26,18 @@ package enum_helpers;
 
     typedef enum logic [3:0]{
         // instruction type
-        R_TYPE_i = 4'h0, I_IMM_i, LOAD_i, S_TYPE_i, B_TYPE_i,
-        JAL_i, JALR_i, LUI_i, AUIPC_i, ECALL_i, 
-        NOP_i, NONE_i
+        R_TYPE_i = 4'h0, 
+        I_IMM_i, 
+        LOAD_i, 
+        S_TYPE_i, 
+        B_TYPE_i,
+        JAL_i, 
+        JALR_i, 
+        LUI_i, 
+        AUIPC_i, 
+        ECALL_i, 
+        NOP_i, 
+        NONE_i
     } instruction_t;
     
     typedef enum logic [3:0]{
@@ -49,9 +58,18 @@ package enum_helpers;
     
     // HAZARD signal
     typedef enum logic [3:0]{
-        A_STALL = 4'h0, B_STALL, STALL_FROM_A, STALL_FROM_B,
-        EX_MEM_A, EX_MEM_B, MEM_WB_A, MEM_WB_B, FORW_FROM_A, 
-        HOLD_B, B_INVALID, NONE_h
+        A_STALL = 4'h0, 
+        B_STALL, 
+        STALL_FROM_A, 
+        STALL_FROM_B,
+        EX_MEM_A, 
+        EX_MEM_B, 
+        MEM_WB_A, 
+        MEM_WB_B, 
+        FORW_FROM_A, 
+        HOLD_B, 
+        B_INVALID, 
+        NONE_h
     } hazard_signal_t;
 
     // Convert vector to enum

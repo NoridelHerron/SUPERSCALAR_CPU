@@ -73,6 +73,7 @@ package MyFunctions is
                             ID_EX : DECODER_N_INSTR;
                             alu1  : ALU_out        
                           ) return  ALU_in;    
+                          
   -- Convert enum to std_logic_vector                        
  function encode_control_sig(sig : CONTROL_SIG) return std_logic_vector; 
  function slv_to_control_sig(slv : std_logic_vector(3 downto 0)) return CONTROL_SIG;

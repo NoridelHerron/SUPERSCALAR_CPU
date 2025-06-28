@@ -22,23 +22,13 @@ entity ID_STAGE is
             instr1   : in  std_logic_vector(DATA_WIDTH-1 downto 0);      
             instr2   : in  std_logic_vector(DATA_WIDTH-1 downto 0);
             ID_EX    : in  DECODER_N_INSTR; -- from the register between this stage and the ex stage
-            ex_rd1   : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0); -- from register between ex and mem stage
-            ex_c1    : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
-            ex_rd2   : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-            ex_c2    : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
-            m_rd1    : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0); -- from register between ex and mem stage
-            m_c1     : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
-            m_rd2    : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-            m_c2     : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
-            rd1      : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-            wb_data1 : in  std_logic_vector(DATA_WIDTH-1 downto 0);
-            wb_we1   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);
-            rd2      : in  std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-            wb_data2 : in  std_logic_vector(DATA_WIDTH-1 downto 0);
-            wb_we2   : in  std_logic_vector(CNTRL_WIDTH-1 downto 0);  
-            ID_out   : out DECODER_N_INSTR;
-            cntrl    : out control_Type_NV;
-            haz      : out HDU_OUT_NV;       -- output from hdu
+            ID_EX_c  : in  control_Type_N;
+            EX_MEM   : in  RD_CTRL_N_INSTR; -- from register between ex and mem stage     
+            MEM_WB   : in  RD_CTRL_N_INSTR; -- from register between ex and mem stage
+            WB       : in  WB_CONTENT_N_INSTR;
+            ID       : out DECODER_N_INSTR;
+            cntrl    : out control_Type_N;
+            haz      : out HDU_OUT_N;       -- output from hdu
             datas    : out REG_DATAS        -- otput from the register
     );
 end ID_STAGE;
@@ -46,13 +36,6 @@ end ID_STAGE;
 architecture Behavioral of ID_STAGE is
 
 signal decoded      : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
-signal dec_to_c     : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
-signal cntrl_temp   : control_Type_N  := EMPTY_control_Type_N;
-signal haz_temp     : HDU_OUT_N       := EMPTY_HDU_OUT_N;
-signal datas_temp   : REG_DATAS       := EMPTY_REG_DATAS;
-signal EX_MEM       : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
-signal MEM_WB       : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
-
 
 begin
 --------------------------------------------------------
@@ -72,83 +55,41 @@ begin
 --------------------------------------------------------
 -- Generate Control Signal
 --------------------------------------------------------     
-process (decoded)
-begin
-    dec_to_c <= decoded;
-end process;
   
     CONTROl_UNIT_1: entity work.control_gen
         port map (
-            opcode      => dec_to_c.A.op, 
-            ctrl_sig    => cntrl_temp.A
+            opcode      => decoded.A.op, 
+            ctrl_sig    => cntrl.A
         );
         
     CONTROl_UNIT_2: entity work.control_gen
         port map (
-            opcode      => dec_to_c.B.op, 
-            ctrl_sig    => cntrl_temp.B
+            opcode      => decoded.B.op, 
+            ctrl_sig    => cntrl.B
         );
 --------------------------------------------------------
 -- Detect Hazards
 --------------------------------------------------------     
-    EX_MEM.A.cntrl.wb <= slv_to_control_sig(ex_c1);
-    EX_MEM.A.rd       <= ex_rd1;
-    EX_MEM.B.cntrl.wb <= slv_to_control_sig(ex_c2);
-    EX_MEM.B.rd       <= ex_rd2;
-    
-    MEM_WB.A.cntrl.wb <= slv_to_control_sig(m_c1);
-    MEM_WB.A.rd       <= m_rd1;
-    MEM_WB.B.cntrl.wb <= slv_to_control_sig(m_c2);
-    MEM_WB.B.rd       <= m_rd2;
-     
     HAZARD_DETECTOR: entity work.HDU
         port map (
             ID          => decoded, 
             ID_EX       => ID_EX,
-            ID_EX_c     => cntrl_temp,
+            ID_EX_c     => ID_EX_c,
             EX_MEM      => EX_MEM,
             MEM_WB      => MEM_WB,
-            result      => haz_temp
+            result      => haz
         );
 --------------------------------------------------------
 -- write or read data to/from the register
 --------------------------------------------------------  
-REGS: entity work.RegFile_wrapper
+    REGS: entity work.RegFile_wrapper
         port map (
-                   clk      => clk, 
-                   rd1      => rd1, 
-                   wb_data1 => wb_data1, 
-                   wb_we1   => wb_we1, 
-                   rd2      => rd2, 
-                   wb_data2 => wb_data2, 
-                   wb_we2   => wb_we2, 
-                   rs1      => decoded.A.rs1, 
-                   rs2      => decoded.A.rs2, 
-                   rs3      => decoded.B.rs1,
-                   rs4      => decoded.B.rs2,
-                   reg_data => datas_temp
-            );
-
--- output assignment
-
-cntrl.A.target <= encode_control_sig(cntrl_temp.A.target);
-cntrl.A.alu    <= encode_control_sig(cntrl_temp.A.alu);
-cntrl.A.mem    <= encode_control_sig(cntrl_temp.A.mem);
-cntrl.A.wb     <= encode_control_sig(cntrl_temp.A.wb);
-
-cntrl.B.target <= encode_control_sig(cntrl_temp.B.target);
-cntrl.B.alu    <= encode_control_sig(cntrl_temp.B.alu);
-cntrl.B.mem    <= encode_control_sig(cntrl_temp.B.mem);
-cntrl.B.wb     <= encode_control_sig(cntrl_temp.B.wb);
-
-haz.A.forwA    <= encode_HAZ_sig(haz_temp.A.forwA);
-haz.A.forwB    <= encode_HAZ_sig(haz_temp.A.forwB);
-haz.A.stall    <= encode_HAZ_sig(haz_temp.A.stall);
-
-haz.B.forwA    <= encode_HAZ_sig(haz_temp.B.forwA);
-haz.B.forwB    <= encode_HAZ_sig(haz_temp.B.forwB);
-haz.B.stall    <= encode_HAZ_sig(haz_temp.B.stall);
-
-ID_out  <= decoded;
-datas   <= datas_temp;
+            clk      => clk, 
+            WB       => WB,
+            ID       => decoded,
+            reg_data => datas
+        );
+        
+    ID <= decoded;
+    
 end Behavioral;

@@ -1,32 +1,29 @@
-------------------------------------------------------------------------------
--- Noridel Herron
--- 6/7/2025
--- Extracts opcode, registers, function codes, and immediate values from a 32-bit instruction. 
-------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+-- File: instruction_generator.vhd
 
--- CUSTOMIZED PACKAGE
-library work;
-use work.Pipeline_Types.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use IEEE.math_real.ALL;
+
 use work.const_Types.all;
+use work.Pipeline_Types.all;
 use work.initialize_records.all;
 
-entity DECODER is
-    Port (  -- inputs 
-            ID          : in  std_logic_vector(DATA_WIDTH-1 downto 0);       
-            ID_content  : out Decoder_Type      
-        );
-end DECODER;
+package decoder_function is
 
-architecture behavior of DECODER is
+    subtype data_32 is std_logic_vector(DATA_WIDTH - 1 downto 0);
+    
+    -- Function declaration only
+    function decode( ID : data_32) return Decoder_Type;
 
-begin             
-             
-    process (ID)
-    variable temp   : Decoder_Type                             := EMPTY_DECODER;
-    begin 
+end decoder_function;
+
+package body decoder_function is
+
+    function decode( ID : data_32) return Decoder_Type is
+        variable temp  : Decoder_Type := EMPTY_Decoder; 
+
+    begin
         temp.funct7   := ID(31 downto 25);
         temp.rs2      := ID(24 downto 20);
         temp.rs1      := ID(19 downto 15);
@@ -67,7 +64,7 @@ begin
             when others => temp := EMPTY_DECODER;
         end case;
 
-        ID_content <= temp;
-    end process;
+        return temp;
+    end function;
 
-end behavior;
+end decoder_function;

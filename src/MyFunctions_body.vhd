@@ -13,6 +13,7 @@ use work.const_Types.all;
 use work.Pipeline_Types.all;
 use work.initialize_records.all;
 use work.ENUM_T.all;
+
 package body MyFunctions is
     
     -- generate 32 bits data
@@ -117,7 +118,7 @@ package body MyFunctions is
         -- Adjust fields for types
             case temp.op is
                 when R_TYPE =>
-                    if temp.funct3 = "000" or temp.funct3 = "101" then
+                    if temp.funct3 = "000" or temp.funct7 = "101" then
                         if rand_real > 0.5 then
                             temp.funct7 := ZERO_7bits;
                         else

@@ -228,10 +228,10 @@ package InstrGenPkg;
         // Stall B
         if (temp.A.stall != NONE_h)
             temp.B.stall = STALL_FROM_A;
-        else if (ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0 &&
+        else if ((ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0) &&
                  (ID_EX.A.rd == ID.B.rs1 || ID_EX.A.rd == ID.B.rs2))
             temp.B.stall = A_STALL;
-        else if (ID_EX_c.B.mem == MEM_READ && ID_EX.B.rd != 5'd0 &&
+        else if ((ID_EX_c.B.mem == MEM_READ && ID_EX.B.rd != 5'd0) &&
                  (ID_EX.B.rd == ID.B.rs1 || ID_EX.B.rd == ID.B.rs2))
             temp.B.stall = B_STALL;
         else
