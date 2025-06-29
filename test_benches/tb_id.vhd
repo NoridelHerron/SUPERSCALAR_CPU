@@ -29,6 +29,8 @@ architecture sim of tb_id_stage is
     signal ID_exp       : DECODER_N_INSTR                           := EMPTY_DECODER_N_INSTR; 
     signal ID_EX        : DECODER_N_INSTR                           := EMPTY_DECODER_N_INSTR; 
     signal ID_EX_exp    : DECODER_N_INSTR                           := EMPTY_DECODER_N_INSTR; 
+    signal haz          : HDU_OUT_N                                 := EMPTY_HDU_OUT_N;      
+    signal haz_exp      : HDU_OUT_N                                 := EMPTY_HDU_OUT_N;      
     signal cntrl        : control_Type_N                            := EMPTY_control_Type_N; 
     signal cntrl_exp    : control_Type_N                            := EMPTY_control_Type_N; 
     signal ID_EX_c      : control_Type_N                            := EMPTY_control_Type_N; 
@@ -39,8 +41,6 @@ architecture sim of tb_id_stage is
     signal MEM_WB_exp   : RD_CTRL_N_INSTR                           := EMPTY_RD_CTRL_N_INSTR; 
     signal WB           : WB_CONTENT_N_INSTR                        := EMPTY_WB_CONTENT_N_INSTR; 
     signal WB_exp       : WB_CONTENT_N_INSTR                        := EMPTY_WB_CONTENT_N_INSTR; 
-    signal haz          : HDU_OUT_N                                 := EMPTY_HDU_OUT_N;      
-    signal haz_exp      : HDU_OUT_N                                 := EMPTY_HDU_OUT_N;      
     signal datas        : REG_DATAS                                 := EMPTY_REG_DATAS;   
     signal datas_exp    : REG_DATAS                                 := EMPTY_REG_DATAS; 
     
@@ -99,9 +99,10 @@ begin
         variable total_tests : integer := 20000;
         
         -- Keep track of the tests
-        variable pass, fail, fid, fidex, fc, ficx, fe, fm, fh, fw, fd : integer := 0;  
-        variable fail_A1, fail_A2, fail_B1, fail_B2 : integer := 0;  
-        variable fail_rA1, fail_rA2, fail_rB1, fail_rB2 : integer := 0;  
+        variable pass, fail, fid, fidex, fc, ficx, fe, fm, fh, fw, fd : integer := 0;  -- 1st approach more broad
+        variable fail_A1, fail_A2, fail_B1, fail_B2                   : integer := 0;  -- narrow down the bugs
+        variable fail_rA1, fail_rA2, fail_rB1, fail_rB2               : integer := 0;  
+        variable fhfa1, fhfb1, fhs1, fhfa2, fhfb2, fhs2               : integer := 0;  
         
     begin 
     
@@ -115,6 +116,46 @@ begin
             -- Generate instructions
             uniform(seed1, seed2, rand_real); instr1_t := instr_gen(rand_real);
             uniform(seed1, seed2, rand_real); instr2_t := instr_gen(rand_real);
+            
+            -- Generate 32-bits value for the wb
+            uniform(seed1, seed2, rand_real); WB_t.A.data := get_32bits_val(rand_real);
+            uniform(seed1, seed2, rand_real); WB_t.B.data := get_32bits_val(rand_real);
+            
+            -- Decode instruction
+            ID_t.A := decode(instr1_t);
+            ID_t.B := decode(instr2_t);
+            
+            -- get control signal
+            cntrl_t.A := Get_Control(ID_t.A.op);
+            cntrl_t.B := Get_Control(ID_t.B.op);
+            
+            EX_MEM_t.A.cntrl := ID_EX_c_exp.A; 
+            EX_MEM_t.A.rd    := ID_EX_exp.A.rd; 
+            EX_MEM_t.B.cntrl := ID_EX_c_exp.B;
+            EX_MEM_t.B.rd    := ID_EX_exp.B.rd; 
+            MEM_WB_t         := EX_MEM_exp;
+            
+            -- Generate Hazard
+          --  haz_t := get_hazard_sig  (ID_exp, ID_EX_exp, ID_EX_c_exp, EX_MEM_exp, MEM_WB_exp ); --correct
+            haz_t := get_hazard_sig  (ID_t, ID_exp, cntrl_exp, EX_MEM_t, MEM_WB_t );
+            
+            -- Check if read or write in the register
+            if ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd /= ZERO_5bits)) then
+                exp_reg(to_integer(unsigned(WB_exp.A.rd))) <= WB_exp.A.data;
+            end if;
+            
+            if (WB_exp.B.we = REG_WRITE) and (WB_exp.B.rd /= ZERO_5bits) and 
+               not ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd = WB_exp.B.rd)) then
+                exp_reg(to_integer(unsigned(WB_exp.B.rd))) <= WB_exp.B.data;
+            end if;
+            
+            reg_temp.one.A := exp_reg(to_integer(unsigned(ID_exp.A.rs1)));
+            reg_temp.one.B := exp_reg(to_integer(unsigned(ID_exp.A.rs2)));
+            reg_temp.two.A := exp_reg(to_integer(unsigned(ID_exp.B.rs1)));
+            reg_temp.two.B := exp_reg(to_integer(unsigned(ID_exp.B.rs2)));
+            
+            
+     --       exp_reg             <= exp_rD;
             
             -- ACTUAL ASSIGNMENT
             instr1          <= instr1_t;
@@ -133,21 +174,7 @@ begin
             WB.B.rd         <= EX_MEM.B.rd;
             WB.B.we         <= EX_MEM.B.cntrl.wb;
             
-            -- Generate 32-bits value for the wb
-            uniform(seed1, seed2, rand_real); WB_t.A.data := get_32bits_val(rand_real);
-            uniform(seed1, seed2, rand_real); WB_t.B.data := get_32bits_val(rand_real);
-            
-            -- Decode instruction
-            ID_t.A := decode(instr1_t);
-            ID_t.B := decode(instr2_t);
-            
-            -- get control signal
-            cntrl_t.A := Get_Control(ID_t.A.op);
-            cntrl_t.B := Get_Control(ID_t.B.op);
-            
-            -- EXPECTED ASSIGNMENT
-            ID_exp              <= ID_t;
-            cntrl_exp           <= cntrl_t;
+            -- EXPECTED ASSIGNMENT   
             ID_EX_exp           <= ID_exp;
             ID_EX_c_exp         <= cntrl_exp;
             EX_MEM_exp.A.cntrl  <= ID_EX_c_exp.A;
@@ -161,27 +188,11 @@ begin
             WB_exp.B.data       <= WB_t.B.data;
             WB_exp.B.rd         <= EX_MEM_exp.B.rd;
             WB_exp.B.we         <= EX_MEM_exp.B.cntrl.wb;
-            
-            -- Generate Hazard
-            haz_t := get_hazard_sig  (ID_t, ID_EX_exp, ID_EX_c_exp, EX_MEM_exp, MEM_WB_exp );
-            -- Check if read or write in the register
-            if ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd /= ZERO_5bits)) then
-                exp_reg(to_integer(unsigned(WB_exp.A.rd))) <= WB_exp.A.data;
-            end if;
-            
-            if (WB_exp.B.we = REG_WRITE) and (WB_exp.B.rd /= ZERO_5bits) and 
-               not ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd = WB_exp.B.rd)) then
-                exp_reg(to_integer(unsigned(WB_exp.B.rd))) <= WB_exp.B.data;
-            end if;
-            
-            reg_temp.one.A := exp_reg(to_integer(unsigned(ID_t.A.rs1)));
-            reg_temp.one.B := exp_reg(to_integer(unsigned(ID_t.A.rs2)));
-            reg_temp.two.A := exp_reg(to_integer(unsigned(ID_t.B.rs1)));
-            reg_temp.two.B := exp_reg(to_integer(unsigned(ID_t.B.rs2)));
-            
+            ID_exp              <= ID_t;
+            cntrl_exp           <= cntrl_t;
             datas_exp           <= reg_temp;
-     --       exp_reg             <= exp_rD;
-
+            haz_exp             <= haz_t;  
+            
             wait until rising_edge(clk);
             
             -- Keep track the number of pass or fail
@@ -197,7 +208,15 @@ begin
                 if ID_EX_c /= ID_EX_c_exp then ficx  := ficx + 1;  end if;
                 if EX_MEM /= EX_MEM_exp   then fe    := fe + 1;    end if;
                 if MEM_WB /= MEM_WB_exp   then fm    := fm + 1;    end if;
-                if haz /= haz_exp         then fh    := fh + 1;    end if;
+                if haz /= haz_exp then 
+                    fh    := fh + 1;    
+                    if haz.A.forwA /= haz_exp.A.forwA then fhfa1 := fhfa1 + 1; end if;
+                    if haz.A.forwB /= haz_exp.A.forwB then fhfb1 := fhfb1 + 1; end if;
+                    if haz.A.stall /= haz_exp.A.stall then fhs1  := fhs1 + 1;  end if;
+                    if haz.B.forwA /= haz_exp.B.forwA then fhfa1 := fhfa2 + 1; end if;
+                    if haz.B.forwB /= haz_exp.B.forwB then fhfb1 := fhfb2 + 1; end if;
+                    if haz.B.stall /= haz_exp.B.stall then fhs1  := fhs2 + 1;  end if;
+                end if;
                 if datas /= datas_exp     then fd    := fd + 1;    end if;
                 if WB /= WB_exp           then fw    := fw + 1;    end if;
             end if;
@@ -206,20 +225,33 @@ begin
         
         -- Summary report
         report "----------------------------------------------------";
-        report "ALU Randomized Test Summary:";
+        report "ID Stage Randomized Test Summary:";
         report "Total Tests      : " & integer'image(total_tests);
         report "Total Passes     : " & integer'image(pass);
         report "Total Failures   : " & integer'image(fail);
         report "----------------------------------------------------";
-        report "ID Failures      : " & integer'image(fid);
-        report "ID_EX Failures   : " & integer'image(fidex);
-        report "CNTRL Failures   : " & integer'image(fc);
-        report "ID_EX_c Failures : " & integer'image(ficx);
-        report "EX_MEM Failures  : " & integer'image(fe);
-        report "MEM_WB Failures  : " & integer'image(fm);
-        report "HAZ Failures     : " & integer'image(fh);
-        report "DATAS Failures   : " & integer'image(fd);
-        report "WB Failures      : " & integer'image(fw);
+        if fid /= 0   then report "ID Failures      : " & integer'image(fid);   end if;
+        if fidex /= 0 then report "ID_EX Failures   : " & integer'image(fidex); end if;
+        if fc /= 0    then report "CNTRL Failures   : " & integer'image(fc);    end if;
+        if ficx /= 0  then report "ID_EX_c Failures : " & integer'image(ficx);  end if;
+        if fe /= 0    then report "EX_MEM Failures  : " & integer'image(fe);    end if;
+        if fm /= 0    then report "MEM_WB Failures  : " & integer'image(fm);    end if;
+        if fw /= 0    then report "WB Failures      : " & integer'image(fw);    end if;
+        if fh /= 0 then 
+            report "HAZ Failures     : " & integer'image(fh);
+            report "------------------Instruction 1---------------------";
+            if fhfa1 /= 0 then report "ForwA1 Failures     : " & integer'image(fhfa1); end if;
+            if fhfb1 /= 0 then report "ForwB1 Failures     : " & integer'image(fhfb1); end if;
+            if fhs1 /= 0  then report "Stall1 Failures     : " & integer'image(fhs1);  end if;
+            report "------------------Instruction 2---------------------";
+            if fhfa2 /= 0 then report "ForwA2 Failures     : " & integer'image(fhfa2); end if;
+            if fhfb2 /= 0 then report "ForwB2 Failures     : " & integer'image(fhfb2); end if;
+            if fhs2 /= 0  then report "Stall2 Failures     : " & integer'image(fhs2);  end if;
+        end if;
+        if fd /= 0 then 
+            report "DATAS Failures   : " & integer'image(fd);   
+          --  if fhfa1 /= 0 then report "ForwA1 Failures     : " & integer'image(fhfa1); end if; 
+        end if;
       --  report "A rs1 Failures   : " & integer'image(fail_A1);
      --   report "A rs2 Failures   : " & integer'image(fail_A2);
      --   report "B rs1 Failures   : " & integer'image(fail_B1);
