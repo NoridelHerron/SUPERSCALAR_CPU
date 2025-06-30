@@ -125,9 +125,8 @@ begin
             ID_t.B := decode(instr2_t);
             
             -- get control signal
-            cntrl_t.A := Get_Control(ID_t.A.op);
-            cntrl_t.B := Get_Control(ID_t.B.op);
-            
+            cntrl_t.A        := Get_Control(ID_t.A.op);
+            cntrl_t.B        := Get_Control(ID_t.B.op);
             EX_MEM_t.A.cntrl := ID_EX_c_exp.A; 
             EX_MEM_t.A.rd    := ID_EX_exp.A.rd; 
             EX_MEM_t.B.cntrl := ID_EX_c_exp.B;
@@ -141,10 +140,9 @@ begin
             WB_t.B.we        := EX_MEM_exp.B.cntrl.wb;
             
             -- Generate Hazard
-          --  haz_t := get_hazard_sig  (ID_exp, ID_EX_exp, ID_EX_c_exp, EX_MEM_exp, MEM_WB_exp ); --correct
             haz_t := get_hazard_sig  (ID_t, ID_exp, cntrl_exp, EX_MEM_t, MEM_WB_t );
             
-            -- Check if read or write in the register
+            -- Register write
             if ((WB_t.A.we = REG_WRITE) and (WB_t.A.rd /= ZERO_5bits)) then
                 exp_reg(to_integer(unsigned(WB_t.A.rd))) <= WB_t.A.data;
             end if;
@@ -154,13 +152,11 @@ begin
                 exp_reg(to_integer(unsigned(WB_t.B.rd))) <= WB_t.B.data;
             end if;
             
+            -- Read the registers
             reg_temp.one.A := exp_reg(to_integer(unsigned(ID_t.A.rs1)));
             reg_temp.one.B := exp_reg(to_integer(unsigned(ID_t.A.rs2)));
             reg_temp.two.A := exp_reg(to_integer(unsigned(ID_t.B.rs1)));
             reg_temp.two.B := exp_reg(to_integer(unsigned(ID_t.B.rs2)));
-            
-            
-     --       exp_reg             <= exp_rD;
             
             -- ACTUAL ASSIGNMENT
             instr1          <= instr1_t;
@@ -195,7 +191,7 @@ begin
             
             wait until rising_edge(clk);
             
-            -- Keep track the number of pass or fail
+            -- Keep track the number of pass or fail. If fail narrow down
             if ID = ID_exp and ID_EX = ID_EX_exp and cntrl = cntrl_exp and
             ID_EX_c = ID_EX_c_exp and EX_MEM = EX_MEM_exp and MEM_WB = MEM_WB_exp
             and haz = haz_exp and datas = datas_exp and WB = WB_exp then
