@@ -133,7 +133,32 @@ package Pipeline_Types is
         rd_value    : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
     
+    -----------------------------------------FORWARDING UNIT------------------------------------------ 
+
+    type EX_CONTENT is record
+        operand  : REG_DATA_PER;
+        alu      : ALU_out;
+        S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        rd       : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+    end record;
+    
+    type EX_CONTENT_N is record
+        A           : EX_CONTENT; 
+        B           : EX_CONTENT;  
+    end record;
+    
     -----------------------------------------MEM STAGE------------------------------------------
+    type MEM_CONTENT is record
+        alu         : std_logic_vector(DATA_WIDTH-1 downto 0);
+        mem         : std_logic_vector(DATA_WIDTH-1 downto 0);
+        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+        we          : CONTROL_SIG; 
+    end record;
+    
+    type MEM_CONTENT_N is record
+        A           : MEM_CONTENT;
+        B           : MEM_CONTENT;
+    end record;
     
     -----------------------------------------WB STAGE------------------------------------------ 
     
@@ -155,18 +180,5 @@ package Pipeline_Types is
         S_data2  : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
     
-    -----------------------------------------FORWARDING UNIT------------------------------------------ 
-
-    type EX_CONTENT is record
-        operand  : REG_DATA_PER;
-        alu      : ALU_out;
-        S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
-        rd       : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-    end record;
     
-    type EX_CONTENT_N is record
-        A           : EX_CONTENT; 
-        B           : EX_CONTENT;  
-    end record;
-
 end package;

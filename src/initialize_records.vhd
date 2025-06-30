@@ -105,6 +105,34 @@ package initialize_records is
         target      => ZERO_32bits,
         rd_value    => ZERO_32bits
     );
+    
+     -----------------------------------------FORWARDING UNIT------------------------------------------ 
+
+    constant EMPTY_EX_CONTENT : EX_CONTENT := (  
+        operand    => EMPTY_REG_DATA_PER,
+        alu        => EMPTY_ALU_out,
+        S_data     => ZERO_32bits,
+        rd         => ZERO_5bits
+    );
+    
+    constant EMPTY_EX_CONTENT_N : EX_CONTENT_N := (
+        A          => EMPTY_EX_CONTENT,
+        B          => EMPTY_EX_CONTENT
+    );
+    
+    -----------------------------------------MEM STAGE------------------------------------------ 
+    constant EMPTY_MEM_CONTENT : MEM_CONTENT := (
+        alu         => ZERO_32bits,
+        mem         => ZERO_32bits,
+        rd          => ZERO_5bits,
+        we          => NONE_c
+    );
+    
+    constant EMPTY_MEM_CONTENT_N : MEM_CONTENT_N := (
+        A          => EMPTY_MEM_CONTENT,
+        B          => EMPTY_MEM_CONTENT
+    );
+
     -----------------------------------------WB STAGE------------------------------------------ 
     constant EMPTY_WB_CONTENT : WB_CONTENT := (
         data        => ZERO_32bits,
@@ -123,19 +151,4 @@ package initialize_records is
         two        => EMPTY_REG_DATA_PER,
         S_data2    => ZERO_32bits     
     );
-
-    -----------------------------------------FORWARDING UNIT------------------------------------------ 
-
-    constant EMPTY_EX_CONTENT : EX_CONTENT := (  
-        operand    => EMPTY_REG_DATA_PER,
-        alu        => EMPTY_ALU_out,
-        S_data     => ZERO_32bits,
-        rd         => ZERO_5bits
-    );
-    
-    constant EMPTY_EX_CONTENT_N : EX_CONTENT_N := (
-        A          => EMPTY_EX_CONTENT,
-        B          => EMPTY_EX_CONTENT
-    );
-    
 end package;
