@@ -33,9 +33,9 @@ package body instruction_generator is
         else temp.op := R_TYPE;
         end if;
 
-        temp.rd := std_logic_vector(to_unsigned(integer(rand_real * 32.0), 5));   
-        temp.rs1 := std_logic_vector(to_unsigned(integer(rand_real * 0.07 * 32.0), 5));
-        temp.rs2 := std_logic_vector(to_unsigned(integer(rand_real * 0.01 * 32.0), 5));
+        temp.rd := std_logic_vector(to_unsigned(integer(rand_real * 2.0 * 32.0), 5));   
+        temp.rs1 := std_logic_vector(to_unsigned(integer(rand_real * 32.0), 5));
+        temp.rs2 := std_logic_vector(to_unsigned(integer(rand_real * 3.0 * 32.0), 5));
         temp.funct3 := std_logic_vector(to_unsigned(integer(rand_real * 8.0), 3));
         temp.funct7 := std_logic_vector(to_unsigned(integer(rand_real * 128.0), 7));
         

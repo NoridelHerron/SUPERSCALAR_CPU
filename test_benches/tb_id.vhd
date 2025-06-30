@@ -93,8 +93,7 @@ begin
         variable cntrl_t   : control_Type_N                          := EMPTY_control_Type_N; 
         variable haz_t     : HDU_OUT_N                               := EMPTY_HDU_OUT_N;      
         variable reg_temp  : REG_DATAS                               := EMPTY_REG_DATAS;
-       -- variable exp_rD    : regfile_array                           := (others => (others => '0'));
-        
+       
         -- Number of tests
         variable total_tests : integer := 20000;
         
@@ -134,25 +133,31 @@ begin
             EX_MEM_t.B.cntrl := ID_EX_c_exp.B;
             EX_MEM_t.B.rd    := ID_EX_exp.B.rd; 
             MEM_WB_t         := EX_MEM_exp;
+            WB_t.A.data      := WB_t.A.data;
+            WB_t.A.rd        := EX_MEM_exp.A.rd;
+            WB_t.A.we        := EX_MEM_exp.A.cntrl.wb;
+            WB_t.B.data      := WB_t.B.data;
+            WB_t.B.rd        := EX_MEM_exp.B.rd;
+            WB_t.B.we        := EX_MEM_exp.B.cntrl.wb;
             
             -- Generate Hazard
           --  haz_t := get_hazard_sig  (ID_exp, ID_EX_exp, ID_EX_c_exp, EX_MEM_exp, MEM_WB_exp ); --correct
             haz_t := get_hazard_sig  (ID_t, ID_exp, cntrl_exp, EX_MEM_t, MEM_WB_t );
             
             -- Check if read or write in the register
-            if ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd /= ZERO_5bits)) then
-                exp_reg(to_integer(unsigned(WB_exp.A.rd))) <= WB_exp.A.data;
+            if ((WB_t.A.we = REG_WRITE) and (WB_t.A.rd /= ZERO_5bits)) then
+                exp_reg(to_integer(unsigned(WB_t.A.rd))) <= WB_t.A.data;
             end if;
             
-            if (WB_exp.B.we = REG_WRITE) and (WB_exp.B.rd /= ZERO_5bits) and 
-               not ((WB_exp.A.we = REG_WRITE) and (WB_exp.A.rd = WB_exp.B.rd)) then
-                exp_reg(to_integer(unsigned(WB_exp.B.rd))) <= WB_exp.B.data;
+            if (WB_t.B.we = REG_WRITE) and (WB_t.B.rd /= ZERO_5bits) and 
+               not ((WB_t.A.we = REG_WRITE) and (WB_t.A.rd = WB_t.B.rd)) then
+                exp_reg(to_integer(unsigned(WB_t.B.rd))) <= WB_t.B.data;
             end if;
             
-            reg_temp.one.A := exp_reg(to_integer(unsigned(ID_exp.A.rs1)));
-            reg_temp.one.B := exp_reg(to_integer(unsigned(ID_exp.A.rs2)));
-            reg_temp.two.A := exp_reg(to_integer(unsigned(ID_exp.B.rs1)));
-            reg_temp.two.B := exp_reg(to_integer(unsigned(ID_exp.B.rs2)));
+            reg_temp.one.A := exp_reg(to_integer(unsigned(ID_t.A.rs1)));
+            reg_temp.one.B := exp_reg(to_integer(unsigned(ID_t.A.rs2)));
+            reg_temp.two.A := exp_reg(to_integer(unsigned(ID_t.B.rs1)));
+            reg_temp.two.B := exp_reg(to_integer(unsigned(ID_t.B.rs2)));
             
             
      --       exp_reg             <= exp_rD;
@@ -182,12 +187,7 @@ begin
             EX_MEM_exp.B.cntrl  <= ID_EX_c_exp.B;
             EX_MEM_exp.B.rd     <= ID_EX_exp.B.rd;
             MEM_WB_exp          <= EX_MEM_exp;
-            WB_exp.A.data       <= WB_t.A.data;
-            WB_exp.A.rd         <= EX_MEM_exp.A.rd;
-            WB_exp.A.we         <= EX_MEM_exp.A.cntrl.wb;
-            WB_exp.B.data       <= WB_t.B.data;
-            WB_exp.B.rd         <= EX_MEM_exp.B.rd;
-            WB_exp.B.we         <= EX_MEM_exp.B.cntrl.wb;
+            WB_exp              <= WB_t;
             ID_exp              <= ID_t;
             cntrl_exp           <= cntrl_t;
             datas_exp           <= reg_temp;
@@ -217,8 +217,29 @@ begin
                     if haz.B.forwB /= haz_exp.B.forwB then fhfb1 := fhfb2 + 1; end if;
                     if haz.B.stall /= haz_exp.B.stall then fhs1  := fhs2 + 1;  end if;
                 end if;
-                if datas /= datas_exp     then fd    := fd + 1;    end if;
-                if WB /= WB_exp           then fw    := fw + 1;    end if;
+                if datas /= datas_exp then 
+                    fd    := fd + 1; 
+                    if WB.A.we = REG_WRITE then
+                        if datas.one.A /= ZERO_32bits then fail_A1 := fail_A1 + 1; end if;
+                        if datas.one.B /= ZERO_32bits then fail_B1 := fail_B1 + 1; end if;
+                        if datas.two.A /= ZERO_32bits then fail_A2 := fail_A2 + 1; end if;    
+                        if datas.two.B /= ZERO_32bits then fail_B2 := fail_B2 + 1; end if;               
+                    else
+                        if datas.one.A /= exp_reg(to_integer(unsigned(ID_exp.A.rs1))) then
+                            fail_rA1 := fail_rA1 + 1;
+                        end if;
+                        if datas.one.B /= exp_reg(to_integer(unsigned(ID_exp.A.rs2))) then
+                            fail_rB1 := fail_rB1 + 1;
+                        end if;
+                        if datas.two.A /= exp_reg(to_integer(unsigned(ID_exp.B.rs1))) then
+                            fail_rA2 := fail_rA2 + 1;
+                        end if;
+                        if datas.two.B /= exp_reg(to_integer(unsigned(ID_exp.B.rs2))) then
+                            fail_rB2 := fail_rB2 + 1;
+                        end if;
+                    end if;   
+                end if;
+                if WB /= WB_exp then fw := fw + 1; end if;
             end if;
 
         end loop;
@@ -239,28 +260,29 @@ begin
         if fw /= 0    then report "WB Failures      : " & integer'image(fw);    end if;
         if fh /= 0 then 
             report "HAZ Failures     : " & integer'image(fh);
-            report "------------------Instruction 1---------------------";
+            report "------------------ Instruction 1 ---------------------";
             if fhfa1 /= 0 then report "ForwA1 Failures     : " & integer'image(fhfa1); end if;
             if fhfb1 /= 0 then report "ForwB1 Failures     : " & integer'image(fhfb1); end if;
             if fhs1 /= 0  then report "Stall1 Failures     : " & integer'image(fhs1);  end if;
-            report "------------------Instruction 2---------------------";
+            report "------------------ Instruction 2 ---------------------";
             if fhfa2 /= 0 then report "ForwA2 Failures     : " & integer'image(fhfa2); end if;
             if fhfb2 /= 0 then report "ForwB2 Failures     : " & integer'image(fhfb2); end if;
             if fhs2 /= 0  then report "Stall2 Failures     : " & integer'image(fhs2);  end if;
         end if;
         if fd /= 0 then 
-            report "DATAS Failures   : " & integer'image(fd);   
-          --  if fhfa1 /= 0 then report "ForwA1 Failures     : " & integer'image(fhfa1); end if; 
+            report "------------- REG WRITE -----------------------";  
+            report "DATAS Failures   : " & integer'image(fd); 
+            report "------------- REG WRITE -----------------------";  
+            if fail_A1 /= 0 then report "A rs1 Failures   : " & integer'image(fail_A1); end if; 
+            if fail_B1 /= 0 then report "A rs2 Failures   : " & integer'image(fail_B1); end if; 
+            if fail_A2 /= 0 then report "B rs1 Failures   : " & integer'image(fail_A2); end if; 
+            if fail_B2 /= 0 then report "B rs2 Failures   : " & integer'image(fail_B2); end if; 
+            report "------------- READ REG -----------------------";
+            if fail_rA1 /= 0 then report "A rs1 Failures   : " & integer'image(fail_rA1); end if; 
+            if fail_rB1 /= 0 then report "A rs2 Failures   : " & integer'image(fail_rB1); end if; 
+            if fail_rA2 /= 0 then report "B rs1 Failures   : " & integer'image(fail_rA2); end if; 
+            if fail_rB2 /= 0 then report "B rs2 Failures   : " & integer'image(fail_rB2); end if;
         end if;
-      --  report "A rs1 Failures   : " & integer'image(fail_A1);
-     --   report "A rs2 Failures   : " & integer'image(fail_A2);
-     --   report "B rs1 Failures   : " & integer'image(fail_B1);
-     --   report "B rs2 Failures   : " & integer'image(fail_B2);
-     --   report "reg1A Failures   : " & integer'image(fail_rA1);
-     --   report "reg1B Failures   : " & integer'image(fail_rA2);
-      --  report "reg2A Failures   : " & integer'image(fail_rB1);
-      --  report "reg2B Failures   : " & integer'image(fail_rB2);
-        report "----------------------------------------------------";
 
         wait;
     end process;
