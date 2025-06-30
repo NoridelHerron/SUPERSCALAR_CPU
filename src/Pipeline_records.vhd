@@ -14,14 +14,13 @@ package Pipeline_Types is
         is_valid    : CONTROL_SIG;
     end record;
     
-    -- PC and instruction
+    -- PC and instruction for two instructions
     type Inst_PC_N is record
         A           : Inst_PC;     
         B           : Inst_PC;   
     end record;
        
 -----------------------------------------ID STAGE------------------------------------------
-    -- RS values 
     type REG_DATA_PER is record
         A           : std_logic_vector(DATA_WIDTH-1 downto 0);      
         B           : std_logic_vector(DATA_WIDTH-1 downto 0);      
@@ -148,9 +147,9 @@ package Pipeline_Types is
     end record;
     
     -----------------------------------------MEM STAGE------------------------------------------
-    type MEM_CONTENT is record
-        alu         : std_logic_vector(DATA_WIDTH-1 downto 0);
-        mem         : std_logic_vector(DATA_WIDTH-1 downto 0);
+    type MEM_CONTENT is record 
+        res1         : std_logic_vector(DATA_WIDTH-1 downto 0);
+        res2        : std_logic_vector(DATA_WIDTH-1 downto 0);
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
         we          : CONTROL_SIG; 
     end record;
