@@ -19,6 +19,16 @@ package Pipeline_Types is
         A           : Inst_PC;     
         B           : Inst_PC;   
     end record;
+    
+    type Inst_N is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);  
+    end record;
+    
+    type PC_N is record
+        A           : std_logic_vector(DATA_WIDTH-1 downto 0);  
+        B           : std_logic_vector(DATA_WIDTH-1 downto 0);
+    end record;
        
 -----------------------------------------ID STAGE------------------------------------------
     type REG_DATA_PER is record
@@ -142,16 +152,17 @@ package Pipeline_Types is
     end record;
     
     type EX_CONTENT_N is record
-        A           : EX_CONTENT; 
-        B           : EX_CONTENT;  
+        A        : EX_CONTENT; 
+        B        : EX_CONTENT;  
     end record;
     
     -----------------------------------------MEM STAGE------------------------------------------
     type MEM_CONTENT is record 
-        res1         : std_logic_vector(DATA_WIDTH-1 downto 0);
-        res2        : std_logic_vector(DATA_WIDTH-1 downto 0);
-        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-        we          : CONTROL_SIG; 
+        res1      : std_logic_vector(DATA_WIDTH-1 downto 0);
+        res2      : std_logic_vector(DATA_WIDTH-1 downto 0);
+        rd        : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
+        we        : CONTROL_SIG; 
+        me        : CONTROL_SIG; 
     end record;
     
     type MEM_CONTENT_N is record

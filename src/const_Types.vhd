@@ -11,8 +11,8 @@ package const_Types is
     constant REG_ADDR_WIDTH : integer := 5;
     constant FUNCT3_WIDTH   : integer := 3;
     constant FUNCT7_WIDTH   : integer := 7;
-    constant DEPTH          : integer := 4;
-    constant LOG2DEPTH      : integer := 2;
+    constant DEPTH          : integer := 10;
+    constant LOG2DEPTH      : integer := 10;
     constant IMM12_WIDTH    : integer := 12;
     constant IMM20_WIDTH    : integer := 20;
     constant FLAGs_WIDTH    : integer := 3;

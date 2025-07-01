@@ -256,6 +256,24 @@ package InstrGenPkg;
         4'b1011: return NONE_h;
         default: return NONE_h; // optional: catch-all for safety
     endcase
-endfunction
+    endfunction
+    
+    function string control_signal_to_string(input control_signal_t val);
+        case (val)
+            MEM_READ  : control_signal_to_string = "MEM_READ";
+            MEM_WRITE : control_signal_to_string = "MEM_WRITE";
+            REG_WRITE : control_signal_to_string = "REG_WRITE";
+            MEM_REG   : control_signal_to_string = "MEM_REG";
+            ALU_REG   : control_signal_to_string = "ALU_REG";
+            BRANCH    : control_signal_to_string = "BRANCH";
+            JUMP      : control_signal_to_string = "JUMP";
+            RS2       : control_signal_to_string = "RS2";
+            IMM       : control_signal_to_string = "IMM";
+            VALID     : control_signal_to_string = "VALID";
+            INVALID   : control_signal_to_string = "INVALID";
+            NONE_c    : control_signal_to_string = "NONE_c";
+            default   : control_signal_to_string = "UNKNOWN";
+        endcase
+    endfunction
 
 endpackage

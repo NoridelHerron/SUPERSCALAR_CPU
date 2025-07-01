@@ -9,14 +9,24 @@ use work.ENUM_T.all;
 package initialize_records is
 
     constant EMPTY_inst_pc : Inst_PC := (
-        is_valid    => NONE_c,
+        pc          => ZERO_32bits,
         instr       => NOP,
-        pc          => ZERO_32bits
+        is_valid    => INVALID
     );
     
-    constant EMPTY_inst_pc_N : Inst_PC_N := (
+    constant EMPTY_Inst_PC_N : Inst_PC_N := (
         A          => EMPTY_inst_pc,
         B          => EMPTY_inst_pc
+    ); 
+    
+    constant EMPTY_Inst_N : Inst_N := (
+        A          => ZERO_32bits,
+        B          => ZERO_32bits
+    );
+    
+    constant EMPTY_PC_N : PC_N := (
+        A          => ZERO_32bits,
+        B          => ZERO_32bits
     );
     
     -----------------------------------------ID STAGE------------------------------------------
@@ -122,11 +132,11 @@ package initialize_records is
     
     -----------------------------------------MEM STAGE------------------------------------------ 
     constant EMPTY_MEM_CONTENT : MEM_CONTENT := (
-        alu1        => ZERO_32bits,
-        alu2        => ZERO_32bits,
-        mem         => ZERO_32bits,
+        res1        => ZERO_32bits,
+        res2        => ZERO_32bits,
         rd          => ZERO_5bits,
-        we          => NONE_c
+        we          => NONE_c,
+        me          => NONE_c
     );
     
     constant EMPTY_MEM_CONTENT_N : MEM_CONTENT_N := (

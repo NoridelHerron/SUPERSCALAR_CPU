@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Create Date: 06/19/2025 9:28:07 AM
@@ -7,9 +8,8 @@
 // helper for waveform debugging
 //////////////////////////////////////////////////////////////////////////////////
 
-
-package struct_helpers;
     
+package struct_helpers;
     import enum_helpers::*;
     
     typedef struct packed {
@@ -22,6 +22,11 @@ package struct_helpers;
         Inst_PC A; 
         Inst_PC B;
     } Inst_PC_N;
+    
+    typedef struct packed {
+        logic [31:0] A; 
+        logic [31:0] B;
+    } two_32bits;
     
     typedef struct packed {
         logic [31:0] A;
