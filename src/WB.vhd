@@ -17,11 +17,10 @@ end WB;
 
 architecture Behavioral of WB is
 begin
-
-
-    -- Instruction A write-back stage
     process(MEM_WB)
     begin
+
+        -- Instruction A write-back stage
         if MEM_WB.A.we = REG_WRITE then
             if MEM_WB.A.me = MEM_READ then
                 WB_OUT.A.data <= MEM_WB.A.res1;
@@ -29,25 +28,22 @@ begin
                 WB_OUT.A.data <= MEM_WB.A.res2;
             end if;
         end if;
-    end process;
 
-    WB_OUT.A.rd <= MEM_WB.A.rd;
-    WB_OUT.A.we <= MEM_WB.A.we;
+        WB_OUT.A.rd <= MEM_WB.A.rd;
+        WB_OUT.A.we <= MEM_WB.A.we;
 
-    -- Instruction B write-back stage
-    -- Check if the destination register is different than the one that instruction A is writing to
-    process(MEM_WB)
-    begin
-        if MEM_WB.B.we = REG_WRITE and MEM_WB.B.rd /= MEM_WB.A.rd then
+        -- Instruction B write-back stage
+        if MEM_WB.B.we = REG_WRITE then 
             if MEM_WB.B.me = MEM_READ then
                 WB_OUT.B.data <= MEM_WB.B.res1;
             else
                 WB_OUT.B.data <= MEM_WB.B.res2;
             end if;
         end if;
-    end process;
 
-    WB_OUT.B.rd <= MEM_WB.B.rd;
-    WB_OUT.B.we <= MEM_WB.B.we;
+        WB_OUT.B.rd <= MEM_WB.B.rd;
+        WB_OUT.B.we <= MEM_WB.B.we;
+
+    end process;
 
 end Behavioral;
