@@ -106,10 +106,11 @@ module rom (
         end
     endfunction
 
-    // ================= ROM Initialization ===================
-
+    // ================= ROM and instruction Initializations ===================
     integer i;
     initial begin
+        instr1 = 32'b0;
+        instr2 = 32'b0;
         for (i = 0; i < 40; i = i + 1) begin
             rom[i] = generate_instruction($urandom_range(0, 5)); // Include R-type
             $display("ROM[%0d] = %h", i, rom[i]);

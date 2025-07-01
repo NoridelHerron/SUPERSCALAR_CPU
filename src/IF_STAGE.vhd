@@ -38,10 +38,8 @@ begin
     -- Instantiate the Unit
     U_ROM : entity work.rom_wrapper port map (
         clk    => clk,
-        addr1  => pc_fetch.A,
-        addr2  => pc_fetch.B,
-        instr1 => instr_fetched.A,
-        instr2 => instr_fetched.B
+        pc     => pc_fetch,
+        instr  => instr_fetched
     );
     
     -- Pc need to be updated on rising edge
@@ -54,7 +52,7 @@ begin
             temp_reg        <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if temp_reg.A.is_valid then   
+            if temp_reg.A.is_valid = VALID then   
                 instr_reg           <= instr_fetched;
                 pc_fetch.A          <= std_logic_vector(unsigned(pc_fetch.A) + 8);
                 pc_fetch.B          <= std_logic_vector(unsigned(pc_fetch.A) + 4);
@@ -63,6 +61,12 @@ begin
                 temp_reg.B.pc       <= pc_current.B;
                 temp_reg.A.instr    <= instr_reg.A; 
                 temp_reg.A.instr    <= instr_reg.B; 
+                temp_reg.A.is_valid <= VALID;
+                temp_reg.B.is_valid <= VALID;
+                
+             else
+                temp_reg.A.is_valid <= VALID;
+                temp_reg.B.is_valid <= VALID;
              end if;
         end if;
     end process;

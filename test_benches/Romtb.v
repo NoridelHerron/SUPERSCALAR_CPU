@@ -4,8 +4,10 @@
 module tb_rom;
 
     reg  clk;
-    reg  [9:0] addr1, addr2;
-    wire [31:0] instr1, instr2;   // Instruction outputs from ROM
+    reg  [9:0]   addr1;
+     wire [31:0] instr1; 
+    reg  [9:0]   addr2;
+    wire [31:0]  instr2;   // Instruction outputs from ROM
 
     // Instantiate the ROM
     rom uut (
@@ -23,9 +25,9 @@ module tb_rom;
 
     initial begin
 	$display("----Starting ROM test---");
-        clk = 0;
-        addr1 = 0;
-        addr2 = 0;
+        clk    = 0;
+        addr1  = 0;
+        addr2  = 0; 
 
         // Wait a bit before starting
         #10;

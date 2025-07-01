@@ -38,8 +38,8 @@ begin
 
     u_rom: rom port map (
             clk    => clk,
-            addr1  => pc.A(9 downto 2),
-            addr2  => pc.B(9 downto 2),
+            addr1  => pc.A(11 downto 2),
+            addr2  => pc.B(11 downto 2),
             instr1 => instr.A,
             instr2 => instr.B
     );
