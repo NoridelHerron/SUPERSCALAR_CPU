@@ -6,8 +6,7 @@
 
 module rom (
     input  wire        clk,
-    input  wire [9:0]  addr1,    // PC >> 2 for word indexing
-    input  wire [9:0]  addr2,
+    input  wire [9:0]  addr,    // PC >> 2 for word indexing
     output reg  [31:0] instr1,
     output reg  [31:0] instr2
 );
@@ -109,9 +108,9 @@ module rom (
     // ================= ROM and instruction Initializations ===================
     integer i;
     initial begin
-        instr1 = 32'b0;
-        instr2 = 32'b0;
-        for (i = 0; i < 40; i = i + 1) begin
+        instr1 = 32'h00000013;
+        instr2 = 32'h00000013;
+        for (i = 0; i < 1024; i = i + 1) begin
             rom[i] = generate_instruction($urandom_range(0, 5)); // Include R-type
             $display("ROM[%0d] = %h", i, rom[i]);
         end
@@ -120,8 +119,8 @@ module rom (
     // ================= Output 2 Instructions =================
 
     always @(posedge clk) begin
-        instr1 <= rom[addr1];       // addr must be PC >> 2
-        instr2 <= rom[addr2];   // fetch next word
+        instr1 <= rom[addr];       // addr must be PC >> 2
+        instr2 <= rom[addr + 1];   // fetch next word
     end
 
 endmodule

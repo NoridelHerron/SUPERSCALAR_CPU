@@ -29,6 +29,11 @@ package Pipeline_Types is
         A           : std_logic_vector(DATA_WIDTH-1 downto 0);  
         B           : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
+    
+    type valid_N is record
+        A           : CONTROL_SIG;  
+        B           : CONTROL_SIG;
+    end record;
        
 -----------------------------------------ID STAGE------------------------------------------
     type REG_DATA_PER is record

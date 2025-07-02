@@ -19,14 +19,24 @@ package initialize_records is
         B          => EMPTY_inst_pc
     ); 
     
-    constant EMPTY_Inst_N : Inst_N := (
-        A          => ZERO_32bits,
-        B          => ZERO_32bits
+    constant NOP_Inst_N : Inst_N := (
+        A          => NOP,
+        B          => NOP
     );
     
     constant EMPTY_PC_N : PC_N := (
         A          => ZERO_32bits,
         B          => ZERO_32bits
+    );
+    
+    constant NOT_valid : valid_N := (
+        A          => INVALID,
+        B          => INVALID
+    );
+    
+    constant BOTH_valid : valid_N := (
+        A          => VALID,
+        B          => VALID
     );
     
     -----------------------------------------ID STAGE------------------------------------------
