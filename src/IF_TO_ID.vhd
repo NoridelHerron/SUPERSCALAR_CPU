@@ -45,12 +45,12 @@ begin
                 if if_stage.B.is_valid = VALID then  
                     reg.B <= if_stage.B;
                 else
-                    temp.B          := reg.B;
+                    temp.B          := if_stage.B;
                     temp.B.is_valid := HOLD;
                     reg.B           <= temp.B;
                 end if;
             else
-                temp := reg;
+                temp := if_stage;
                 temp.A.is_valid := HOLD;
                 temp.B.is_valid := HOLD;
                 reg <= temp;

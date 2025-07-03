@@ -134,12 +134,12 @@ UUT : entity work.IF_TO_ID port map (
                 if if_exp.B.is_valid = VALID then
                     exp_out.B := if_exp.B; 
                 else
-                    exp_out.B := if_id_exp.B; 
+                    exp_out.B := if_exp.B; 
                     exp_out.B.is_valid := HOLD;
                     
                 end if;
             else
-                exp_out            := if_id_exp;
+                exp_out            := if_exp;
                 exp_out.A.is_valid := HOLD;
                 exp_out.B.is_valid := HOLD;
             end if;
