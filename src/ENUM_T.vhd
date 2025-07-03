@@ -45,7 +45,8 @@ package ENUM_T is
         IMM,            -- for operand 2
         VALID, 
         INVALID, 
-        NONE_c
+        NONE_c, 
+        HOLD
     );
     
     attribute enum_encoding : string;

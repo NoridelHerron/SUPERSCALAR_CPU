@@ -33,6 +33,7 @@ signal reg : Inst_PC_N := EMPTY_Inst_PC_N;
 begin
 
     process(clk, reset)
+    variable temp : Inst_PC_N := EMPTY_Inst_PC_N; 
     begin
         if reset = '1' then  
             reg <= EMPTY_Inst_PC_N;
@@ -44,10 +45,15 @@ begin
                 if if_stage.B.is_valid = VALID then  
                     reg.B <= if_stage.B;
                 else
-                    reg.B <= reg.B;
+                    temp.B          := reg.B;
+                    temp.B.is_valid := HOLD;
+                    reg.B           <= temp.B;
                 end if;
             else
-                reg <= reg;
+                temp := reg;
+                temp.A.is_valid := HOLD;
+                temp.B.is_valid := HOLD;
+                reg <= temp;
             end if;
         end if;
     end process;

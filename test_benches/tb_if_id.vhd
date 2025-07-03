@@ -1,9 +1,7 @@
 ------------------------------------------------------------------------------
 -- Noridel Herron
--- 6/20/2025
--- testbench 2 for ex stage
--- this is for closely monitoring the specific cases. 
--- The tb_ex_stage.sv is for catching edge cases
+-- 7/3/2025
+-- testbench for IF_TO_ID reg
 ------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -58,12 +56,14 @@ UUT : entity work.IF_TO_ID port map (
     variable total_tests   : integer            := 20000;
     
     -- randomized used for generating values
-    variable rand           : real;
+    variable rand, rand2    : real;
     variable seed1, seed2   : positive  := 12345;
-    variable actual         : Inst_PC_N := EMPTY_Inst_PC_N;
-    variable expected       : Inst_PC_N := EMPTY_Inst_PC_N;
+    variable actual         : Inst_PC_N := init_Inst_PC_N;
+    variable expected       : Inst_PC_N := init_Inst_PC_N;
+    variable exp_out        : Inst_PC_N := EMPTY_Inst_PC_N;
     -- Keep track test
     variable pass, fail     : integer   := 0;
+    -- Narrow down the bugs variables
     variable fin, fout      : integer   := 0;
     variable fip, fii, fiv  : integer   := 0;
     variable fop, foi, fov  : integer   := 0;
@@ -75,27 +75,35 @@ UUT : entity work.IF_TO_ID port map (
         wait for clk_period * 2;
        
         for i in 1 to total_tests loop
- 
-        
+            
+            -- Generate random value
             uniform(seed1, seed2, rand);
+            uniform(seed1, seed2, rand2);
+            
+            -- ACTUAL input assignment
+            -- Generate instructions
             actual.A.instr    := instr_gen(rand);
-            actual.B.instr    := instr_gen(rand * 0.09);
+            actual.B.instr    := instr_gen(rand2);
+            
+            -- Increment pc
             actual.A.pc       := std_logic_vector(unsigned(if_stage.A.pc) + 8); 
             actual.B.pc       := std_logic_vector(unsigned(actual.A.pc) + 4); 
-            actual.A.is_valid := VALID;
-            actual.B.is_valid := VALID;
-           -- if    rand < 0.95 then
-            --    actual.A.is_valid := VALID;
-           -- else 
-             --   actual.A.is_valid := INVALID;
-            --end if;
+           
+            -- Determine if the instruction is valid or not.
+            -- Helped me check if the instruction will not be release if it is invalid
+            if    rand < 0.7 then
+                actual.A.is_valid := VALID;
+            else 
+                actual.A.is_valid := INVALID;
+            end if;
             
-           -- if    rand * 0.9 < 0.95 then
-             --   actual.B.is_valid := VALID;
-          -- else 
-            --    actual.B.is_valid := INVALID;
-          --  end if;
+            if    rand2  < 0.7 then
+                actual.B.is_valid := VALID;
+            else 
+                actual.B.is_valid := INVALID;
+            end if;
  
+            -- EXPECTED input assignment
             expected.A.is_valid := actual.A.is_valid;
             expected.B.is_valid := actual.B.is_valid;
             expected.A.instr    := actual.A.instr;
@@ -117,16 +125,36 @@ UUT : entity work.IF_TO_ID port map (
             if_exp.A.instr      <= actual.A.instr;
             if_exp.B.instr      <= actual.B.instr;
             if_exp.A.is_valid   <= expected.A.is_valid;
-            if_exp.B.is_valid   <= expected.B.is_valid;
+            if_exp.B.is_valid   <= expected.B.is_valid;       
             
-            if_id_exp <= if_exp;
+            -- EXPECTED output assignments
+            if if_exp.A.is_valid = VALID then
+                exp_out.A := if_exp.A;  
+                
+                if if_exp.B.is_valid = VALID then
+                    exp_out.B := if_exp.B; 
+                else
+                    exp_out.B := if_id_exp.B; 
+                    exp_out.B.is_valid := HOLD;
+                    
+                end if;
+            else
+                exp_out            := if_id_exp;
+                exp_out.A.is_valid := HOLD;
+                exp_out.B.is_valid := HOLD;
+            end if;
+  
+            if_id_exp  <= exp_out;
             
+            -- Let the result settle down
             wait until rising_edge(clk);
             
+            -- Keep track the test
             if if_stage = if_exp and if_id = if_id_exp then
                 pass := pass +1;
             else
                 fail := fail + 1;
+                -- If fail the nested logic will help narrow down the bugs
                 if if_stage /= if_exp then
                     fin := fin + 1;
                     if if_stage.A.pc /= if_exp.A.pc or if_stage.B.pc /= if_exp.B.pc then
