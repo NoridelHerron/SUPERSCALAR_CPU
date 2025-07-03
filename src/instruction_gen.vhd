@@ -25,12 +25,12 @@ package body instruction_generator is
         variable temp    : Decoder_Type  := EMPTY_DECODER;
        
     begin
-        if    rand_real < 0.1  then temp.op := LOAD;
-        elsif rand_real < 0.2  then temp.op := S_TYPE;
-        elsif rand_real < 0.3  then temp.op := JAL;
-        elsif rand_real < 0.6  then temp.op := B_TYPE;
-        elsif rand_real < 0.8  then temp.op := I_IMME;
-        else temp.op := R_TYPE;
+        if    rand_real < 0.4  then temp.op := R_TYPE;
+        elsif rand_real < 0.5  then temp.op := S_TYPE;
+      --  elsif rand_real < 0.3  then temp.op := JAL;
+      --  elsif rand_real < 0.6  then temp.op := B_TYPE;
+        elsif rand_real < 0.9  then temp.op := I_IMME;
+        else temp.op := LOAD;
         end if;
 
         temp.rd := std_logic_vector(to_unsigned(integer(rand_real * 2.0 * 32.0), 5));   

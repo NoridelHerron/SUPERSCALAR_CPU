@@ -36,6 +36,7 @@ begin
     begin
         if reset = '1' then  
             reg <= EMPTY_Inst_PC_N;
+            
         elsif rising_edge(clk) then
             if if_stage.A.is_valid = VALID then  
                 reg.A <= if_stage.A; 

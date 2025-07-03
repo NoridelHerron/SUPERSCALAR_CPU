@@ -17,7 +17,25 @@ package initialize_records is
     constant EMPTY_Inst_PC_N : Inst_PC_N := (
         A          => EMPTY_inst_pc,
         B          => EMPTY_inst_pc
+    );
+    
+    
+    constant tbA_inst_pc : Inst_PC := (
+        pc          => ZERO_32bits,
+        instr       => ONE_32bits,
+        is_valid    => VALID
     ); 
+    
+    constant tbB_inst_pc : Inst_PC := (
+        pc          => x"00000004",
+        instr       => ONE_32bits,
+        is_valid    => VALID
+    ); 
+    
+     constant init_Inst_PC_N : Inst_PC_N := (
+        A          => tbA_inst_pc,
+        B          => tbB_inst_pc
+    );
     
     constant NOP_Inst_N : Inst_N := (
         A          => NOP,
