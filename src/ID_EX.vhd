@@ -52,6 +52,7 @@ begin
             id_reg_c        <= EMPTY_control_Type_N;
             haz_reg         <= EMPTY_HDU_OUT_N;
             datas_reg       <= EMPTY_REG_DATAS;
+            
         elsif rising_edge(clk) then    
             if id_stage.A.is_valid = VALID then
                 id_ex_stage_reg.A <= id_stage.A;
@@ -59,22 +60,15 @@ begin
                 id_reg_c.A        <= id_c.A;
                 haz_reg.A         <= haz_in.A;
                 datas_reg.one     <= datas_in.one; 
+                
                 if id_stage.B.is_valid = VALID then  
                     id_ex_stage_reg.B <= id_stage.B;
                     id_reg.B          <= id.B;
                     id_reg_c.B        <= id_c.B;
                     haz_reg.B         <= haz_in.B;
                     datas_reg.two     <= datas_in.two; 
-                else
-                    id_ex_stage_reg.B <= id_ex_stage_reg.B;
-                    id_reg.B          <= id_reg.B;
-                    id_reg_c.B        <= id_reg_c.B;
-                    haz_reg.B         <= haz_reg.B;
-                    datas_reg.two     <= datas_reg.two; 
-                end if;
-                
+                end if;   
             end if;
-
         end if;
     end process;
 
