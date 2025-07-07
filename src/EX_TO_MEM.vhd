@@ -23,15 +23,18 @@ entity EX_TO_MEM is
             reset          : in  std_logic;  -- added reset input
             EX             : in  Inst_PC_N;
             EX_content     : in  EX_CONTENT_N;
+            ex_control     : in  control_Type_N;
             EX_MEM         : out Inst_PC_N;
-            EX_MEM_content : out EX_CONTENT_N
+            EX_MEM_content : out EX_CONTENT_N;
+            ex_c           : out control_Type_N
         );
 end EX_TO_MEM;
 
 architecture Behavioral of EX_TO_MEM is
 
-signal reg         : Inst_PC_N    := EMPTY_Inst_PC_N;
-signal reg_content : EX_CONTENT_N := EMPTY_EX_CONTENT_N;
+signal reg         : Inst_PC_N      := EMPTY_Inst_PC_N;
+signal reg_content : EX_CONTENT_N   := EMPTY_EX_CONTENT_N;
+signal reg_control : control_Type_N := EMPTY_control_Type_N;
 
 begin
     process(clk, reset)
@@ -39,16 +42,19 @@ begin
         if reset = '1' then  
             reg         <= EMPTY_Inst_PC_N;
             reg_content <= EMPTY_EX_CONTENT_N;
+            reg_control <= EMPTY_control_Type_N;
         -- Not checking the validity of instruction because I don't think I need to check it anymore
         -- since the previous registers will hold it already. However this my change after I observe the 
         -- wafeform of the integrated system
         elsif rising_edge(clk) then
             reg         <= EX;
             reg_content <= EX_content;
+            reg_control <= ex_control;
         end if;    
     end process;
 
     EX_MEM         <= reg;
     EX_MEM_content <= reg_content;
+    ex_c           <= reg_control;
 
 end Behavioral;
