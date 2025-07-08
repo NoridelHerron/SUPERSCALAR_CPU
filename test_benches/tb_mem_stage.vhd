@@ -35,7 +35,6 @@ signal mem          : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 begin
     UUT : entity work.MEM_STA port map (
         clk      => clk,
-        reset    => rst,
         ex_mem   => ex_mem,
         ex_mem_c => ex_mem_c,
         mem      => mem
