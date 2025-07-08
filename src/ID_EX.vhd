@@ -72,6 +72,7 @@ begin
         end if;
     end process;
 
+    -- Assign outputs
     id_ex_stage <= id_ex_stage_reg;
     id_ex       <= id_reg;
     id_ex_c     <= id_reg_c;

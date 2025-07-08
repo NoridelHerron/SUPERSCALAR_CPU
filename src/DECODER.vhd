@@ -14,7 +14,7 @@ use work.const_Types.all;
 use work.initialize_records.all;
 
 entity DECODER is
-    Port (  -- inputs 
+    Port (  
             ID          : in  std_logic_vector(DATA_WIDTH-1 downto 0);       
             ID_content  : out Decoder_Type      
         );
@@ -25,8 +25,13 @@ architecture behavior of DECODER is
 begin             
              
     process (ID)
-    variable temp   : Decoder_Type                             := EMPTY_DECODER;
+    -- Use a variable so the operation can be evaluated and available within the same cycle. 
+    -- This allows different cases to immediately decide which data to send out without waiting for another clock edge.
+    -- Only 'op' needs immediate evaluation,  
+    -- but I use variables for the other fields as a personal preference.
+    variable temp : Decoder_Type := EMPTY_DECODER;
     begin 
+        -- Decode instruction
         temp.funct7   := ID(31 downto 25);
         temp.rs2      := ID(24 downto 20);
         temp.rs1      := ID(19 downto 15);
@@ -66,7 +71,8 @@ begin
                      
             when others => temp := EMPTY_DECODER;
         end case;
-
+        
+        -- output assignment
         ID_content <= temp;
     end process;
 

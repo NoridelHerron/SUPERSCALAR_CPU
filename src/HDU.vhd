@@ -45,6 +45,7 @@ begin
         else
             temp.A.ForwA := NONE_h;
         end if;
+        
         -- Forward B
         if EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs2 then
             temp.A.ForwB := EX_MEM_A;
@@ -68,6 +69,8 @@ begin
         end if;
 
 -------------------------------------------------- INSTRUCTION B --------------------------------------------------
+        -- In dual-issue, intra-instruction dependencies are checked first  
+        -- since they provide the latest register values.
         -- Forward A
         if ID_EX_c.A.wb = REG_WRITE and ID_EX.B.rs1 = ID_EX.A.rd and ID_EX.A.rd /= ZERO_5bits then
             temp.B.ForwA := FORW_FROM_A;

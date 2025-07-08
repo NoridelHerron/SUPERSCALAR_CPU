@@ -18,9 +18,9 @@ use work.ENUM_T.all;
 --use work.MyFunctions.all;
 
 entity IF_stage is
-    Port ( clk             : in  std_logic; 
-           reset           : in  std_logic;
-           IF_STAGE        : out Inst_PC_N 
+    Port ( clk       : in  std_logic; 
+           reset     : in  std_logic;
+           IF_STAGE  : out Inst_PC_N 
     );
 end IF_stage;
 
@@ -34,8 +34,6 @@ signal instr_fetched : Inst_N     := NOP_Inst_N;
 
 signal temp_reg      : Inst_PC_N  := EMPTY_Inst_PC_N;
 signal after_reset   : std_logic  := '0';
-signal mem_delay     : std_logic  := '0';
-
 
 begin
     
@@ -58,28 +56,31 @@ begin
             
         elsif rising_edge(clk) then
             if after_reset = '1' then
-                after_reset          <= '0';
-                temp_reg.A.is_valid  <= INVALID; 
-                temp_reg.B.is_valid  <= INVALID; 
-                temp_reg.A.instr     <= NOP; 
-                temp_reg.B.instr     <= NOP;   
-                temp_reg.A.pc        <= ZERO_32bits;
-                temp_reg.B.pc        <= ZERO_32bits;
-                pc_fetch             <= std_logic_vector(unsigned(pc_fetch) + 8);  
+                after_reset <= '0';
+                temp_reg    <= EMPTY_Inst_PC_N;
+                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 8);  
+                
             else  
-                temp_reg.A.is_valid  <= VALID; 
-                temp_reg.B.is_valid  <= VALID;
+                if pc_current = ZERO_32bits then
+                    -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
+                    temp_reg.A.is_valid <= INVALID; 
+                    temp_reg.B.is_valid <= INVALID;
+                else
+                    temp_reg.A.is_valid <= VALID; 
+                    temp_reg.B.is_valid <= VALID;
+                end if;
+                -- fetched instruction from U_ROM
                 instr_reg           <= instr_fetched;
+                -- increment pcs
                 pc_fetch            <= std_logic_vector(unsigned(pc_fetch) + 8); 
                 temp_reg.A.pc       <= pc_current; 
                 temp_reg.B.pc       <= std_logic_vector(unsigned(pc_current) + 4);
+                -- Assigned fetched instruction
                 temp_reg.A.instr    <= instr_reg.A; 
                 temp_reg.B.instr    <= instr_reg.B; 
             end if; 
-            pc_current          <= pc_fetch;    
-            
-            
-
+            pc_current <= pc_fetch;    
+  
         end if;
     end process;
     
