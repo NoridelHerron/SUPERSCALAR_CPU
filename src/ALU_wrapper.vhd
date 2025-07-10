@@ -22,7 +22,7 @@ entity ALU_wrapper is
             f3          : in  std_logic_vector(FUNCT3_WIDTH-1 downto 0);   
             f7          : in  std_logic_vector(FUNCT7_WIDTH-1 downto 0);
             -- outputs
-            operation   : out std_logic_vector(FIVE-1 downto 0);
+            operation   : out std_logic_vector(FOUR-1 downto 0);
             result      : out std_logic_vector(DATA_WIDTH-1 downto 0);   
             Z_flag      : out std_logic;
             V_flag      : out std_logic;
@@ -45,7 +45,7 @@ begin
   alu_in.f7 <= f7;
 
 -- Map ALU_OP enum to std_logic_vector for output port
-operation <= std_logic_vector(to_unsigned(ALU_OP'pos(alu_out.operation), FIVE));
+operation <= std_logic_vector(to_unsigned(ALU_OP'pos(alu_out.operation), FOUR));
 
 -- Map other outputs
   result <= alu_out.result;
@@ -79,8 +79,8 @@ operation <= std_logic_vector(to_unsigned(ALU_OP'pos(alu_out.operation), FIVE));
   
   -- Instantiate original ALU
   u_alu: entity work.alu port map (
-              input  => alu_in,
-              output => alu_out
+              alu_input  => alu_in,
+              alu_output => alu_out
             );
 
 end RTL;
