@@ -148,19 +148,19 @@ begin
                     
                 when 2 => -- SLT
                     if signed(to_signed(rand_A,32)) < signed(to_signed(rand_B,DATA_WIDTH)) then 
-                        expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
-                        expected.operation  := ALU_SLT; 
+                        expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1';   
                     else
                         expected := EMPTY_ALU_out;
                     end if;
+                    expected.operation  := ALU_SLT; 
                     
                 when 3 => -- SLTU
                     if unsigned(to_unsigned(rand_A,32)) < unsigned(to_unsigned(rand_B,DATA_WIDTH)) then 
                         expected.result := (DATA_WIDTH-1 downto 1 => '0') & '1'; 
-                        expected.operation  := ALU_SLTU;
                     else
                         expected := EMPTY_ALU_out;
                     end if;
+                    expected.operation  := ALU_SLTU; 
        
                 when 4 => -- XOR
                     expected.result := std_logic_vector(unsigned(to_unsigned(rand_A,DATA_WIDTH)) xor unsigned(to_unsigned(rand_B,DATA_WIDTH)));

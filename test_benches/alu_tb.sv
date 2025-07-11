@@ -9,7 +9,7 @@ import InstrGenPkg::*;
 module alu_tb();
     logic clk = 0;
     always #5 clk = ~clk; // Clock: 10ns period
- 
+
     localparam logic [2:0] FUNC3_ADD_SUB = 3'b000;
     localparam logic [2:0] FUNC3_SLL     = 3'b001;
     localparam logic [2:0] FUNC3_SLT     = 3'b010;
@@ -18,6 +18,10 @@ module alu_tb();
     localparam logic [2:0] FUNC3_SRL_SRA = 3'b101;
     localparam logic [2:0] FUNC3_OR      = 3'b110;
     localparam logic [2:0] FUNC3_AND     = 3'b111;
+    
+    typedef enum logic [2:0] {
+        Z, V, Cf, N, NONE_f
+    } alu_e;
     
     typedef struct packed {
         logic [31:0] A;
@@ -74,6 +78,7 @@ module alu_tb();
         
         // To check all the invalid cases, remove or comment the f7_condition and run simulation
         // You will see that it will pass any test cases
+        /*
         constraint f7_condition {
             if (rand_f3 == 3'b000 || rand_f3 == 3'b101) {
                 rand_f7 inside {7'd0, 7'd32};
@@ -81,6 +86,7 @@ module alu_tb();
                 rand_f7 == 7'd0;
             }
         }
+        */
     
         function void apply_inputs();
                 actual_in.A  = rand_A;
@@ -315,7 +321,7 @@ module alu_tb();
             void'(t.randomize());
             @(posedge clk);
             t.apply_inputs();  
-            @(posedge clk);
+            //@(posedge clk); // Have to update on rising edge to ensure that we compare the correct values
             t.transfer_outputs();
             t.check();
         end

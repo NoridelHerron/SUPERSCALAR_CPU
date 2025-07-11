@@ -61,13 +61,17 @@ begin
                 temp.rd     := ZERO_5bits;     
                 
             when U_LUI | U_AUIPC =>  
-                temp.imm20  := ID(31 downto 12); 
+                temp.imm20  := ID(31 downto 12);
+                temp.funct7 := ZERO_7bits;
+                temp.rs2    := ZERO_5bits;  
+                temp.rs1    := ZERO_5bits; 
+                temp.funct3 := ZERO_3bits; 
             
             when JAL =>  
                 temp        := EMPTY_DECODER;
                 temp.rd     := ID(11 downto 7);
                 temp.op     := ID(6 downto 0);
-                temp.imm20  := ID(31) & ID(18 downto 12) & ID(19) & ID(30 downto 20); 
+                temp.imm20  := ID(31) & ID(19 downto 12) & ID(20) & ID(30 downto 21); 
                      
             when others => temp := EMPTY_DECODER;
         end case;

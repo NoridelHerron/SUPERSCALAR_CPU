@@ -241,21 +241,21 @@ package InstrGenPkg;
     endfunction
     
     function automatic hazard_signal_t encode_HAZ_sig(input logic [3:0] sig);
-    case (sig)
-        4'b0000: return A_STALL;
-        4'b0001: return B_STALL;
-        4'b0010: return STALL_FROM_A;
-        4'b0011: return STALL_FROM_B;
-        4'b0100: return EX_MEM_A;
-        4'b0101: return EX_MEM_B;
-        4'b0110: return MEM_WB_A;
-        4'b0111: return MEM_WB_B;
-        4'b1000: return FORW_FROM_A;
-        4'b1001: return HOLD_B;
-        4'b1010: return B_INVALID;
-        4'b1011: return NONE_h;
-        default: return NONE_h; // optional: catch-all for safety
-    endcase
+        case (sig)
+            4'b0000: return A_STALL;
+            4'b0001: return B_STALL;
+            4'b0010: return STALL_FROM_A;
+            4'b0011: return STALL_FROM_B;
+            4'b0100: return EX_MEM_A;
+            4'b0101: return EX_MEM_B;
+            4'b0110: return MEM_WB_A;
+            4'b0111: return MEM_WB_B;
+            4'b1000: return FORW_FROM_A;
+            4'b1001: return HOLD_B;
+            4'b1010: return B_INVALID;
+            4'b1011: return NONE_h;
+            default: return NONE_h; // optional: catch-all for safety
+        endcase
     endfunction
     
     function string control_signal_to_string(input control_signal_t val);
@@ -273,6 +273,33 @@ package InstrGenPkg;
             INVALID   : control_signal_to_string = "INVALID";
             NONE_c    : control_signal_to_string = "NONE_c";
             default   : control_signal_to_string = "UNKNOWN";
+        endcase
+    endfunction
+    
+    function automatic alu_e encode_flag_sig(input logic [2:0] sig);
+        case (sig)
+            3'b000: return Z;
+            3'b001: return V;
+            3'b010: return Cf;
+            3'b011: return N;
+            default: return NONE_f; // optional: catch-all for safety
+        endcase
+    endfunction
+    
+    function automatic alu_op_t encode_op_sig(input logic [3:0] sig);
+        case (sig)
+            4'b0000: return ALU_ADD;
+            4'b0001: return ALU_SUB;
+            4'b0010: return ALU_XOR;
+            4'b0011: return ALU_OR;
+            4'b0100: return ALU_AND;
+            4'b0101: return ALU_SLL;
+            4'b0110: return ALU_SRL;
+            4'b0111: return ALU_SRA;
+            4'b1000: return ALU_SLT;
+            4'b1001: return ALU_SLTU;
+            4'b1011: return ADD_SUB;
+            default: return NONE; // optional: catch-all for safety
         endcase
     endfunction
 

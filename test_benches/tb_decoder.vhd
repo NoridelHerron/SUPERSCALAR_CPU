@@ -75,11 +75,11 @@ begin
   
             -- This will cover all instructions in riscv
             uniform(seed1, seed2, rand_real);
-           -- if rand_real < 0.02    then temp.op := ECALL;     
-           -- elsif rand_real < 0.04 then temp.op := U_AUIPC;
-           -- elsif rand_real < 0.06 then temp.op := U_LUI;
-           -- elsif rand_real < 0.08 then temp.op := JALR;
-            if rand_real < 0.1  then temp.op := LOAD;
+            if rand_real < 0.02    then temp.op := ECALL;     
+            elsif rand_real < 0.04 then temp.op := U_AUIPC;
+            elsif rand_real < 0.06 then temp.op := U_LUI;
+            elsif rand_real < 0.08 then temp.op := JALR;
+            elsif rand_real < 0.1  then temp.op := LOAD;
             elsif rand_real < 0.2  then temp.op := S_TYPE;
             elsif rand_real < 0.3  then temp.op := JAL;
             elsif rand_real < 0.6  then temp.op := B_TYPE;
@@ -130,8 +130,8 @@ begin
                     temp.funct3 := "010"; -- lw for 32 bits    
                     temp.imm12  := temp.funct7 & temp.rs2;
                     
-               -- when JALR | ECALL => 
-                   -- temp.imm12  := temp.funct7 & temp.rs2;
+                when JALR | ECALL => 
+                    temp.imm12  := temp.funct7 & temp.rs2;
                     
                 when S_TYPE => 
                     temp.imm12  := temp.funct7 & temp.rd;
@@ -147,12 +147,12 @@ begin
                         end if;
                     end if;  
                 
-             --   when U_LUI | U_AUIPC =>  
-                  --  temp.imm20  := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;   
+                when U_LUI | U_AUIPC =>  
+                    temp.imm20  := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;   
 
                 when JAL =>  
-                    temp.imm20 := temp.funct7(6) & temp.rs1(3 downto 0) & temp.funct3 & 
-                                  temp.rs1(4) & temp.funct7(5 downto 0) & temp.rs2;       
+                    temp.imm20 := temp.funct7(6) & temp.rs1 & temp.funct3 & 
+                                  temp.rs2(0) & temp.funct7(5 downto 0) & temp.rs2(4 downto 1);       
                     
                 when others => temp := EMPTY_DECODER;
                     
@@ -160,23 +160,24 @@ begin
             
             -- Build instruction word
             temp_instr := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3 & temp.rd & temp.op;
+            instruction       <= temp_instr;
+   
             case temp.op is
                 when R_TYPE     => 
-                when I_IMME | LOAD    =>  
+                when I_IMME | LOAD | JALR | ECALL =>  
                     temp.funct7 := ZERO_7bits;
                     temp.rs2    := ZERO_5bits;
                 when S_TYPE | B_TYPE   => 
                     temp.funct7 := ZERO_7bits;
                     temp.rd     := ZERO_5bits;   
-                when JAL        =>  
+                when JAL | U_LUI | U_AUIPC  =>  
                     temp.funct7 := ZERO_7bits;
                     temp.rs1    := ZERO_5bits; 
                     temp.rs2    := ZERO_5bits; 
                     temp.funct3 := ZERO_7bits; 
-                when others => def_pass := def_pass + 1;
+                when others => temp := EMPTY_DECODER;
             end case;
 
-            instruction       <= temp_instr;
             expected_content  <= temp;
 
             wait until rising_edge(clk);  -- Decoder captures input
@@ -194,10 +195,10 @@ begin
                         when S_TYPE     => S    := S + 1;   
                         when B_TYPE     => B    := B + 1;  
                         when JAL        => J    := J + 1;      
-                      --  when JALR       => JR   := JR + 1;   
-                       -- when U_LUI      => U_L  := U_L + 1; 
-                       -- when U_AUIPC    => U_AU := U_AU + 1;
-                       -- when ECALL      => E    := E + 1;
+                        when JALR       => JR   := JR + 1;   
+                        when U_LUI      => U_L  := U_L + 1; 
+                        when U_AUIPC    => U_AU := U_AU + 1;
+                        when ECALL      => E    := E + 1;
                         when others => def_pass := def_pass + 1;
                     end case;
             else
@@ -228,10 +229,10 @@ begin
         report "S_TYPE NUM_TEST:    " & integer'image(S)        severity note;
         report "B_TYPE NUM_TEST:    " & integer'image(B)        severity note;
         report "JAL NUM_TEST:       " & integer'image(J)        severity note;
-      --  report "JALR NUM_TEST:      " & integer'image(JR)       severity note;
-      --  report "U_LUI NUM_TEST:     " & integer'image(U_L)      severity note;
-       -- report "U_AUIPC NUM_TEST:   " & integer'image(U_AU)     severity note;
-      --  report "ECALL NUM_TEST:     " & integer'image(E)        severity note;
+        report "JALR NUM_TEST:      " & integer'image(JR)       severity note;
+        report "U_LUI NUM_TEST:     " & integer'image(U_L)      severity note;
+        report "U_AUIPC NUM_TEST:   " & integer'image(U_AU)     severity note;
+        report "ECALL NUM_TEST:     " & integer'image(E)        severity note;
         report "DEFAULT NUM_TEST:   " & integer'image(def_pass) severity note;
         
         -- Narrow down bugs

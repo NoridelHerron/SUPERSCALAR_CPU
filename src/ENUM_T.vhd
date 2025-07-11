@@ -10,10 +10,7 @@ package ENUM_T is
         -- R_type expected operation
         ALU_ADD, ALU_SUB, ALU_XOR, ALU_OR, ALU_AND,
         ALU_SLL, ALU_SRL, ALU_SRA, ALU_SLT, ALU_SLTU,
-        -- I_type expected operation
-        ALU_ADDi, ALU_XORi, ALU_ORi, ALU_ANDi,
-        ALU_SLLi, ALU_SRLi, ALU_SRAi, ALU_SLTi, ALU_SLTiU, 
-        ADD, SUB, NONE
+        NONE, ADD_SUB
     );
     
     type INSTRUCTION_T is ( 
