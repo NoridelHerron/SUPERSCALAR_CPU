@@ -120,6 +120,7 @@ package struct_helpers;
     } ctrl_N_t;
     
     typedef struct packed {
+        logic [6:0] op;
         control_signal_t target;
         control_signal_t alu;
         control_signal_t mem;

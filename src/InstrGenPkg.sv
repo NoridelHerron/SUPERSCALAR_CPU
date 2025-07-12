@@ -8,6 +8,11 @@ package InstrGenPkg;
     localparam logic [6:0] B_TYPE   = 7'b1100011;
     localparam logic [6:0] I_IMME   = 7'b0010011;
     localparam logic [6:0] R_TYPE   = 7'b0110011;
+    localparam logic [6:0] ECALL    = 7'b1110111;
+    localparam logic [6:0] JALR     = 7'b1100111;
+    localparam logic [6:0] U_LUI    = 7'b0110111;
+    localparam logic [6:0] U_AUIPC  = 7'b0010111;
+    localparam logic [6:0] EBREAK   = 7'b1110011;
 
     //import enum_helpers::*;
     import struct_helpers::*;
@@ -154,89 +159,108 @@ package InstrGenPkg;
         return temp;
     endfunction
 
-    // Function that decode instruction
-    function automatic haz_t haz_gen(
-        input id_ex_t ID,
-        input id_ex_t ID_EX,
-        input ctrl_N_t ID_EX_c,
-        input rd_ctrl_N_t EX_MEM,
-        input rd_ctrl_N_t MEM_WB
+    // DATA HAZARD DETECTOR for instruction 1
+    function automatic hazard_signal_t haz_forw1( 
+        input logic [6:0] exmema_op, input logic [4:0] exmema_rd,
+        input logic [6:0] exmemb_op, input logic [4:0] exmemb_rd,
+        input logic [6:0] memwba_op, input logic [4:0] memwba_rd,
+        input logic [6:0] memwbb_op, input logic [4:0] memwbb_rd,
+        input logic [4:0] idex_rs
     );
-        haz_t temp;
+        hazard_signal_t temp;
     
-        // Forwarding A
-        if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs1)
-            temp.A.ForwA = EX_MEM_A;
-        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs1)
-            temp.A.ForwA = EX_MEM_B;
-        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs1)
-            temp.A.ForwA = MEM_WB_A;
-        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs1)
-            temp.A.ForwA = MEM_WB_B;
+        if (((exmemb_op == R_TYPE) || (exmemb_op == I_IMME) || (exmemb_op == LOAD) || (exmemb_op == JAL)
+            || (exmemb_op == JALR) || (exmemb_op == U_LUI) || (exmemb_op == U_AUIPC))&& 
+            exmemb_rd != 5'd0 && exmemb_rd == idex_rs)
+            temp = EX_MEM_B;
+        else if (((exmema_op == R_TYPE) || (exmema_op == I_IMME) || (exmema_op == LOAD) || (exmema_op == JAL)
+            || (exmema_op == JALR) || (exmema_op == U_LUI) || (exmema_op == U_AUIPC))&& 
+            exmema_rd != 5'd0 && exmema_rd == idex_rs)
+            temp = EX_MEM_A;
+        else if (((memwbb_op == R_TYPE) || (memwbb_op == I_IMME) || (memwbb_op == LOAD) || (memwbb_op == JAL)
+            || (memwbb_op == JALR) || (memwbb_op == U_LUI) || (memwbb_op == U_AUIPC))&& 
+            memwbb_rd != 5'd0 && memwbb_rd == idex_rs)
+            temp = EX_MEM_B;
+        else if (((memwba_op == R_TYPE) || (memwba_op == I_IMME) || (memwba_op == LOAD) || (memwba_op == JAL)
+            || (memwba_op == JALR) || (memwba_op == U_LUI) || (memwba_op == U_AUIPC))&& 
+            memwba_rd != 5'd0 && memwba_rd == idex_rs)
+            temp = EX_MEM_A;
         else
-            temp.A.ForwA = NONE_h;
+            temp = NONE_h;
+
+        return temp;
+    endfunction
     
-        // Forwarding B
-        if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.A.rs2)
-            temp.A.ForwB = EX_MEM_A;
-        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.A.rs2)
-            temp.A.ForwB = EX_MEM_B;
-        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.A.rs2)
-            temp.A.ForwB = MEM_WB_A;
-        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.A.rs2)
-            temp.A.ForwB = MEM_WB_B;
+    function automatic hazard_signal_t haz_stall1( 
+        input logic [6:0] idexa_op, input logic [4:0] idexa_rd, 
+        input logic [6:0] idexb_op, input logic [4:0] idexb_rd,
+        input logic [4:0] id_rs1,  input logic [4:0] id_rs2
+    );
+        hazard_signal_t temp;
+  
+        if (idexa_op == LOAD && idexa_rd != 5'b0 && (idexa_rd == id_rs1 || idexa_rd == id_rs2 ))
+            temp = A_STALL;
+        else if (idexb_op == LOAD && idexb_rd != 5'b0 && (idexb_rd == id_rs1 || idexb_rd == id_rs2 ))
+            temp = B_STALL; 
         else
-            temp.A.ForwB = NONE_h;
+            temp = NONE_h;
+
+        return temp;
+    endfunction
     
-        // Stall A
-        if (ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0 &&
-            (ID_EX.A.rd == ID.A.rs1 || ID_EX.A.rd == ID.A.rs2))
-            temp.A.stall = A_STALL;
-        else if (ID_EX.B.op == LOAD && ID_EX.B.rd != 5'd0 &&
-                 (ID_EX.B.rd == ID.A.rs1 || ID_EX.B.rd == ID.A.rs2))
-            temp.A.stall = B_STALL;
+    // DATA HAZARD DETECTOR for instruction 2
+    function automatic hazard_signal_t haz_forw2( 
+        input logic [6:0] exmema_op, input logic [4:0] exmema_rd,
+        input logic [6:0] exmemb_op, input logic [4:0] exmemb_rd,
+        input logic [6:0] memwba_op, input logic [4:0] memwba_rd,
+        input logic [6:0] memwbb_op, input logic [4:0] memwbb_rd,
+        input logic [6:0] idex_op, input logic [4:0] idex_rs
+    );
+        hazard_signal_t temp;
+    
+        if (((idex_op == R_TYPE) || (idex_op == I_IMME) || (idex_op == LOAD) || (idex_op == JAL)
+            || (idex_op == JALR) || (idex_op == U_LUI) || (idex_op == U_AUIPC))&& 
+            exmema_rd != 5'd0 && exmema_rd == idex_rs)
+            temp = FORW_FROM_A; 
+        else if (((exmemb_op == R_TYPE) || (exmemb_op == I_IMME) || (exmemb_op == LOAD) || (exmemb_op == JAL)
+            || (exmemb_op == JALR) || (exmemb_op == U_LUI) || (exmemb_op == U_AUIPC))&& 
+            exmemb_rd != 5'd0 && exmemb_rd == idex_rs)
+            temp = EX_MEM_B;
+        else if (((exmema_op == R_TYPE) || (exmema_op == I_IMME) || (exmema_op == LOAD) || (exmema_op == JAL)
+            || (exmema_op == JALR) || (exmema_op == U_LUI) || (exmema_op == U_AUIPC))&& 
+            exmema_rd != 5'd0 && exmema_rd == idex_rs)
+            temp = EX_MEM_A;
+        else if (((memwbb_op == R_TYPE) || (memwbb_op == I_IMME) || (memwbb_op == LOAD) || (memwbb_op == JAL)
+            || (memwbb_op == JALR) || (memwbb_op == U_LUI) || (memwbb_op == U_AUIPC))&& 
+            memwbb_rd != 5'd0 && memwbb_rd == idex_rs)
+            temp = EX_MEM_B;
+        else if (((memwba_op == R_TYPE) || (memwba_op == I_IMME) || (memwba_op == LOAD) || (memwba_op == JAL)
+            || (memwba_op == JALR) || (memwba_op == U_LUI) || (memwba_op == U_AUIPC))&& 
+            memwba_rd != 5'd0 && memwba_rd == idex_rs)
+            temp = EX_MEM_A;
         else
-            temp.A.stall = NONE_h;
+            temp = NONE_h;
+
+        return temp;
+    endfunction
     
-        // Forwarding for ID_EX.B
-        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs1 == ID_EX.A.rd && ID_EX.A.rd != 5'd0)
-            temp.B.ForwA = FORW_FROM_A;
-        else if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs1)
-            temp.B.ForwA = EX_MEM_A;
-        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs1)
-            temp.B.ForwA = EX_MEM_B;
-        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs1)
-            temp.B.ForwA = MEM_WB_A;
-        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs1)
-            temp.B.ForwA = MEM_WB_B;
+    // DATA HAZARD DETECTOR for instruction 2
+    function automatic hazard_signal_t haz_stall2( 
+        input logic [6:0] idexa_op, input logic [4:0] idexa_rd, 
+        input logic [6:0] idexb_op, input logic [4:0] idexb_rd,
+        input logic [6:0] id_op,    input logic [4:0] id_rd,
+        input logic [4:0] id_rs1,  input logic [4:0] id_rs2
+    );
+        hazard_signal_t temp;
+        if (id_op == LOAD && id_rd != 5'b0 && (id_rd == id_rs1 || id_rd == id_rs2 ))
+            temp = A_STALL;
+        else if (idexa_op == LOAD && idexa_rd != 5'b0 && (idexa_rd == id_rs1 || idexa_rd == id_rs2 ))
+            temp = A_STALL;
+        else if (idexb_op == LOAD && idexb_rd != 5'b0 && (idexb_rd == id_rs1 || idexb_rd == id_rs2 ))
+            temp = B_STALL; 
         else
-            temp.B.ForwA = NONE_h;
-    
-        if (ID_EX_c.A.wb == REG_WRITE && ID_EX.B.rs2 == ID_EX.A.rd && ID_EX.A.rd != 5'd0)
-            temp.B.ForwB = FORW_FROM_A;
-        else if (EX_MEM.A.wb == REG_WRITE && EX_MEM.A.rd != 5'd0 && EX_MEM.A.rd == ID_EX.B.rs2)
-            temp.B.ForwB = EX_MEM_A;
-        else if (EX_MEM.B.wb == REG_WRITE && EX_MEM.B.rd != 5'd0 && EX_MEM.B.rd == ID_EX.B.rs2)
-            temp.B.ForwB = EX_MEM_B;
-        else if (MEM_WB.A.wb == REG_WRITE && MEM_WB.A.rd != 5'd0 && MEM_WB.A.rd == ID_EX.B.rs2)
-            temp.B.ForwB = MEM_WB_A;
-        else if (MEM_WB.B.wb == REG_WRITE && MEM_WB.B.rd != 5'd0 && MEM_WB.B.rd == ID_EX.B.rs2)
-            temp.B.ForwB = MEM_WB_B;
-        else
-            temp.B.ForwB = NONE_h;
-    
-        // Stall B
-        if (temp.A.stall != NONE_h)
-            temp.B.stall = STALL_FROM_A;
-        else if ((ID_EX_c.A.mem == MEM_READ && ID_EX.A.rd != 5'd0) &&
-                 (ID_EX.A.rd == ID.B.rs1 || ID_EX.A.rd == ID.B.rs2))
-            temp.B.stall = A_STALL;
-        else if ((ID_EX_c.B.mem == MEM_READ && ID_EX.B.rd != 5'd0) &&
-                 (ID_EX.B.rd == ID.B.rs1 || ID_EX.B.rd == ID.B.rs2))
-            temp.B.stall = B_STALL;
-        else
-            temp.B.stall = NONE_h;
-    
+            temp = NONE_h;
+
         return temp;
     endfunction
     

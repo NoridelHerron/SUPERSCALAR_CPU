@@ -34,27 +34,28 @@ begin
          -- Forwarding logic (always active)
  -------------------------------------------------- INSTRUCTION A --------------------------------------------------
         -- Forward A
-        if EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs1 then
-            temp.A.ForwA := EX_MEM_A;
-        elsif EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.A.rs1 then
+        
+        if EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.A.rs1 then
             temp.A.ForwA := EX_MEM_B;
-        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.A.rs1 then
-            temp.A.ForwA := MEM_WB_A;
+        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs1 then
+            temp.A.ForwA := EX_MEM_A;
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs1 then
             temp.A.ForwA := MEM_WB_B;
+        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.A.rs1 then
+            temp.A.ForwA := MEM_WB_A;
         else
             temp.A.ForwA := NONE_h;
         end if;
         
         -- Forward B
-        if EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs2 then
-            temp.A.ForwB := EX_MEM_A;
-        elsif EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.A.rs2 then
+        if EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.A.rs2 then
             temp.A.ForwB := EX_MEM_B;
-        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.A.rs2 then
-            temp.A.ForwB := MEM_WB_A;
+        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs2 then
+            temp.A.ForwB := EX_MEM_A;
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.A.rs2 then
             temp.A.ForwB := MEM_WB_B;
+        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.A.rs2 then
+            temp.A.ForwB := MEM_WB_A;
         else
             temp.A.ForwB := NONE_h;
         end if;
@@ -62,7 +63,7 @@ begin
         -- STALL A
         if ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.A.rs1 or ID_EX.A.rd = ID.A.rs2) then
             temp.A.stall := A_STALL;  
-        elsif ID_EX.B.op = LOAD and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
+        elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
             temp.A.stall := B_STALL;     
         else
             temp.A.stall := NONE_h;
@@ -74,34 +75,34 @@ begin
         -- Forward A
         if ID_EX_c.A.wb = REG_WRITE and ID_EX.B.rs1 = ID_EX.A.rd and ID_EX.A.rd /= ZERO_5bits then
             temp.B.ForwA := FORW_FROM_A;
-        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.B.rs1 then
-            temp.B.ForwA := EX_MEM_A;
         elsif EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.B.rs1 then
             temp.B.ForwA := EX_MEM_B;
-        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.B.rs1 then
-            temp.B.ForwA := MEM_WB_A;
+        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.B.rs1 then
+            temp.B.ForwA := EX_MEM_A;
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs1 then
             temp.B.ForwA := MEM_WB_B;
+        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.B.rs1 then
+            temp.B.ForwA := MEM_WB_A;
         else
             temp.B.ForwA := NONE_h;
         end if;
         
         if ID_EX_c.A.wb = REG_WRITE and ID_EX.B.rs2 = ID_EX.A.rd and ID_EX.A.rd /= ZERO_5bits then
-            temp.B.ForwB := FORW_FROM_A;
-        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.B.rs2 then
-            temp.B.ForwB := EX_MEM_A;
+            temp.B.ForwB := FORW_FROM_A; 
         elsif EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.B.rs2 then
             temp.B.ForwB := EX_MEM_B;
-        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.B.rs2 then
-            temp.B.ForwB := MEM_WB_A;
+        elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.B.rs2 then
+            temp.B.ForwB := EX_MEM_A;
         elsif MEM_WB.B.cntrl.wb = REG_WRITE and MEM_WB.B.rd /= ZERO_5bits and MEM_WB.B.rd = ID_EX.B.rs2 then
             temp.B.ForwB := MEM_WB_B;
+        elsif MEM_WB.A.cntrl.wb = REG_WRITE and MEM_WB.A.rd /= ZERO_5bits and MEM_WB.A.rd = ID_EX.B.rs2 then
+            temp.B.ForwB := MEM_WB_A;
         else
             temp.B.ForwB := NONE_h;
         end if;
  
         -- STALL B
-        if temp.A.stall /= NONE_h then
+        if ID.A.op = "0000011" and  ID.A.rd /= ZERO_5bits and (ID.A.rd = ID.B.rs1 or ID.A.rd = ID.B.rs2)then
             temp.B.stall := STALL_FROM_A; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
