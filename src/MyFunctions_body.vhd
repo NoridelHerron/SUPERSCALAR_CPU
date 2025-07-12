@@ -595,4 +595,22 @@ package body MyFunctions is
     end case;
     return temp; 
     end function;
+    
+    function slv_to_haz_sig(slv : std_logic_vector(3 downto 0)) return HAZ_SIG is
+    begin
+      case slv is
+        when "0000" => return A_STALL;
+        when "0001" => return B_STALL;
+        when "0010" => return STALL_FROM_A;
+        when "0011" => return STALL_FROM_B;
+        when "0100" => return EX_MEM_A;
+        when "0101" => return EX_MEM_B;
+        when "0110" => return MEM_WB_A;
+        when "0111" => return MEM_WB_B;
+        when "1000" => return FORW_FROM_A;
+        when "1001" => return HOLD_B;
+        when "1010" => return B_INVALID;
+        when others => return NONE_h;
+      end case;
+    end function;
 end MyFunctions;
