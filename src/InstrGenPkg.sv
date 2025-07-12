@@ -147,12 +147,16 @@ package InstrGenPkg;
         temp.wb     = REG_WRITE;
        
         case (op)
-            R_TYPE: begin temp.target = ALU_REG; temp.alu = RS2; end
-            I_IMME: begin temp.target = ALU_REG; end
-            LOAD:   begin temp.target = MEM_REG; temp.mem = MEM_READ; end
-            S_TYPE: begin temp.target = MEM_REG; temp.mem = MEM_WRITE; temp.wb = NONE_c; end       
-            B_TYPE: begin temp.target = BRANCH; temp.alu = RS2; temp.wb = NONE_c; end 
-            JAL:    begin temp.target = JUMP; temp.alu = NONE_c; end 
+            R_TYPE:  begin temp.target = ALU_REG; temp.alu = RS2; end
+            I_IMME:  begin temp.target = ALU_REG; end
+            LOAD:    begin temp.target = MEM_REG; temp.mem = MEM_READ; end
+            S_TYPE:  begin temp.target = MEM_REG; temp.mem = MEM_WRITE; temp.wb = NONE_c; end       
+            B_TYPE:  begin temp.target = BRANCH; temp.alu = RS2; temp.wb = NONE_c; end 
+            JAL:     begin temp.target = JUMP; temp.alu = NONE_c; end 
+            JALR:    begin temp.target = JUMP; temp.alu = NONE_c; end 
+            ECALL:   begin temp.target = NONE_c; temp.alu = NONE_c; temp.wb = NONE_c;end 
+            U_LUI:   begin temp.target = NONE_c; temp.alu = NONE_c; end 
+            U_AUIPC: begin temp.alu = NONE_c; end 
             default: begin temp.alu = NONE_c; temp.wb = NONE_c; end 
         endcase
     
@@ -214,13 +218,14 @@ package InstrGenPkg;
         input logic [6:0] exmemb_op, input logic [4:0] exmemb_rd,
         input logic [6:0] memwba_op, input logic [4:0] memwba_rd,
         input logic [6:0] memwbb_op, input logic [4:0] memwbb_rd,
-        input logic [6:0] idex_op, input logic [4:0] idex_rs
+        input logic [6:0] idex_op,   input logic [4:0] idexa_rd,
+        input logic [4:0] idex_rs
     );
         hazard_signal_t temp;
     
         if (((idex_op == R_TYPE) || (idex_op == I_IMME) || (idex_op == LOAD) || (idex_op == JAL)
             || (idex_op == JALR) || (idex_op == U_LUI) || (idex_op == U_AUIPC))&& 
-            exmema_rd != 5'd0 && exmema_rd == idex_rs)
+            idexa_rd != 5'd0 && idexa_rd == idex_rs)
             temp = FORW_FROM_A; 
         else if (((exmemb_op == R_TYPE) || (exmemb_op == I_IMME) || (exmemb_op == LOAD) || (exmemb_op == JAL)
             || (exmemb_op == JALR) || (exmemb_op == U_LUI) || (exmemb_op == U_AUIPC))&& 
@@ -279,6 +284,24 @@ package InstrGenPkg;
             4'b1010: return B_INVALID;
             4'b1011: return NONE_h;
             default: return NONE_h; // optional: catch-all for safety
+        endcase
+    endfunction
+    
+    function automatic logic [3:0] decode_HAZ_sig(input hazard_signal_t sig);
+        case (sig)
+            A_STALL      : return 4'b0000;
+            B_STALL      : return 4'b0001;
+            STALL_FROM_A : return 4'b0010;
+            STALL_FROM_B : return 4'b0011;
+            EX_MEM_A     : return 4'b0100;
+            EX_MEM_B     : return 4'b0101;
+            MEM_WB_A     : return 4'b0110;
+            MEM_WB_B     : return 4'b0111;
+            FORW_FROM_A  : return 4'b1000;
+            HOLD_B       : return 4'b1001;
+            B_INVALID    : return 4'b1010;
+            NONE_h       : return 4'b1011;
+            default      : return 4'b1111; // Optional: unknown encoding
         endcase
     endfunction
     
