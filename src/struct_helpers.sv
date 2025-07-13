@@ -108,8 +108,8 @@ package struct_helpers;
     } alu_t;
     
     typedef struct packed {
-        control_signal_t target;
-        control_signal_t alu;
+       // control_signal_t target;
+       // control_signal_t alu;
         control_signal_t mem;
         control_signal_t wb;
     } ctrl_t;
@@ -121,8 +121,8 @@ package struct_helpers;
     
     typedef struct packed {
         logic [6:0] op;
-        control_signal_t target;
-        control_signal_t alu;
+       // control_signal_t target;
+        //control_signal_t alu;
         control_signal_t mem;
         control_signal_t wb;
         logic [4:0] rd;

@@ -141,23 +141,23 @@ package InstrGenPkg;
     // Function that decode instruction
     function automatic ctrl_t cntrl_gen(input logic [6:0] op);
         ctrl_t temp;
-        temp.target = NONE_c;
-        temp.alu    = IMM;
-        temp.mem    = NONE_c;
-        temp.wb     = REG_WRITE;
-       
+       // temp.target = NONE_c;
+       // temp.alu    = NONE_c;
+        temp.mem    = NONE_c;   
+        temp.wb     = NONE_c;
+
         case (op)
-            R_TYPE:  begin temp.target = ALU_REG; temp.alu = RS2; end
-            I_IMME:  begin temp.target = ALU_REG; end
-            LOAD:    begin temp.target = MEM_REG; temp.mem = MEM_READ; end
-            S_TYPE:  begin temp.target = MEM_REG; temp.mem = MEM_WRITE; temp.wb = NONE_c; end       
-            B_TYPE:  begin temp.target = BRANCH; temp.alu = RS2; temp.wb = NONE_c; end 
-            JAL:     begin temp.target = JUMP; temp.alu = NONE_c; end 
-            JALR:    begin temp.target = JUMP; temp.alu = NONE_c; end 
-            ECALL:   begin temp.target = NONE_c; temp.alu = NONE_c; temp.wb = NONE_c;end 
-            U_LUI:   begin temp.target = NONE_c; temp.alu = NONE_c; end 
-            U_AUIPC: begin temp.alu = NONE_c; end 
-            default: begin temp.alu = NONE_c; temp.wb = NONE_c; end 
+            R_TYPE:  begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end
+            I_IMME:  begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end
+            LOAD:    begin temp.mem = MEM_READ; temp.wb = REG_WRITE; end
+            S_TYPE:  begin temp.mem = MEM_WRITE;                     end       
+            B_TYPE:  begin temp.mem = NONE_c;   temp.wb = NONE_c;    end 
+            JAL:     begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end 
+            JALR:    begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end 
+            ECALL:   begin temp.mem = NONE_c;   temp.wb = NONE_c;    end 
+            U_LUI:   begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end 
+            U_AUIPC: begin temp.mem = NONE_c;   temp.wb = REG_WRITE; end 
+            default: begin temp.mem = NONE_c;   temp.wb = NONE_c;    end 
         endcase
     
         return temp;
@@ -184,11 +184,11 @@ package InstrGenPkg;
         else if (((memwbb_op == R_TYPE) || (memwbb_op == I_IMME) || (memwbb_op == LOAD) || (memwbb_op == JAL)
             || (memwbb_op == JALR) || (memwbb_op == U_LUI) || (memwbb_op == U_AUIPC))&& 
             memwbb_rd != 5'd0 && memwbb_rd == idex_rs)
-            temp = EX_MEM_B;
+            temp = MEM_WB_B;
         else if (((memwba_op == R_TYPE) || (memwba_op == I_IMME) || (memwba_op == LOAD) || (memwba_op == JAL)
             || (memwba_op == JALR) || (memwba_op == U_LUI) || (memwba_op == U_AUIPC))&& 
             memwba_rd != 5'd0 && memwba_rd == idex_rs)
-            temp = EX_MEM_A;
+            temp = MEM_WB_A;
         else
             temp = NONE_h;
 
@@ -238,11 +238,11 @@ package InstrGenPkg;
         else if (((memwbb_op == R_TYPE) || (memwbb_op == I_IMME) || (memwbb_op == LOAD) || (memwbb_op == JAL)
             || (memwbb_op == JALR) || (memwbb_op == U_LUI) || (memwbb_op == U_AUIPC))&& 
             memwbb_rd != 5'd0 && memwbb_rd == idex_rs)
-            temp = EX_MEM_B;
+            temp = MEM_WB_B;
         else if (((memwba_op == R_TYPE) || (memwba_op == I_IMME) || (memwba_op == LOAD) || (memwba_op == JAL)
             || (memwba_op == JALR) || (memwba_op == U_LUI) || (memwba_op == U_AUIPC))&& 
             memwba_rd != 5'd0 && memwba_rd == idex_rs)
-            temp = EX_MEM_A;
+            temp = MEM_WB_A;
         else
             temp = NONE_h;
 
@@ -253,15 +253,15 @@ package InstrGenPkg;
     function automatic hazard_signal_t haz_stall2( 
         input logic [6:0] idexa_op, input logic [4:0] idexa_rd, 
         input logic [6:0] idexb_op, input logic [4:0] idexb_rd,
-        input logic [6:0] id_op,    input logic [4:0] id_rd,
-        input logic [4:0] id_rs1,  input logic [4:0] id_rs2
+        input logic [6:0] ida_op,    input logic [4:0] ida_rd,
+        input logic [4:0] idb_rs1,  input logic [4:0] idb_rs2
     );
         hazard_signal_t temp;
-        if (id_op == LOAD && id_rd != 5'b0 && (id_rd == id_rs1 || id_rd == id_rs2 ))
+        if (ida_op == LOAD && ida_rd != 5'b0 && (ida_rd == idb_rs1 || ida_rd == idb_rs2 ))
             temp = A_STALL;
-        else if (idexa_op == LOAD && idexa_rd != 5'b0 && (idexa_rd == id_rs1 || idexa_rd == id_rs2 ))
+        else if (idexa_op == LOAD && idexa_rd != 5'b0 && (idexa_rd == idb_rs1 || idexa_rd == idb_rs2 ))
             temp = A_STALL;
-        else if (idexb_op == LOAD && idexb_rd != 5'b0 && (idexb_rd == id_rs1 || idexb_rd == id_rs2 ))
+        else if (idexb_op == LOAD && idexb_rd != 5'b0 && (idexb_rd == idb_rs1 || idexb_rd == idb_rs2 ))
             temp = B_STALL; 
         else
             temp = NONE_h;
