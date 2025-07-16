@@ -163,11 +163,11 @@ package Pipeline_Types is
     
     -----------------------------------------MEM STAGE------------------------------------------
     type MEM_CONTENT is record 
-        res1      : std_logic_vector(DATA_WIDTH-1 downto 0);
-        res2      : std_logic_vector(DATA_WIDTH-1 downto 0);
+        alu       : std_logic_vector(DATA_WIDTH-1 downto 0);
+        mem       : std_logic_vector(DATA_WIDTH-1 downto 0);
         rd        : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
-        we        : CONTROL_SIG; 
-        me        : CONTROL_SIG; 
+        we        : CONTROL_SIG; -- write enable
+        me        : CONTROL_SIG; -- Determine if memory read
     end record;
     
     type MEM_CONTENT_N is record
