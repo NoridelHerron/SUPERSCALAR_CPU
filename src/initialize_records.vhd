@@ -160,8 +160,8 @@ package initialize_records is
     
     -----------------------------------------MEM STAGE------------------------------------------ 
     constant EMPTY_MEM_CONTENT : MEM_CONTENT := (
-        res1        => ZERO_32bits,
-        res2        => ZERO_32bits,
+        alu         => ZERO_32bits,
+        mem         => ZERO_32bits,
         rd          => ZERO_5bits,
         we          => NONE_c,
         me          => NONE_c

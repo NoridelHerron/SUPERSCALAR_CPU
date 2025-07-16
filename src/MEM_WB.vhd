@@ -20,11 +20,14 @@ entity MEM_WB is
     Port ( 
            clk            : in   std_logic; 
            reset          : in   std_logic; 
+           -- inputs from ex_mem register
            ex_mem         : in  Inst_PC_N;
            exmem_content  : in  EX_CONTENT_N;
            ex_cntrl       : in  control_Type_N;
+           -- inputs from mem stage
            memA_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0);
            memB_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+           -- outputs
            mem_wb         : out Inst_PC_N;  
            mem_wb_content : out MEM_CONTENT_N  
         );
@@ -40,6 +43,7 @@ begin
     process(clk, reset)
     begin
         if reset = '1' then  
+            -- clear everything
             reg         <= EMPTY_Inst_PC_N;
             reg_content <= EMPTY_MEM_CONTENT_N;
         
@@ -60,8 +64,8 @@ begin
         end if;    
     end process;
 
+    -- assign output
     mem_wb         <= reg;
     mem_wb_content <= reg_content;
-
 
 end Behavioral;
