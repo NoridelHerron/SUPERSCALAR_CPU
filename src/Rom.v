@@ -24,7 +24,7 @@ module rom (
 
     // ============= Function to generate the instructions ======================
 
-    function [31:0] generate_instruction;
+   /* function [31:0] generate_instruction;
         input integer type_sel;
         reg [4:0]  rd, rs1, rs2;
         reg [2:0]  funct3;
@@ -104,15 +104,33 @@ module rom (
             generate_instruction = instr;
         end
     endfunction
-
+ */
     // ================= ROM and instruction Initializations ===================
     integer i;
     initial begin
+        
         instr1 = 32'h00000013;
         instr2 = 32'h00000013;
+        /*
         for (i = 0; i < 1024; i = i + 1) begin
             rom[i] = generate_instruction($urandom_range(0, 5)); // Include R-type
             $display("ROM[%0d] = %h", i, rom[i]);
+        end
+        */
+        rom[0]  = 32'h00100293; // addi x5,   x0, 1
+        rom[1]  = 32'h00200313; // addi x6,   x0, 2
+        rom[2]  = 32'h00300393; // addi x7,   x0, 3
+        rom[3]  = 32'h00400413; // addi x8,   x0, 4
+        rom[4]  = 32'h00500493; // addi x9,   x0, 5
+        rom[5]  = 32'h00600513; // addi x10,  x0, 6
+        rom[6]  = 32'h00700593; // addi x11,  x0, 7
+        rom[7]  = 32'h00800613; // addi x12,  x0, 8
+        rom[8]  = 32'h006286b3; // add  x13, x5, x6
+        rom[9]  = 32'h00628733; // add  x14, x5, x6
+        rom[10] = 32'h006387b3; // add  x15, x7, x6
+        rom[11] = 32'h00830833; // add  x16, x6, x8
+        for (i = 12; i < 1024; i = i + 1) begin
+            rom[i] = 32'h00000013;
         end
     end
 
