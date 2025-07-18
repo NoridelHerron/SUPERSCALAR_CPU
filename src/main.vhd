@@ -33,8 +33,7 @@ entity main is
             idex_datas  : out REG_DATAS;
             ex_value    : out EX_CONTENT_N;
             mem_ipcv    : out Inst_PC_N; 
-            exmem_value : out EX_CONTENT_N;
-            exmem_cntrl : out control_Type_N;  
+            exmem_value : out EX_CONTENT_N;  
             mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0); 
             wb_ipcv     : out Inst_PC_N; 
             memwb_value : out MEM_CONTENT_N;
@@ -53,7 +52,6 @@ signal datas         : REG_DATAS          := EMPTY_REG_DATAS;
 signal idex_reg      : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal id_ex_val     : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
 signal id_ex_c       : control_Type_N     := EMPTY_control_Type_N;
-signal id_ex_haz     : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
 signal id_ex_datas   : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_val        : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal exmem_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
@@ -113,13 +111,11 @@ begin
         id_stage    => ifid_reg,
         id          => id,
         id_c        => id_c,
-        haz_in      => haz,
         datas_in    => datas,
         -- outputs
         id_ex_stage => idex_reg,
         id_ex       => id_ex_val,
         id_ex_c     => id_ex_c,
-        haz_out     => id_ex_haz,
         datas_out   => id_ex_datas
     );
     
@@ -132,7 +128,7 @@ begin
             ID_EX    => id_ex_val,
             ID_EX_c  => id_ex_c,
             reg      => id_ex_datas,
-            Forw     => id_ex_haz,
+            Forw     => haz,
             -- output
             ex_out   => ex_val
         );  

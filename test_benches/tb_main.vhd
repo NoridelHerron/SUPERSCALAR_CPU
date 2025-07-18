@@ -48,13 +48,11 @@ signal idex_value       : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
 signal idex_cntrl       : control_Type_N     := EMPTY_control_Type_N;
 signal id_ex_haz        : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
 signal idex_datas       : REG_DATAS          := EMPTY_REG_DATAS;
-signal Forw_exp         : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
 signal ex_value         : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
 -- EX_MEM/MEM
 signal mem_ipcv         : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal exmem_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
-signal exmem_cntrl      : control_Type_N     := EMPTY_control_Type_N;
 
 signal mem_value        : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
@@ -80,7 +78,6 @@ begin
         ex_value    => ex_value,
         mem_ipcv    => mem_ipcv,
         exmem_value => exmem_value,
-        exmem_cntrl => exmem_cntrl,
         mem_value   => mem_value,
         wb_ipcv     => wb_ipcv,
         memwb_value => memwb_value,
@@ -90,7 +87,7 @@ begin
     -- Clock generation only
     clk_process : process
     begin
-        while now < 5000 ns loop
+        while now < 10000 ns loop
             clk <= '0'; wait for CLK_PERIOD / 2;
             clk <= '1'; wait for CLK_PERIOD / 2;
         end loop;

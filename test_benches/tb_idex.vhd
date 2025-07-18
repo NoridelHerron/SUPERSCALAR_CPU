@@ -33,8 +33,6 @@ signal id_content       : DECODER_N_INSTR   := EMPTY_DECODER_N_INSTR;
 signal id_content_exp   : DECODER_N_INSTR   := EMPTY_DECODER_N_INSTR; 
 signal id_control       : control_Type_N    := EMPTY_control_Type_N; 
 signal id_control_exp   : control_Type_N    := EMPTY_control_Type_N; 
-signal haz              : HDU_OUT_N         := EMPTY_HDU_OUT_N;
-signal haz_exp          : HDU_OUT_N         := EMPTY_HDU_OUT_N;
 signal data_in          : REG_DATAS         := EMPTY_REG_DATAS; 
 signal data_in_exp      : REG_DATAS         := EMPTY_REG_DATAS; 
 signal id_ex            : Inst_PC_N         := EMPTY_Inst_PC_N; 
@@ -43,8 +41,6 @@ signal idex_content     : DECODER_N_INSTR   := EMPTY_DECODER_N_INSTR;
 signal idex_content_exp : DECODER_N_INSTR   := EMPTY_DECODER_N_INSTR; 
 signal idex_control     : control_Type_N    := EMPTY_control_Type_N; 
 signal idex_control_exp : control_Type_N    := EMPTY_control_Type_N; 
-signal haz_out          : HDU_OUT_N         := EMPTY_HDU_OUT_N;
-signal haz_out_exp      : HDU_OUT_N         := EMPTY_HDU_OUT_N;
 signal data_out         : REG_DATAS         := EMPTY_REG_DATAS; 
 signal data_out_exp     : REG_DATAS         := EMPTY_REG_DATAS; 
 
@@ -55,12 +51,10 @@ begin
         id_stage    => id,
         id          => id_content, 
         id_c        => id_control,
-        haz_in      => haz,
         datas_in    => data_in,
         id_ex_stage => id_ex,
         id_ex       => idex_content,
         id_ex_c     => idex_control,
-        haz_out     => haz_out,
         datas_out   => data_out
     );
     
@@ -129,57 +123,6 @@ begin
             id_control_v.A := Get_Control(id_content_v.A.op);
             id_control_v.B := Get_Control(id_content_v.B.op);
             
-            -- Generate hazards
-            if rand < 0.2 then
-                haz_v.A.forwA := EX_MEM_A;
-                haz_v.A.forwB := MEM_WB_A;
-            elsif rand < 0.4 then
-                haz_v.A.forwA := EX_MEM_B;
-                haz_v.A.forwB := NONE_h;
-            elsif rand < 0.6 then
-                haz_v.A.forwA := MEM_WB_A;
-                haz_v.A.forwB := EX_MEM_A;
-            elsif rand < 0.7 then
-                haz_v.A.forwA := MEM_WB_B;
-                haz_v.A.forwB := NONE_h;
-            else
-                haz_v.A.forwA := NONE_h;
-                haz_v.A.forwB := MEM_WB_B;
-            end if;
-            
-            if rand < 0.1 then
-                haz_v.A.stall := A_STALL;
-            elsif rand < 0.15 then
-                haz_v.A.stall := B_STALL;
-            else
-                haz_v.A.stall := NONE_h;
-            end if; 
-            
-            if rand2 < 0.2 then
-                haz_v.B.forwA := EX_MEM_A;
-                haz_v.B.forwB := MEM_WB_A;
-            elsif rand2 < 0.4 then
-                haz_v.B.forwA := EX_MEM_B;
-                haz_v.B.forwB := NONE_h;
-            elsif rand2 < 0.6 then
-                haz_v.B.forwA := MEM_WB_A;
-                haz_v.B.forwB := EX_MEM_A;
-            elsif rand2 < 0.7 then
-                haz_v.B.forwA := MEM_WB_B;
-                haz_v.B.forwB := NONE_h;
-            else
-                haz_v.B.forwA := NONE_h;
-                haz_v.B.forwB := MEM_WB_B;
-            end if;
-            
-            if rand2 < 0.1 then
-                haz_v.B.stall := A_STALL;
-            elsif rand2 < 0.15 then
-                haz_v.B.stall := B_STALL;
-            else
-                haz_v.B.stall := NONE_h;
-            end if; 
-            
             -- generate data
             data_in_v.one.A := get_32bits_val(rand);
             data_in_v.one.B := get_32bits_val(rand2);
@@ -192,14 +135,12 @@ begin
             id          <= actual;
             id_content  <= id_content_v;
             id_control  <= id_control_v;
-            haz         <= haz_v;
             data_in     <= data_in_v;
             
             -- expected inputs assignment
             id_exp          <= actual;
             id_content_exp  <= id_content_v;
             id_control_exp  <= id_control_v;
-            haz_exp         <= haz_v;
             data_in_exp     <= data_in_v;
      
             -- EXPECTED output assignments
@@ -207,21 +148,18 @@ begin
                 id_ex_exp           <= EMPTY_Inst_PC_N;
                 idex_content_exp    <= EMPTY_DECODER_N_INSTR;
                 idex_control_exp    <= EMPTY_control_Type_N;
-                haz_out_exp         <= EMPTY_HDU_OUT_N;
                 data_out_exp        <= EMPTY_REG_DATAS;
 
             elsif id_exp.A.is_valid = VALID then
                 id_ex_exp.A         <= id_exp.A;
                 idex_content_exp.A  <= id_content_exp.A;
                 idex_control_exp.A  <= id_control_exp.A;
-                haz_out_exp.A       <= haz_exp.A;
                 data_out_exp.one    <= data_in_exp.one;
                 
                 if id_exp.B.is_valid = VALID then
                     id_ex_exp.B         <= id_exp.B;
                     idex_content_exp.B  <= id_content_exp.B;
                     idex_control_exp.B  <= id_control_exp.B;
-                    haz_out_exp.B       <= haz_exp.B;
                     data_out_exp.two    <= data_in_exp.two;
                 end if;
             end if;
@@ -231,9 +169,8 @@ begin
             
             -- Keep track the test
             if id = id_exp and id_content = id_content_exp and id_control = id_control_exp and
-               haz = haz_exp and data_in = data_in_exp and id_ex = id_ex_exp and 
-               idex_content = idex_content_exp and idex_control = idex_control_exp and 
-               haz_out = haz_out_exp and data_out = data_out_exp then
+               data_in = data_in_exp and id_ex = id_ex_exp and idex_content = idex_content_exp 
+               and idex_control = idex_control_exp and data_out = data_out_exp then
                 pass := pass +1;
             else
                 fail := fail + 1;
