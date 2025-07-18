@@ -150,6 +150,7 @@ package initialize_records is
         operand    => EMPTY_REG_DATA_PER,
         alu        => EMPTY_ALU_out,
         S_data     => ZERO_32bits,
+        cntrl      => EMPTY_control_Type,
         rd         => ZERO_5bits
     );
     

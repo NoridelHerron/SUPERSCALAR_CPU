@@ -35,10 +35,10 @@ architecture sim of tb_id_stage is
     signal cntrl_exp    : control_Type_N                            := EMPTY_control_Type_N; 
     signal ID_EX_c      : control_Type_N                            := EMPTY_control_Type_N; 
     signal ID_EX_c_exp  : control_Type_N                            := EMPTY_control_Type_N; 
-    signal EX_MEM       : RD_CTRL_N_INSTR                           := EMPTY_RD_CTRL_N_INSTR;    
-    signal EX_MEM_exp   : RD_CTRL_N_INSTR                           := EMPTY_RD_CTRL_N_INSTR;    
-    signal MEM_WB       : RD_CTRL_N_INSTR                           := EMPTY_RD_CTRL_N_INSTR; 
-    signal MEM_WB_exp   : RD_CTRL_N_INSTR                           := EMPTY_RD_CTRL_N_INSTR; 
+    signal EX_MEM       : EX_CONTENT_N                              := EMPTY_EX_CONTENT_N;    
+    signal EX_MEM_exp   : EX_CONTENT_N                              := EMPTY_EX_CONTENT_N;    
+    signal MEM_WB       : EX_CONTENT_N                              := EMPTY_EX_CONTENT_N;    
+    signal MEM_WB_exp   : EX_CONTENT_N                              := EMPTY_EX_CONTENT_N;    
     signal WB           : WB_CONTENT_N_INSTR                        := EMPTY_WB_CONTENT_N_INSTR; 
     signal WB_exp       : WB_CONTENT_N_INSTR                        := EMPTY_WB_CONTENT_N_INSTR; 
     signal datas        : REG_DATAS                                 := EMPTY_REG_DATAS;   
@@ -86,8 +86,8 @@ begin
         variable instr2_t  : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;     
         variable ID_EX_t   : DECODER_N_INSTR                         := EMPTY_DECODER_N_INSTR; 
         variable ID_EX_c_t : control_Type_N                          := EMPTY_control_Type_N; 
-        variable EX_MEM_t  : RD_CTRL_N_INSTR                         := EMPTY_RD_CTRL_N_INSTR;   
-        variable MEM_WB_t  : RD_CTRL_N_INSTR                         := EMPTY_RD_CTRL_N_INSTR; 
+        variable EX_MEM_t  : EX_CONTENT_N                            := EMPTY_EX_CONTENT_N;      
+        variable MEM_WB_t  : EX_CONTENT_N                            := EMPTY_EX_CONTENT_N;    
         variable WB_t      : WB_CONTENT_N_INSTR                      := EMPTY_WB_CONTENT_N_INSTR; 
         variable ID_t      : DECODER_N_INSTR                         := EMPTY_DECODER_N_INSTR; 
         variable cntrl_t   : control_Type_N                          := EMPTY_control_Type_N; 

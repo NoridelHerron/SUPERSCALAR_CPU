@@ -31,14 +31,10 @@ signal ex                   : Inst_PC_N         := init_Inst_PC_N;
 signal ex_exp               : Inst_PC_N         := init_Inst_PC_N;
 signal ex_content           : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
 signal ex_content_exp       : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
-signal ex_control           : control_Type_N    := EMPTY_control_Type_N;
-signal ex_control_exp       : control_Type_N    := EMPTY_control_Type_N;
 signal ex_mem               : Inst_PC_N         := init_Inst_PC_N;
 signal ex_mem_exp           : Inst_PC_N         := init_Inst_PC_N;
 signal ex_mem_content       : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
 signal ex_mem_content_exp   : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
-signal ex_c                 : control_Type_N    := EMPTY_control_Type_N;
-signal ex_c_exp             : control_Type_N    := EMPTY_control_Type_N;
 
 begin
      UUT : entity work.EX_TO_MEM port map (
@@ -46,10 +42,8 @@ begin
         reset           => rst,
         EX              => ex,
         EX_content      => ex_content,
-        ex_control      => ex_control,
         EX_MEM          => ex_mem,
-        EX_MEM_content  => ex_mem_content,
-        ex_c            => ex_c
+        EX_MEM_content  => ex_mem_content
     );
 
     -- Clock generation only
@@ -70,7 +64,6 @@ begin
     variable seed1, seed2 : positive        := 12345;
     variable actual       : Inst_PC_N       := init_Inst_PC_N;
     variable content_v    : EX_CONTENT_N    := EMPTY_EX_CONTENT_N; 
-    variable c_v          : control_Type_N    := EMPTY_control_Type_N;
     
     variable total_tests   : integer            := 20000;
     -- Keep track test
@@ -115,13 +108,17 @@ begin
             content_v.B.operand.A := get_32bits_val(rand);
             content_v.B.operand.B := get_32bits_val(rand2);
             
-            content_v.A.alu.result := get_32bits_val(rand);
-            content_v.B.alu.result := get_32bits_val(rand2);
-            content_v.A.S_data     := get_32bits_val(rand);
-            content_v.B.S_data     := get_32bits_val(rand2);
+            content_v.A.alu.result  := get_32bits_val(rand);
+            content_v.B.alu.result  := get_32bits_val(rand2);
             
-            content_v.A.rd := std_logic_vector(to_unsigned(integer(rand * 32.0), 5));
-            content_v.B.rd := std_logic_vector(to_unsigned(integer(rand2 * 32.0), 5));
+            content_v.A.S_data      := get_32bits_val(rand);
+            content_v.B.S_data      := get_32bits_val(rand2);
+            
+            content_v.A.rd          := std_logic_vector(to_unsigned(integer(rand * 32.0), 5));
+            content_v.B.rd          := std_logic_vector(to_unsigned(integer(rand2 * 32.0), 5));
+            
+            content_v.A.cntrl       := Get_Control(actual.A.instr(6 downto 0));
+            content_v.B.cntrl       := Get_Control(actual.B.instr(6 downto 0));
 
             if rand < 0.2 then
                 content_v.A.alu.operation := ALU_ADD;  
@@ -214,30 +211,22 @@ begin
                 content_v.B.alu.N := NONE;
             end if;
             
-            c_v.A := Get_Control(actual.A.instr(6 downto 0));
-            c_v.B := Get_Control(actual.B.instr(6 downto 0));
             -- actual input assignment
             ex         <= actual;
             ex_content <= content_v;
-            ex_control <= c_v;
             
             -- expected input assignment
             ex_exp         <= actual;
             ex_content_exp <= content_v;
-            ex_control_exp <= c_v;
             
-            -- expected output
-            ex_mem_exp         <= ex_exp;
-            ex_mem_content_exp <= ex_content_exp;
+ 
         -- EXPECTED output assignments
             if rst = '1' then
                 ex_mem_exp         <= EMPTY_Inst_PC_N;
                 ex_mem_content_exp <= EMPTY_EX_CONTENT_N; 
-                ex_c_exp           <= EMPTY_control_Type_N;
             else
                 ex_mem_exp         <= ex_exp;
                 ex_mem_content_exp <= ex_content_exp; 
-                ex_c_exp           <= ex_control_exp;
             end if;
             
             -- Let the result settle down
@@ -245,8 +234,7 @@ begin
             
             -- Keep track the test
             if ex = ex_exp and ex_content = ex_content_exp and ex_mem = ex_mem_exp and
-               ex_mem_content = ex_mem_content_exp and ex_control = ex_control_exp 
-               and ex_c = ex_c_exp then
+               ex_mem_content = ex_mem_content_exp then
                 pass := pass +1;
             else
                 fail := fail + 1;
@@ -258,7 +246,7 @@ begin
         report "======= TEST SUMMARY =======" severity note;
         report "Total tests: " & integer'image(total_tests)  severity note;
         report "Passed:      " & integer'image(pass)         severity note;
-        report "Failed:      " & integer'image(fail)     severity note;
+        report "Failed:      " & integer'image(fail)         severity note;
         
         wait;
     end process;

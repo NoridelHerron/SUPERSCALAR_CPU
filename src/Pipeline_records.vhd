@@ -153,6 +153,7 @@ package Pipeline_Types is
         operand  : REG_DATA_PER;
         alu      : ALU_out;
         S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        cntrl    : control_Type;
         rd       : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
     end record;
     

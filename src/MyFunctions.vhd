@@ -47,8 +47,8 @@ package MyFunctions is
   function get_hazard_sig  (ID      : DECODER_N_INSTR;   
                             ID_EX   : DECODER_N_INSTR; 
                             ID_EX_c : control_Type_N;    
-                            EX_MEM  : RD_CTRL_N_INSTR; 
-                            MEM_WB  : RD_CTRL_N_INSTR) return HDU_OUT_N;
+                            EX_MEM  : EX_CONTENT_N; 
+                            MEM_WB  : MEM_CONTENT_N) return HDU_OUT_N;
                             
   -- generate operandB value
   function get_operands ( EX_MEM    : EX_CONTENT_N; 

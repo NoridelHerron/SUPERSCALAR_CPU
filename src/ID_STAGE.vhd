@@ -23,8 +23,8 @@ entity ID_STAGE is
             instr2   : in  std_logic_vector(DATA_WIDTH-1 downto 0);
             ID_EX    : in  DECODER_N_INSTR; -- from the register between this stage and the ex stage
             ID_EX_c  : in  control_Type_N;
-            EX_MEM   : in  RD_CTRL_N_INSTR; -- from register between ex and mem stage     
-            MEM_WB   : in  RD_CTRL_N_INSTR; -- from register between ex and mem stage
+            EX_MEM   : in  EX_CONTENT_N; -- from register between ex and mem stage     
+            MEM_WB   : in  MEM_CONTENT_N; -- from register between ex and mem stage
             WB       : in  WB_CONTENT_N_INSTR;
             ID       : out DECODER_N_INSTR;
             cntrl    : out control_Type_N;

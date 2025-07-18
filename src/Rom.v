@@ -126,7 +126,8 @@ module rom (
         rom[6]  = 32'h00700593; // addi x11,  x0, 7
         rom[7]  = 32'h00800613; // addi x12,  x0, 8
         rom[8]  = 32'h006286b3; // add  x13, x5, x6
-        rom[9]  = 32'h00628733; // add  x14, x5, x6
+        rom[9]  = 32'h00530733; // add  x14, x6, x5
+        //rom[9]  = 32'h00730733; // add  x14, x6, x7  -- value in x7 is hazard mem_wb 
         rom[10] = 32'h006387b3; // add  x15, x7, x6
         rom[11] = 32'h00830833; // add  x16, x6, x8
         for (i = 12; i < 1024; i = i + 1) begin

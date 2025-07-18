@@ -20,6 +20,7 @@ entity ex_stage is
         EX_MEM   : in  EX_CONTENT_N; 
         WB       : in  WB_CONTENT_N_INSTR;
         ID_EX    : in  DECODER_N_INSTR;
+        ID_EX_c  : in  control_Type_N;
         reg      : in  REG_DATAS;
         Forw     : in  HDU_OUT_N;   
         ex_out   : out EX_CONTENT_N
@@ -101,6 +102,7 @@ begin
     ex_out.A.alu        <= alu_out1;
     ex_out.A.S_data     <= operands.S_data1;
     ex_out.A.rd         <= ID_EX.A.rd;
+    ex_out.A.cntrl      <= ID_EX_c.A;
 
     -- Path B
     ex_out.B.operand.A  <= alu_in2.A;
@@ -108,5 +110,6 @@ begin
     ex_out.B.alu        <= alu_out2;
     ex_out.B.S_data     <= operands.S_data2;
     ex_out.B.rd         <= ID_EX.B.rd;
+    ex_out.B.cntrl      <= ID_EX_c.B;
 
 end Behavioral;

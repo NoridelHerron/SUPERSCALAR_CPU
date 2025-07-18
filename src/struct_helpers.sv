@@ -77,7 +77,6 @@ package struct_helpers;
     } haz_val_t;
     
     typedef struct packed {
-        haz_per_t    haz;
         regs_per_t   operand;
         alu_op_t     op;
         logic [31:0] data;
@@ -132,6 +131,19 @@ package struct_helpers;
         rd_ctrl_t A;
         rd_ctrl_t B;
     } rd_ctrl_N_t;
+ 
+    typedef struct packed {
+        logic [31:0] alu;
+        logic [31:0] mem;
+        logic [4:0]  rd;
+        control_signal_t me;
+        control_signal_t we;
+    } mem_content_t;
+    
+    typedef struct packed {
+        mem_content_t A;
+        mem_content_t B;
+    } mem_content_N;
     
     typedef struct packed {
         logic [31:0]     data; 

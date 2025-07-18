@@ -27,16 +27,16 @@ entity main is
             id_cntrl    : out control_Type_N;
             id_haz      : out HDU_OUT_N;      
             id_datas    : out REG_DATAS;
-            idex_ipcv   : out Inst_PC_N; 
+            ex_ipcv     : out Inst_PC_N; 
             idex_value  : out DECODER_N_INSTR;
             idex_cntrl  : out control_Type_N;  
             idex_datas  : out REG_DATAS;
             ex_value    : out EX_CONTENT_N;
-            exmem_ipcv  : out Inst_PC_N; 
+            mem_ipcv    : out Inst_PC_N; 
             exmem_value : out EX_CONTENT_N;
             exmem_cntrl : out control_Type_N;  
             mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0); 
-            memwb_ipcv  : out Inst_PC_N; 
+            wb_ipcv     : out Inst_PC_N; 
             memwb_value : out MEM_CONTENT_N;
             wb_value    : out WB_CONTENT_N_INSTR      
         );
@@ -58,12 +58,8 @@ signal id_ex_datas   : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_val        : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal exmem_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal ex_mem_val    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
-signal ex_mem_c      : control_Type_N     := EMPTY_control_Type_N;
-signal ex_mem_rc     : RD_CTRL_N_INSTR    := EMPTY_RD_CTRL_N_INSTR;
 signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
-signal mem_wb_rc     : RD_CTRL_N_INSTR    := EMPTY_RD_CTRL_N_INSTR;
-signal mem_c         : CONTROL_SIG        := NONE_c;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -98,8 +94,8 @@ begin
         instr2   => ifid_reg.B.instr,
         ID_EX    => id_ex_val,
         ID_EX_c  => id_ex_c,
-        EX_MEM   => ex_mem_rc,
-        MEM_WB   => mem_wb_rc,
+        EX_MEM   => ex_mem_val,
+        MEM_WB   => mem_wb_val,
         WB       => wb_val,
         -- outputs
         ID       => id,
@@ -134,6 +130,7 @@ begin
             EX_MEM   => ex_mem_val,
             WB       => wb_val,
             ID_EX    => id_ex_val,
+            ID_EX_c  => id_ex_c,
             reg      => id_ex_datas,
             Forw     => id_ex_haz,
             -- output
@@ -148,38 +145,18 @@ begin
         reset          => reset,
         EX             => idex_reg,
         EX_content     => ex_val,
-        ex_control     => id_ex_c,
         -- outputs
         EX_MEM         => exmem_reg,
-        EX_MEM_content => ex_mem_val,
-        ex_c           => ex_mem_c
+        EX_MEM_content => ex_mem_val
     ); 
-    
-    process (ex_mem_val, ex_mem_c)
-    begin
-        ex_mem_rc.A.rd    <= ex_mem_val.A.rd;
-        ex_mem_rc.A.cntrl <= ex_mem_c.A;
-        ex_mem_rc.B.rd    <= ex_mem_val.B.rd;
-        ex_mem_rc.B.cntrl <= ex_mem_c.B;
-    end process;
     
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
--- Not sure with this combinational yet, still thinking. 
--- I need to see the waveform first before I decide what to do in this stage.
-    process(exmem_reg, ex_mem_val)
-    begin
-        if exmem_reg.A.is_valid = valid then
-            mem_val_in <= ex_mem_val.A.alu.result;
-            mem_c      <= ex_mem_c.A.mem;
-        end if;
-    end process;
-    
     U_MEM : entity work.MEM_STA port map (
             clk      => clk,
-            ex_mem   => mem_val_in,
-            ex_mem_c => mem_c,
+            ex_mem   => ex_mem_val.A.alu.result,
+            ex_mem_c => ex_mem_val.A.cntrl.mem,
             -- Outputs to MEM/WB pipeline register
             mem      => mem_val_out
         );  
@@ -195,24 +172,13 @@ begin
            -- inputs from ex_mem register
            ex_mem         => exmem_reg,
            exmem_content  => ex_mem_val,
-           ex_cntrl       => ex_mem_c,
            -- inputs from mem stage
            memA_result    => mem_val_out,
            -- outputs
            mem_wb         => memwb_reg,
            mem_wb_content => mem_wb_val
         );  
-        
-    process (mem_wb_val)
-    begin
-        mem_wb_rc.A.rd        <= mem_wb_val.A.rd;
-        mem_wb_rc.A.cntrl.mem <= mem_wb_val.A.me;
-        mem_wb_rc.A.cntrl.wb  <= mem_wb_val.A.we;
-        mem_wb_rc.A.rd        <= mem_wb_val.B.rd;
-        mem_wb_rc.A.cntrl.mem <= mem_wb_val.B.me;
-        mem_wb_rc.A.cntrl.wb  <= mem_wb_val.B.we;
-    end process;  
-    
+ 
     -------------------------------------------------------
     -------------------- WB STAGE -------------------------
     -------------------------------------------------------
@@ -228,16 +194,15 @@ id_value    <= id;
 id_cntrl    <= id_c;
 id_haz      <= haz;
 id_datas    <= datas;
-idex_ipcv   <= idex_reg;
+ex_ipcv     <= idex_reg;
 idex_value  <= id_ex_val;
 idex_cntrl  <= id_ex_c;
 idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
-exmem_ipcv  <= exmem_reg; 
-exmem_value <= ex_mem_val; 
-exmem_cntrl <= ex_mem_c;   
+mem_ipcv    <= exmem_reg; 
+exmem_value <= ex_mem_val;   
 mem_value   <= mem_val_out; 
-memwb_ipcv  <= memwb_reg; 
+wb_ipcv     <= memwb_reg; 
 memwb_value <= mem_wb_val; 
 wb_value    <= wb_val; 
 

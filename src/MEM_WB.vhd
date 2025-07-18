@@ -23,7 +23,6 @@ entity MEM_WB is
            -- inputs from ex_mem register
            ex_mem         : in  Inst_PC_N;
            exmem_content  : in  EX_CONTENT_N;
-           ex_cntrl       : in  control_Type_N;
            -- inputs from mem stage
            memA_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0); 
            -- outputs
@@ -52,14 +51,14 @@ begin
             reg_content.A.mem <= memA_result;
             reg_content.A.alu <= exmem_content.A.alu.result;
             reg_content.A.rd  <= exmem_content.A.rd;
-            reg_content.A.we  <= ex_cntrl.A.wb;
-            reg_content.A.me  <= ex_cntrl.A.mem;
+            reg_content.A.we  <= exmem_content.A.cntrl.wb;
+            reg_content.A.me  <= exmem_content.A.cntrl.mem;
             -- B contents 
             reg_content.B.mem <= (others => '0');
             reg_content.B.alu <= exmem_content.B.alu.result;
             reg_content.B.rd  <= exmem_content.B.rd;
-            reg_content.B.we  <= ex_cntrl.B.wb;
-            reg_content.B.me  <= ex_cntrl.B.mem;
+            reg_content.B.we  <= exmem_content.B.cntrl.wb;
+            reg_content.B.me  <= exmem_content.B.cntrl.mem;
 
         end if;    
     end process;

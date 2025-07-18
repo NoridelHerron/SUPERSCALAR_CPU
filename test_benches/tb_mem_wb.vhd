@@ -32,8 +32,6 @@ signal exmem             : Inst_PC_N         := init_Inst_PC_N;
 signal exmem_exp         : Inst_PC_N         := init_Inst_PC_N;
 signal exmem_content     : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
 signal exmem_content_exp : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
-signal exmem_control     : control_Type_N    := EMPTY_control_Type_N;
-signal exmem_control_exp : control_Type_N    := EMPTY_control_Type_N;
 
 -- from inputs mem_stage (actual and expected)
 signal memA              : std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
@@ -53,7 +51,6 @@ begin
        reset          => rst,
        ex_mem         => exmem,
        exmem_content  => exmem_content,
-       ex_cntrl       => exmem_control,
        memA_result    => memA,
        mem_wb         => memwb,  
        mem_wb_content => memwb_content
@@ -77,7 +74,6 @@ begin
     variable seed1, seed2    : positive        := 12345;
     variable exmem_v         : Inst_PC_N         := init_Inst_PC_N;
     variable exmem_content_v : EX_CONTENT_N      := EMPTY_EX_CONTENT_N;
-    variable exmem_control_v : control_Type_N    := EMPTY_control_Type_N;
 
     variable memA_v          : std_logic_vector(DATA_WIDTH-1 downto 0);
     
@@ -117,17 +113,17 @@ begin
             uniform(seed1, seed2, rand2); memA_v := get_32bits_val(rand2);
             
             if rand < 0.5 then 
-                exmem_control_v.A.mem := MEM_READ;
+                exmem_content_v.A.cntrl.mem := MEM_READ;
             else
-                exmem_control_v.A.mem := NONE_c;
+                exmem_content_v.A.cntrl.mem := NONE_c;
             end if;
             
-            if exmem_control_v.A.mem = MEM_READ then
-                exmem_control_v.A.wb := REG_WRITE;
+            if exmem_content_v.A.cntrl.mem = MEM_READ then
+                exmem_content_v.A.cntrl.wb := REG_WRITE;
             elsif rand2 < 0.5 then 
-                exmem_control_v.A.wb := NONE_c;
+                exmem_content_v.A.cntrl.wb := NONE_c;
             else
-                exmem_control_v.A.wb := REG_WRITE;
+                exmem_content_v.A.cntrl.wb := REG_WRITE;
             end if;
     
             -- B
@@ -135,29 +131,27 @@ begin
                                           exmem_content_v.B.rd := std_logic_vector(to_unsigned(integer(rand2 * 32.0), 5));
             
             if rand < 0.5 then 
-                exmem_control_v.B.mem := MEM_READ;
+                exmem_content_v.B.cntrl.mem := MEM_READ;
             else
-                exmem_control_v.B.mem := NONE_c;
+                exmem_content_v.B.cntrl.mem := NONE_c;
             end if;
             
-            if exmem_control_v.B.mem = MEM_READ then
-                exmem_control_v.B.wb := REG_WRITE;
+            if exmem_content_v.B.cntrl.mem = MEM_READ then
+                exmem_content_v.B.cntrl.wb := REG_WRITE;
             elsif rand2 < 0.5 then 
-                exmem_control_v.B.wb := NONE_c;
+                exmem_content_v.B.cntrl.wb := NONE_c;
             else
-                exmem_control_v.B.wb := REG_WRITE;
+                exmem_content_v.B.cntrl.wb := REG_WRITE;
             end if;
  
             -- actual input assignment
             exmem           <= exmem_v;
             exmem_content   <= exmem_content_v;
-            exmem_control   <= exmem_control_v;
             memA            <= memA_v;
             
             -- expected input assignment
             exmem_exp           <= exmem_v;
             exmem_content_exp   <= exmem_content_v;
-            exmem_control_exp   <= exmem_control_v;
             memA_exp            <= memA_v;
             
             -- EXPECTED output assignments
@@ -172,14 +166,14 @@ begin
                 memwb_content_exp.A.alu <= exmem_content_exp.A.alu.result;
                 memwb_content_exp.A.rd  <= exmem_content_exp.A.rd;
                 memwb_content_exp.A.mem <= memA_exp;
-                memwb_content_exp.A.we  <= exmem_control_exp.A.wb;
-                memwb_content_exp.A.me  <= exmem_control_exp.A.mem;
+                memwb_content_exp.A.we  <= exmem_content_exp.A.cntrl.wb;
+                memwb_content_exp.A.me  <= exmem_content_exp.A.cntrl.mem;
                 -- B
                 memwb_content_exp.B.alu <= exmem_content_exp.B.alu.result;
                 memwb_content_exp.B.rd  <= exmem_content_exp.B.rd;
                 memwb_content_exp.B.mem <= (others => '0');
-                memwb_content_exp.B.we  <= exmem_control_exp.B.wb;
-                memwb_content_exp.B.me  <= exmem_control_exp.B.mem;
+                memwb_content_exp.B.we  <= exmem_content_exp.B.cntrl.wb;
+                memwb_content_exp.B.me  <= exmem_content_exp.B.cntrl.mem;
 
             end if;
         
@@ -187,7 +181,7 @@ begin
              wait until rising_edge(clk);
             
             -- Keep track the test
-            if exmem = exmem_exp and exmem_content = exmem_content_exp and exmem_control = exmem_control_exp and
+            if exmem = exmem_exp and exmem_content = exmem_content_exp and
                memA = memA_exp and memwb = memwb_exp and memwb_content = memwb_content_exp then
                 pass := pass +1;
             else

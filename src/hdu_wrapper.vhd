@@ -52,8 +52,8 @@ architecture Behavioral of hdu_wrapper is
 signal ID          : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR;  
 signal ID_EX       : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR;  
 signal ID_EX_c     : control_Type_N  := EMPTY_control_Type_N; 
-signal EX_MEM      : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
-signal MEM_WB      : RD_CTRL_N_INSTR := EMPTY_RD_CTRL_N_INSTR; 
+signal EX_MEM      : EX_CONTENT_N    := EMPTY_EX_CONTENT_N; 
+signal MEM_WB      : MEM_CONTENT_N   := EMPTY_MEM_CONTENT_N; 
 signal result      : HDU_OUT_N       := EMPTY_HDU_OUT_N;
 
 begin
@@ -76,9 +76,9 @@ begin
     EX_MEM.B.rd         <= exmemb_rd;
     EX_MEM.B.cntrl.wb   <= slv_to_control_sig(exmemb_wb);
     MEM_WB.A.rd         <= memwba_rd;
-    MEM_WB.A.cntrl.wb   <= slv_to_control_sig(memwba_wb);
+    MEM_WB.A.we         <= slv_to_control_sig(memwba_wb);
     MEM_WB.B.rd         <= memwbb_rd;
-    MEM_WB.B.cntrl.wb   <= slv_to_control_sig(memwbb_wb);
+    MEM_WB.B.we         <= slv_to_control_sig(memwbb_wb);
     
     U_HDU: entity work.HDU
         port map (
