@@ -125,15 +125,19 @@ module rom (
         rom[5]  = 32'h00600513; // addi x10,  x0, 6
         rom[6]  = 32'h00700593; // addi x11,  x0, 7
         rom[7]  = 32'h00800613; // addi x12,  x0, 8
-        rom[8]  = 32'h006286b3; // add  x13, x5, x6  -- no hazard
-        rom[9]  = 32'h00530733; // add  x14, x6, x5  -- no hazard
+        //rom[8]  = 32'h006286b3; // add  x13, x5, x6  -- no hazard
+        //rom[9]  = 32'h00530733; // add  x14, x6, x5  -- no hazard
         //rom[8]  = 32'h00c586b3; // add  x13, x11, x12  -- forwA : EX_MEM_A | forwB: EX_MEM_B
         //rom[9]  = 32'h00b60733; // add  x14, x12, x11  -- forwA : EX_MEM_B | forwB: EX_MEM_A
+        rom[8]  = 32'h00a486b3; // add  x13, x9, x10  -- forwA : MEM_WB_A | forwB: MEM_WB_B
+        rom[9]  = 32'h00950733; // add  x14, x10, x9  -- forwA : MEM_WB_B | forwB: MEM_WB_A
         //rom[9]  = 32'h00730733; // add  x14, x6, x7  -- value in x7 is hazard mem_wb 
-        rom[10] = 32'h006387b3; // add  x15, x7, x6  -- no hazard
-        rom[11] = 32'h00830833; // add  x16, x6, x8  -- no hazard
+        //rom[10] = 32'h006387b3; // add  x15, x7, x6  -- no hazard
+        //rom[11] = 32'h00830833; // add  x16, x6, x8  -- no hazard
         //rom[10] = 32'h00d707b3; // add  x15, x14, x13  -- forwA : EX_MEM_B | forwB: EX_MEM_A
         //rom[11] = 32'h00e68833; // add  x16, x13, x14  -- forwA : EX_MEM_A | forwB: EX_MEM_B
+        rom[10] = 32'h00b607b3; // add  x15, x12, x11  -- forwA : MEM_WB_B | forwB: MEM_WB_A
+        rom[11] = 32'h00c50833; // add  x16, x11, x12  -- forwA : MEM_WB_A | forwB: MEM_WB_B
         rom[12] = 32'h006288b3; // add  x17, x5, x6    -- no hazard
         rom[13] = 32'h00530933; // add  x18, x6, x5    -- no hazard
         

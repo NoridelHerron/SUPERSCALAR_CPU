@@ -46,7 +46,6 @@ signal id_datas         : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal idex_value       : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
 signal idex_cntrl       : control_Type_N     := EMPTY_control_Type_N;
-signal id_ex_haz        : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
 signal idex_datas       : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_value         : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
@@ -104,7 +103,7 @@ begin
 
     end_simulation : process
     begin
-        wait for 5000 ns;
+        wait for 10000 ns;
         report "Simulation finished" severity note;
         std.env.stop;
     end process;
