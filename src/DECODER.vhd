@@ -14,7 +14,7 @@ use work.const_Types.all;
 use work.initialize_records.all;
 
 entity DECODER is
-    Port (  -- inputs 
+    Port (  
             ID          : in  std_logic_vector(DATA_WIDTH-1 downto 0);       
             ID_content  : out Decoder_Type      
         );
@@ -25,10 +25,13 @@ architecture behavior of DECODER is
 begin             
              
     process (ID)
-    variable temp   : Decoder_Type                             := EMPTY_DECODER;
-    variable imm12  : std_logic_vector(IMM12_WIDTH-1 downto 0) := ZERO_12bits;
-    variable imm20  : std_logic_vector(IMM20_WIDTH-1 downto 0) := ZERO_20bits;
+    -- Use a variable so the operation can be evaluated and available within the same cycle. 
+    -- This allows different cases to immediately decide which data to send out without waiting for another clock edge.
+    -- Only 'op' needs immediate evaluation,  
+    -- but I use variables for the other fields as a personal preference.
+    variable temp : Decoder_Type := EMPTY_DECODER;
     begin 
+        -- Decode instruction
         temp.funct7   := ID(31 downto 25);
         temp.rs2      := ID(24 downto 20);
         temp.rs1      := ID(19 downto 15);
@@ -44,24 +47,36 @@ begin
                 
             when I_IMME | LOAD | JALR | ECALL => 
                 temp.imm12  := ID(31 downto 20);     
-            
+                temp.funct7 := ZERO_7bits;
+                temp.rs2    := ZERO_5bits;
+                
             when S_TYPE => 
-                temp.imm12  := ID(31 downto 25) & ID(11 downto 7);        
+                temp.imm12  := ID(31 downto 25) & ID(11 downto 7); 
+                temp.funct7 := ZERO_7bits;
+                temp.rd     := ZERO_5bits;       
                 
             when B_TYPE => 
-                imm12       := ID(31 downto 25) & ID(11 downto 7); -- or temp.funct7 & temp.rd
-                temp.imm12  := imm12(11) & imm12(0) & imm12(10 downto 5) & imm12(4 downto 1);   
+                temp.imm12  := ID(31) & ID(7) & ID(30 downto 25) & ID(11 downto 8);  
+                temp.funct7 := ZERO_7bits;
+                temp.rd     := ZERO_5bits;     
                 
             when U_LUI | U_AUIPC =>  
-                temp.imm20  := ID(31 downto 12); 
+                temp.imm20  := ID(31 downto 12);
+                temp.funct7 := ZERO_7bits;
+                temp.rs2    := ZERO_5bits;  
+                temp.rs1    := ZERO_5bits; 
+                temp.funct3 := ZERO_3bits; 
             
             when JAL =>  
-                imm20       := ID(31 downto 12);
-                temp.imm20  := imm20(19) & imm20(7 downto 0) & imm20(8) & imm20(18 downto 9);    
-                    
+                temp        := EMPTY_DECODER;
+                temp.rd     := ID(11 downto 7);
+                temp.op     := ID(6 downto 0);
+                temp.imm20  := ID(31) & ID(19 downto 12) & ID(20) & ID(30 downto 21); 
+                     
             when others => temp := EMPTY_DECODER;
         end case;
-
+        
+        -- output assignment
         ID_content <= temp;
     end process;
 
