@@ -16,6 +16,7 @@ use work.initialize_records.all;
 use work.ENUM_T.all;
 
 entity ex_stage is
+    generic (ENABLE_FORWARDING : boolean := isFORW_ON);
     Port ( 
         EX_MEM   : in  EX_CONTENT_N; 
         WB       : in  WB_CONTENT_N_INSTR;
@@ -30,7 +31,7 @@ end ex_stage;
 architecture Behavioral of ex_stage is
 
     -- Operand forwarding result
-    signal operands : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
+    signal operands      : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
 
     -- ALU I/O signals
     signal alu_in1  : ALU_in  := EMPTY_ALU_in;
@@ -44,6 +45,7 @@ begin
     -- Forwarding Unit Instantiation
     --------------------------------------------------------------------------
     Forwarding: entity work.Forw_Unit
+        generic map ( ENABLE_FORWARDING => ENABLE_FORWARDING )
         port map (
             EX_MEM   => EX_MEM,
             WB       => WB,

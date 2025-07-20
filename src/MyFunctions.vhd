@@ -51,7 +51,8 @@ package MyFunctions is
                             MEM_WB  : MEM_CONTENT_N) return HDU_OUT_N;
                             
   -- generate operandB value
-  function get_operands ( EX_MEM    : EX_CONTENT_N; 
+  function get_operands ( isEnable  : std_logic;
+                          EX_MEM    : EX_CONTENT_N; 
                           WB        : WB_CONTENT_N_INSTR;
                           ID_EX     : DECODER_N_INSTR;
                           reg       : REG_DATAS;
@@ -79,5 +80,7 @@ package MyFunctions is
  function slv_to_control_sig(slv : std_logic_vector(3 downto 0)) return CONTROL_SIG;
  function encode_HAZ_sig(sig : HAZ_SIG) return std_logic_vector;
  function slv_to_haz_sig(slv : std_logic_vector(3 downto 0)) return HAZ_SIG;
+ -- return operand value
+ function get_operand_val(op : std_logic_vector(6 downto 0); regVal : std_logic_vector(31 downto 0); imm : std_logic_vector(11 downto 0)) return OPERAND2_MEMDATA;
 
 end MyFunctions;

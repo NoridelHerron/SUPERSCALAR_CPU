@@ -196,5 +196,10 @@ package Pipeline_Types is
         S_data2  : std_logic_vector(DATA_WIDTH-1 downto 0);
     end record;
     
+    type OPERAND2_MEMDATA is record
+        operand  : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
+    end record;
+    
     
 end package;

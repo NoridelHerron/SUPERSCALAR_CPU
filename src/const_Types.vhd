@@ -22,6 +22,7 @@ package const_Types is
     constant FOUR           : integer := 4;
     constant CNTRL_WIDTH    : integer := 4;
     constant HAZ_WIDTH      : integer := 4;
+    constant isFORW_ON      : boolean := true;
     
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';

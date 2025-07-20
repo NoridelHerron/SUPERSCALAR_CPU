@@ -18,6 +18,7 @@ use work.ENUM_T.all;
 --use work.MyFunctions.all;
 
 entity main is  
+    generic ( ENABLE_FORWARDING : boolean := true);
     Port ( 
             clk         : in  std_logic; 
             reset       : in  std_logic;
@@ -54,6 +55,7 @@ signal id_ex_val     : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
 signal id_ex_c       : control_Type_N     := EMPTY_control_Type_N;
 signal id_ex_datas   : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_val        : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
+signal ex_val_pass   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal exmem_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal ex_mem_val    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
@@ -128,7 +130,7 @@ begin
             ID_EX    => id_ex_val,
             ID_EX_c  => id_ex_c,
             reg      => id_ex_datas,
-            Forw     => haz,
+            Forw     => haz, 
             -- output
             ex_out   => ex_val
         );  

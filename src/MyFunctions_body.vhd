@@ -310,7 +310,8 @@ package body MyFunctions is
     -----------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------
     -- GENERATE Forwarding Unit Result
-    function get_operands ( EX_MEM    : EX_CONTENT_N; 
+    function get_operands ( isEnable  : std_logic;
+                            EX_MEM    : EX_CONTENT_N; 
                             WB        : WB_CONTENT_N_INSTR;
                             ID_EX     : DECODER_N_INSTR;
                             reg       : REG_DATAS;
@@ -320,6 +321,7 @@ package body MyFunctions is
     begin
          result.S_data1 := ZERO_32bits;
          result.S_data2 := ZERO_32bits;    
+    if isEnable = '1' then     
          case Forw.A.forwA is
             when NONE_h      => result.one.A := reg.one.A; 
             when EX_MEM_A    => result.one.A := EX_MEM.A.alu.result;
@@ -374,8 +376,29 @@ package body MyFunctions is
                 when others      => result.two.B := ZERO_32bits;
                     
             end case;
-
          end if;  
+    else
+        result.one.A    := reg.one.A; 
+        result.one.B    := reg.one.B; 
+        result.two.A    := reg.two.A; 
+        result.two.B    := reg.two.B; 
+        result.S_data1  := ZERO_32bits;
+        result.S_data2  := ZERO_32bits;
+        
+        if ID_EX.A.op = I_IMME or ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE then
+            if ID_EX.A.op = S_TYPE then
+                result.S_data1 := reg.one.B;
+            end if;
+            result.one.B   :=  std_logic_vector(resize(signed(ID_EX.A.imm12), 32));         
+        end if;
+        if ID_EX.B.op = I_IMME or ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE then
+            if ID_EX.B.op = S_TYPE then
+                result.S_data2 := reg.two.B;
+            end if;
+            result.two.B   :=  std_logic_vector(resize(signed(ID_EX.B.imm12), 32));   
+        end if;
+     
+    end if;
         return result; 
     end function;
     
@@ -613,5 +636,22 @@ package body MyFunctions is
         when "1010" => return B_INVALID;
         when others => return NONE_h;
       end case;
+    end function;
+    
+    function get_operand_val(op : std_logic_vector(6 downto 0); regVal : std_logic_vector(31 downto 0); imm : std_logic_vector(11 downto 0)) return OPERAND2_MEMDATA is
+    variable result : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA; 
+    begin
+        result.S_data  := ZERO_32bits;
+        case op is
+            when R_TYPE | B_TYPE => 
+                result.operand := regVal;
+            when I_IMME | LOAD =>
+                result.operand := std_logic_vector(resize(signed(imm), 32));
+            when S_TYPE => 
+                result.operand := std_logic_vector(resize(signed(imm), 32)); 
+                result.S_data  := regVal;
+            when others      => result.operand := (others => '0'); 
+        end case;      
+        return result;   
     end function;
 end MyFunctions;

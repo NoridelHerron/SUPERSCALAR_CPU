@@ -191,4 +191,9 @@ package initialize_records is
         two        => EMPTY_REG_DATA_PER,
         S_data2    => ZERO_32bits     
     );
+    
+    constant EMPTY_OPERAND2_MEMDATA : OPERAND2_MEMDATA := (
+        operand    => ZERO_32bits,
+        S_data    => ZERO_32bits
+    );
 end package;

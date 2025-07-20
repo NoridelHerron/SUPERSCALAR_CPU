@@ -26,22 +26,31 @@ architecture Behavioral of tb_ex_stage is
 
 signal clk                           : std_logic := '0';
 signal rst                           : std_logic := '1';
+signal isEnable                      : std_logic := '1';
 
-signal ID_EX     : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
-signal ID_EX_c   : control_Type_N     := EMPTY_control_Type_N; 
-signal reg       : REG_DATAS          := EMPTY_REG_DATAS; 
-signal EX_MEM    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
-signal WB        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR; 
-signal Forw      : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
-signal ex_out    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
-signal exp       : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
-signal counter   : integer            := 0; 
+signal ID_EX        : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
+signal ID_EX_exp    : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
+signal ID_EX_c      : control_Type_N     := EMPTY_control_Type_N; 
+signal ID_EX_c_exp  : control_Type_N     := EMPTY_control_Type_N; 
+signal reg          : REG_DATAS          := EMPTY_REG_DATAS; 
+signal reg_exp      : REG_DATAS          := EMPTY_REG_DATAS; 
+signal EX_MEM       : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+signal EX_MEM_exp   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+signal WB           : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
+signal WB_exp       : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;  
+signal Forw         : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
+signal Forw_exp      : HDU_OUT_N          := EMPTY_HDU_OUT_N;    
+signal ex_out       : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+signal exp          : EX_CONTENT_N       := EMPTY_EX_CONTENT_N; 
+signal counter      : integer            := 0; 
 
 constant clk_period                 : time := 10 ns;
 
 begin
 
-UUT : entity work.ex_stage port map (
+UUT : entity work.ex_stage 
+    generic map ( ENABLE_FORWARDING => true )
+    port map (
        EX_MEM   => EX_MEM, 
        WB       => WB, 
        ID_EX    => ID_EX, 
@@ -148,9 +157,28 @@ UUT : entity work.ex_stage port map (
             reg         <= temp_reg;
             EX_MEM      <= temp_EX_MEM;  
             WB          <= temp_WB; 
-
             
-            operands                := get_operands ( temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
+            temp_EX_MEM.A.rd    := ID_EX_exp.A.rd;
+            temp_EX_MEM.B.rd    := ID_EX_exp.B.rd;
+            temp_EX_MEM.A.cntrl := ID_EX_c_exp.A;
+            temp_EX_MEM.B.cntrl := ID_EX_c_exp.B;
+            
+            temp_WB.A.data      := EX_MEM_exp.A.alu.result;
+            temp_WB.B.data      := EX_MEM_exp.B.alu.result;
+            temp_WB.A.rd        := EX_MEM_exp.A.rd;
+            temp_WB.B.rd        := EX_MEM_exp.B.rd;
+            temp_WB.A.we        := EX_MEM_exp.A.cntrl.wb;
+            temp_WB.B.we        := EX_MEM_exp.B.cntrl.wb;
+            
+            Forw_exp    <= temp_Forw;
+            ID_EX_exp   <= temp_ID_EX;
+            ID_EX_c_exp <= temp_ID_EX_c;
+            reg_exp     <= temp_reg;
+            EX_MEM_exp  <= temp_EX_MEM;  
+            WB_exp      <= temp_WB; 
+
+            operands                := get_operands ( isEnable, temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
+            
             alu1_in                 := get_alu1_input ( temp_ID_EX, operands);    
             temp_EX_MEM.A.alu       := get_alu_res ( alu1_in.f3, alu1_in.f7, alu1_in.A, alu1_in.B);
             alu2_in                 := get_alu2_input ( operands, temp_Forw, temp_ID_EX, temp_EX_MEM.A.alu );   

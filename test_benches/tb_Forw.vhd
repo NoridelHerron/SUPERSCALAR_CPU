@@ -25,12 +25,12 @@ architecture sim of tb_Forw is
 constant clk_period : time := 10 ns;
 signal clk          : std_logic := '0';
 signal rst          : std_logic := '1';
+signal isEnable     : std_logic := '0';
 
 signal counter      : integer   := 0;
 signal Forw         : HDU_OUT_N             := EMPTY_HDU_OUT_N;  
 signal act_result   : EX_OPERAND_N          := EMPTY_EX_OPERAND_N; 
 signal exp_result   : EX_OPERAND_N          := EMPTY_EX_OPERAND_N; 
-
 signal EX_MEM       : EX_CONTENT_N          := EMPTY_EX_CONTENT_N; 
 signal MEM_WB       : WB_CONTENT_N_INSTR    := EMPTY_WB_CONTENT_N_INSTR; 
 signal ID_EX        : DECODER_N_INSTR       := EMPTY_DECODER_N_INSTR; 
@@ -38,7 +38,9 @@ signal reg_val      : REG_DATAS             := EMPTY_REG_DATAS;
 
 begin
     
-    UUT : entity work.Forw_Unit port map (
+    UUT : entity work.Forw_Unit 
+    generic map ( ENABLE_FORWARDING => false )  -- isEnable must be the same with this when true isEnable = '1' else '0'
+    port map (
         EX_MEM      => EX_MEM,
         WB          => MEM_WB,
         ID_EX       => ID_EX,
@@ -72,6 +74,8 @@ begin
     variable ID_EX_v                               : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
     variable reg_v                                 : REG_DATAS          := EMPTY_REG_DATAS;
     variable Forw_v                                : HDU_OUT_N          := EMPTY_HDU_OUT_N;  
+    variable operA                                 : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
+    variable operB                                 : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
     variable exp_result_v                          : EX_OPERAND_N       := EMPTY_EX_OPERAND_N;  
     begin
         rst <= '1';
@@ -89,14 +93,26 @@ begin
             uniform(seed1, seed2, reg);      reg_v.one.B            := get_32bits_val(reg);  
             uniform(seed1, seed2, reg);      reg_v.two.A            := get_32bits_val(reg); 
             uniform(seed1, seed2, reg);      reg_v.two.B            := get_32bits_val(reg); 
-            uniform(seed1, seed2, r_imm12);  ID_EX_v.A.imm12        := get_imm12_val(r_imm12);
-            uniform(seed1, seed2, r_imm12);  ID_EX_v.B.imm12        := get_imm12_val(r_imm12);
-            uniform(seed1, seed2, r_imm20);  ID_EX_v.A.imm20        := get_imm20_val(r_imm20);
-            uniform(seed1, seed2, r_imm20);  ID_EX_v.B.imm20        := get_imm20_val(r_imm20);
+            
+          --  uniform(seed1, seed2, r_imm20);  ID_EX_v.A.imm20        := get_imm20_val(r_imm20);
+          --  uniform(seed1, seed2, r_imm20);  ID_EX_v.B.imm20        := get_imm20_val(r_imm20);
             
             -- GENERATE opcode value for operand B of 1st and 2nd instructions just in case no forwarding is needed
             uniform(seed1, seed2, r_op);     ID_EX_v.A.op     := get_op(r_op);
             uniform(seed1, seed2, r_op);     ID_EX_v.B.op     := get_op(r_op);
+            
+            if ID_EX_v.A.op = S_TYPE or ID_EX_v.A.op = LOAD or ID_EX_v.A.op = I_IMME then
+                uniform(seed1, seed2, r_imm12);  ID_EX_v.A.imm12 := get_imm12_val(r_imm12); 
+            else
+                ID_EX_v.A.imm12 := ZERO_32bits;
+            end if;
+            
+            if ID_EX_v.B.op = S_TYPE or ID_EX_v.B.op = LOAD or ID_EX_v.B.op = I_IMME then
+                uniform(seed1, seed2, r_imm12);  ID_EX_v.B.imm12 := get_imm12_val(r_imm12);
+            else
+                ID_EX_v.A.imm12 := ZERO_32bits;
+            end if;
+            
             
             -- GENERATE forwarding status
             uniform(seed1, seed2, rand); Forw_v.A.forwA       := get_forwStats (rand);
@@ -120,16 +136,17 @@ begin
             end if;
             
             -- Get the expected output (see MyFuntions.vhd and MyFuntions_body.vhd)
-            exp_result_v := get_operands ( EX_MEM_v, MEM_WB_v, ID_EX_v, reg_v, Forw_v );
-            exp_result  <= exp_result_v;
+            exp_result_v := get_operands ( isEnable, EX_MEM_v, MEM_WB_v, ID_EX_v, reg_v, Forw_v ); 
+            
             -- Assign inputs
             Forw        <= Forw_v;
             EX_MEM      <= EX_MEM_v;
             MEM_WB      <= MEM_WB_v;
             ID_EX       <= ID_EX_v;
             reg_val     <= reg_v;
-            counter <= i;
-
+            counter     <= i;
+            
+            exp_result  <= exp_result_v;
            -- wait until rising_edge(clk);  
             -- Compare fields
             if act_result.one = exp_result.one and act_result.two = exp_result.two then
