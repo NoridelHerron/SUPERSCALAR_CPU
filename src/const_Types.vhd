@@ -23,6 +23,8 @@ package const_Types is
     constant CNTRL_WIDTH    : integer := 4;
     constant HAZ_WIDTH      : integer := 4;
     
+    constant isFORW_ON      : boolean := true;
+    
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';
     constant ZERO_32bits    : std_logic_vector(DATA_WIDTH-1 downto 0)     := x"00000000";

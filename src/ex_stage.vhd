@@ -14,8 +14,10 @@ use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
 use work.ENUM_T.all;
+use work.MyFunctions.all;
 
 entity ex_stage is
+    generic (ENABLE_FORWARDING : boolean := isFORW_ON);
     Port ( 
         EX_MEM   : in  EX_CONTENT_N; 
         WB       : in  WB_CONTENT_N_INSTR;
@@ -30,8 +32,11 @@ end ex_stage;
 architecture Behavioral of ex_stage is
 
     -- Operand forwarding result
+    signal temp_o   : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
     signal operands : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
-
+    
+    signal isEnable : std_logic    := '0';
+    
     -- ALU I/O signals
     signal alu_in1  : ALU_in  := EMPTY_ALU_in;
     signal alu_out1 : ALU_out := EMPTY_ALU_out;
@@ -50,9 +55,31 @@ begin
             ID_EX    => ID_EX,
             reg      => reg,
             Forw     => Forw,
-            operands => operands
+            operands => temp_o
         );
-
+    
+    --isEnable <= '1' when ENABLE_FORWARDING else '0'; 
+    process(temp_o)
+    variable temp     : EX_OPERAND_N := EMPTY_EX_OPERAND_N;
+    variable operA    : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
+    variable operB    : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
+    begin 
+        if ENABLE_FORWARDING then
+            temp := temp_o;
+        else
+            operA      := get_operand_val (ID_EX.A.op, reg.one.B, ID_EX.A.imm12);
+            operB      := get_operand_val (ID_EX.B.op, reg.two.B, ID_EX.B.imm12);
+            
+            temp.one.A   := reg.one.A;
+            temp.one.B   := operA.operand;
+            temp.S_data1 := operA.S_data;
+            
+            temp.two.A   := reg.two.A;
+            temp.two.B   := operB.operand;
+            temp.S_data2 := operB.S_data;
+        end if;
+        operands <= temp;
+    end process;
     --------------------------------------------------------------------------
     -- First ALU Input Assignment
     --------------------------------------------------------------------------

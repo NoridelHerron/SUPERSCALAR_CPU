@@ -614,4 +614,21 @@ package body MyFunctions is
         when others => return NONE_h;
       end case;
     end function;
+    
+    function get_operand_val(op : std_logic_vector(6 downto 0); regVal : std_logic_vector(31 downto 0); imm : std_logic_vector(11 downto 0)) return OPERAND2_MEMDATA is
+    variable result : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA; 
+    begin
+        result.S_data  := ZERO_32bits;
+        case op is
+            when R_TYPE | B_TYPE => 
+                result.operand := regVal;
+            when I_IMME | LOAD =>
+                result.operand := std_logic_vector(resize(signed(imm), 32));
+            when S_TYPE => 
+                result.operand := std_logic_vector(resize(signed(imm), 32)); 
+                result.S_data  := regVal;
+            when others      => result.operand := (others => '0'); 
+        end case;      
+        return result;   
+    end function;
 end MyFunctions;

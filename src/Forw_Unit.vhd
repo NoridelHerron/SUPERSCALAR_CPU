@@ -20,6 +20,7 @@ use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.ENUM_T.all; 
 use work.initialize_records.all;
+use work.MyFunctions.all;
 
 entity Forw_Unit is
     Port ( 
@@ -36,7 +37,9 @@ architecture Behavioral of Forw_Unit is
 
 begin
     process (EX_MEM, WB, ID_EX, reg, Forw)
-    variable temp       : EX_OPERAND_N    := EMPTY_EX_OPERAND_N;
+    variable temp       : EX_OPERAND_N     := EMPTY_EX_OPERAND_N;
+    variable operA      : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
+    variable operB      : OPERAND2_MEMDATA := EMPTY_OPERAND2_MEMDATA;
     begin
         temp.S_data1 := ZERO_32bits;
         temp.S_data2 := ZERO_32bits;
@@ -54,16 +57,9 @@ begin
         
         case Forw.A.forwB is
             when NONE_h      =>
-                case ID_EX.A.op is
-                    when R_TYPE | B_TYPE => 
-                        temp.one.B := reg.one.B;
-                    when I_IMME | LOAD =>
-                        temp.one.B := std_logic_vector(resize(signed(ID_EX.A.imm12), 32));
-                    when S_TYPE => 
-                        temp.one.B   := std_logic_vector(resize(signed(ID_EX.A.imm12), 32)); 
-                        temp.S_data1 := reg.one.B;
-                    when others      => operands.one.B <= (others => '0');
-                end case;        
+                operA        := get_operand_val (ID_EX.A.op, reg.one.B, ID_EX.A.imm12);
+                temp.one.B   := operA.operand;
+                temp.S_data1 := operA.S_data; 
             when EX_MEM_A    => temp.one.B := EX_MEM.A.alu.result;
             when EX_MEM_B    => temp.one.B := EX_MEM.B.alu.result;
             when MEM_WB_A    => temp.one.B := WB.A.data; 
@@ -86,16 +82,9 @@ begin
         if Forw.B.forwB /= FORW_FROM_A then    
             case Forw.B.forwB is
                 when NONE_h =>
-                    case ID_EX.B.op is
-                        when R_TYPE | B_TYPE => 
-                            temp.two.B := reg.two.B;
-                        when I_IMME | LOAD =>
-                            temp.two.B := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));
-                        when S_TYPE => 
-                            temp.two.B   := std_logic_vector(resize(signed(ID_EX.B.imm12), 32));   
-                            temp.S_data2 := reg.two.B;         
-                        when others      => operands.two.B <= (others => '0');
-                    end case;      
+                    operB        := get_operand_val (ID_EX.B.op, reg.two.B, ID_EX.B.imm12);
+                    temp.two.B   := operB.operand;
+                    temp.S_data2 := operB.S_data;
                 when EX_MEM_A    => temp.two.B := EX_MEM.A.alu.result;
                 when EX_MEM_B    => temp.two.B := EX_MEM.B.alu.result;
                 when MEM_WB_A    => temp.two.B := WB.A.data; 

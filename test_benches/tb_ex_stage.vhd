@@ -26,7 +26,7 @@ architecture Behavioral of tb_ex_stage is
 
 signal clk                           : std_logic := '0';
 signal rst                           : std_logic := '1';
-
+signal isEnable                      : std_logic := '1';
 signal ID_EX     : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR; 
 signal ID_EX_c   : control_Type_N     := EMPTY_control_Type_N; 
 signal reg       : REG_DATAS          := EMPTY_REG_DATAS; 
@@ -41,7 +41,9 @@ constant clk_period                 : time := 10 ns;
 
 begin
 
-UUT : entity work.ex_stage port map (
+UUT : entity work.ex_stage 
+    generic map ( ENABLE_FORWARDING => true )
+    port map (
        EX_MEM   => EX_MEM, 
        WB       => WB, 
        ID_EX    => ID_EX, 
@@ -75,6 +77,8 @@ UUT : entity work.ex_stage port map (
     variable operands      : EX_OPERAND_N       := EMPTY_EX_OPERAND_N; 
     variable alu1_in       : ALU_in             := EMPTY_ALU_in;  
     variable alu2_in       : ALU_in             := EMPTY_ALU_in; 
+    variable operA         : OPERAND2_MEMDATA   := EMPTY_OPERAND2_MEMDATA;
+    variable operB         : OPERAND2_MEMDATA   := EMPTY_OPERAND2_MEMDATA;
     -- randomized used for generating values
     variable rand1, rand2  : real;
     variable rd, rs1, rs2  : real;
@@ -151,6 +155,19 @@ UUT : entity work.ex_stage port map (
 
             
             operands                := get_operands ( temp_EX_MEM, temp_WB, temp_ID_EX, temp_reg, temp_Forw );
+            if isEnable = '0' then
+                operA      := get_operand_val (ID_EX.A.op, reg.one.B, ID_EX.A.imm12);
+                operB      := get_operand_val (ID_EX.B.op, reg.two.B, ID_EX.B.imm12);
+                
+                operands.one.A   := reg.one.A;
+                operands.one.B   := operA.operand;
+                operands.S_data1 := operA.S_data;
+                
+                operands.two.A   := reg.two.A;
+                operands.two.B   := operB.operand;
+                operands.S_data2 := operB.S_data;
+            end if;
+            
             alu1_in                 := get_alu1_input ( temp_ID_EX, operands);    
             temp_EX_MEM.A.alu       := get_alu_res ( alu1_in.f3, alu1_in.f7, alu1_in.A, alu1_in.B);
             alu2_in                 := get_alu2_input ( operands, temp_Forw, temp_ID_EX, temp_EX_MEM.A.alu );   
