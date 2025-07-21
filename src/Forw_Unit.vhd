@@ -65,10 +65,14 @@ begin
             when EX_MEM_B    => temp.one.B := EX_MEM.B.alu.result;
             when MEM_WB_A    => temp.one.B := WB.A.data; 
             when MEM_WB_B    => temp.one.B := WB.B.data; 
-            when others      => temp.one.B := ZERO_32bits;
-                
+            when others      => temp.one.B := ZERO_32bits;    
         end case;
-
+            if ID_EX.A.op = S_TYPE and Forw.A.forwB /= NONE_h then
+                operA        := get_operand_val (ID_EX.A.op, temp.one.B, ID_EX.A.imm12);
+                temp.one.B   := operA.operand;
+                temp.S_data1 := operA.S_data;
+            end if;
+        
         if Forw.B.forwA /= FORW_FROM_A then
             case Forw.B.forwA is
                 when NONE_h      => temp.two.A := reg.two.A; 
@@ -86,12 +90,22 @@ begin
                     operB        := get_operand_val (ID_EX.B.op, reg.two.B, ID_EX.B.imm12);
                     temp.two.B   := operB.operand;
                     temp.S_data2 := operB.S_data;
-                when EX_MEM_A    => temp.two.B := EX_MEM.A.alu.result;
-                when EX_MEM_B    => temp.two.B := EX_MEM.B.alu.result;
-                when MEM_WB_A    => temp.two.B := WB.A.data; 
-                when MEM_WB_B    => temp.two.B := WB.B.data; 
-                when others      => temp.two.B := ZERO_32bits;               
+                when EX_MEM_A    => 
+                    temp.two.B := EX_MEM.A.alu.result;
+                when EX_MEM_B    => 
+                    temp.two.B := EX_MEM.B.alu.result;
+                when MEM_WB_A    => 
+                    temp.two.B := WB.A.data; 
+                when MEM_WB_B    => 
+                    temp.two.B := WB.B.data; 
+                when others      => 
+                    temp.two.B := ZERO_32bits;               
             end case;
+            if ID_EX.B.op = S_TYPE and Forw.B.forwB /= NONE_h then
+                operB        := get_operand_val (ID_EX.B.op, temp.two.B, ID_EX.B.imm12);
+                temp.two.B   := operB.operand;
+                temp.S_data2 := operB.S_data;
+            end if;
          end if;  
     else
 

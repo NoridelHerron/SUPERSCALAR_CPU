@@ -344,9 +344,15 @@ package body MyFunctions is
             when EX_MEM_B    => result.one.B := EX_MEM.B.alu.result;
             when MEM_WB_A    => result.one.B := WB.A.data; 
             when MEM_WB_B    => result.one.B := WB.B.data; 
-            when others      => result.one.B := ZERO_32bits;
-                
+            when others      => result.one.B := ZERO_32bits;    
         end case;
+        
+        if ID_EX.A.op = S_TYPE then
+            result.S_data1 := result.one.B; 
+            if Forw.A.forwB /= NONE_h then
+                result.one.B := ZERO_32bits;
+            end if;
+        end if;
         
         if Forw.B.forwA /= FORW_FROM_A then
             case Forw.B.forwA is
@@ -376,10 +382,17 @@ package body MyFunctions is
                 when others      => result.two.B := ZERO_32bits;
                     
             end case;
+            if ID_EX.B.op = S_TYPE then
+                result.S_data2 := result.two.B; 
+                if Forw.B.forwB /= NONE_h then
+                    result.two.B   := ZERO_32bits;
+                end if;
+            end if;
          end if;  
     else
         result.one.A    := reg.one.A; 
         result.one.B    := reg.one.B; 
+        
         result.two.A    := reg.two.A; 
         result.two.B    := reg.two.B; 
         result.S_data1  := ZERO_32bits;
