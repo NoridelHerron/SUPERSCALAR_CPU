@@ -124,7 +124,9 @@ begin
 -------------------------------------------------------
 -------------------- EX STAGE -------------------------
 -------------------------------------------------------
-    U_EX : entity work.ex_stage port map (
+    U_EX : entity work.ex_stage 
+    generic map ( ENABLE_FORWARDING => true )
+    port map (
             EX_MEM   => ex_mem_val,
             WB       => wb_val,
             ID_EX    => id_ex_val,
