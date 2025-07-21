@@ -119,35 +119,26 @@ module rom (
         */
         rom[0]  = 32'h00100293; // addi x5,   x0, 1
         rom[1]  = 32'h00200313; // addi x6,   x0, 2
-        rom[2]  = 32'h00300393; // addi x7,   x0, 3
-        rom[3]  = 32'h00400413; // addi x8,   x0, 4
-        rom[4]  = 32'h00500493; // addi x9,   x0, 5
-        rom[5]  = 32'h00600513; // addi x10,  x0, 6
-        rom[6]  = 32'h00700593; // addi x11,  x0, 7
-        rom[7]  = 32'h00800613; // addi x12,  x0, 8
-        //rom[8]  = 32'h006286b3; // add  x13, x5, x6  -- no hazard
-        //rom[9]  = 32'h00530733; // add  x14, x6, x5  -- no hazard
-        //rom[8]  = 32'h00c586b3; // add  x13, x11, x12  -- forwA : EX_MEM_A | forwB: EX_MEM_B
-        //rom[9]  = 32'h00b60733; // add  x14, x12, x11  -- forwA : EX_MEM_B | forwB: EX_MEM_A
-        //rom[8]  = 32'h00a486b3; // add  x13, x9, x10  -- forwA : MEM_WB_A | forwB: MEM_WB_B
-        //rom[9]  = 32'h00950733; // add  x14, x10, x9  -- forwA : MEM_WB_B | forwB: MEM_WB_A
-        rom[8]  = 32'h00032903;   // lw   x18, 0(x6)  --  no hazard
-        rom[9]  = 32'h00d50733;  // add  x14, x10, x13  -- forwA : MEM_WB_B | forwB: FORW_A
-        //rom[9]  = 32'h00730733; // add  x14, x6, x7  -- value in x7 is hazard mem_wb 
-        //rom[10] = 32'h006387b3; // add  x15, x7, x6  -- no hazard
-        //rom[11] = 32'h00830833; // add  x16, x6, x8  -- no hazard
-        //rom[10] = 32'h00d707b3; // add  x15, x14, x13  -- forwA : EX_MEM_B | forwB: EX_MEM_A
-        //rom[11] = 32'h00e68833; // add  x16, x13, x14  -- forwA : EX_MEM_A | forwB: EX_MEM_B
-        rom[10] = 32'h00590b33; // add  x22, x18, x5  -- 
-        rom[11] = 32'h01230bb3; // add  x23, x6, x18  -- 
-        //rom[10] = 32'h00b607b3; // add  x15, x12, x11  -- forwA : MEM_WB_B | forwB: MEM_WB_A
-        //rom[11] = 32'h00c50833; // add  x16, x11, x12  -- forwA : MEM_WB_A | forwB: MEM_WB_B
-        //rom[10] = 32'h006607b3; // add  x15, x12, x6  -- forwA : MEM_WB_B | forwB: NONE_h
-        //rom[11] = 32'h00f78833; // add  x16, x15, x15  -- forwA : FORW_FROM_A | forwB: FORW_FROM_A
-        rom[12] = 32'h006288b3; // add  x17, x5, x6    -- no hazard
-        rom[13] = 32'h00530933; // add  x18, x6, x5    -- no hazard
+        rom[2]  = 32'h0062a023; // sw   x5,   0(x6) M[2] = 1
+        rom[3]  = 32'h00a00c23; // addi x24,  x0, 10
+        rom[4]  = 32'h00300393; // addi x7,   x0, 3
+        rom[5]  = 32'h00400413; // addi x8,   x0, 4
+        rom[6]  = 32'h00500493; // addi x9,   x0, 5
+        rom[7]  = 32'h00600513; // addi x10,  x0, 6
+        rom[8]  = 32'h00700593; // addi x11,  x0, 7
+        rom[9]  = 32'h00800613; // addi x12,  x0, 8
+        rom[10] = 32'h00032903; // lw x18, 0(x6)
+        rom[11] = 32'h00d50733; // addi x19, x5, x6
+        rom[12] = 32'h006288b3; // add  x13, x5, x6
+        rom[13] = 32'h00530733; // add  x14, x6, x5
+        rom[14] = 32'h006288b3; // add  x13, x5, x6
+        rom[15] = 32'h00530733; // add  x14, x6, x5
+        rom[16] = 32'h00590b33; // add  x22, x18, x5 
+        rom[17] = 32'h01230bb3; // add  x23, x6, x18
+        rom[18] = 32'h006288b3; // add  x13, x5, x6
+        rom[19] = 32'h00530733; // add  x14, x6, x5
         
-        for (i = 14; i < 1024; i = i + 1) begin
+        for (i = 20; i < 1024; i = i + 1) begin
             rom[i] = 32'h00000013;
         end
     end
