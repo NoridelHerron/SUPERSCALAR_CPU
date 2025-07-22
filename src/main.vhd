@@ -63,6 +63,7 @@ signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+signal isLwOrSw      : CONTROL_SIG                             := NONE_c;
 signal mem_val_out   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
 begin
@@ -125,7 +126,7 @@ begin
 -------------------- EX STAGE -------------------------
 -------------------------------------------------------
     U_EX : entity work.ex_stage 
-    generic map ( ENABLE_FORWARDING => true )
+    generic map ( ENABLE_FORWARDING => isFORW_ON )
     port map (
             EX_MEM   => ex_mem_val,
             WB       => wb_val,
@@ -153,10 +154,21 @@ begin
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
+    process (ex_mem_val)
+    begin
+        if ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE then
+            mem_val_in <= ex_mem_val.A.alu.result;
+            isLwOrSw   <= ex_mem_val.A.cntrl.mem;
+        elsif ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE then
+            mem_val_in <= ex_mem_val.B.alu.result;
+            isLwOrSw   <= ex_mem_val.B.cntrl.mem;
+        end if;
+    end process;
+
     U_MEM : entity work.MEM_STA port map (
             clk      => clk,
-            ex_mem   => ex_mem_val.A.alu.result,
-            ex_mem_c => ex_mem_val.A.cntrl.mem,
+            ex_mem   => mem_val_in,
+            ex_mem_c => isLwOrSw,
             -- Outputs to MEM/WB pipeline register
             mem      => mem_val_out
         );  
