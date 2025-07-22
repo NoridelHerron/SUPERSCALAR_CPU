@@ -14,7 +14,8 @@ library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
-use work.ALU_Pkg.all;
+use work.ENUM_T.all;
+
 
 entity tb_decoder is
 end tb_decoder;
@@ -71,7 +72,6 @@ begin
         wait for clk_period;
         rst <= '0';
         wait for clk_period;
-        
         for i in 1 to total_tests loop
   
             -- This will cover all instructions in riscv
@@ -152,8 +152,8 @@ begin
                     temp.imm20  := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;   
 
                 when JAL =>  
-                    imm20       := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3;
-                    temp.imm20  := imm20(19) & imm20(7 downto 0) & imm20(8) & imm20(18 downto 9);        
+                    temp.imm20 := temp.funct7(6) & temp.rs1 & temp.funct3 & 
+                                  temp.rs2(0) & temp.funct7(5 downto 0) & temp.rs2(4 downto 1);       
                     
                 when others => temp := EMPTY_DECODER;
                     
@@ -161,9 +161,28 @@ begin
             
             -- Build instruction word
             temp_instr := temp.funct7 & temp.rs2 & temp.rs1 & temp.funct3 & temp.rd & temp.op;
-
             instruction       <= temp_instr;
+   
+            case temp.op is
+                when R_TYPE     => 
+                when I_IMME | LOAD | JALR | ECALL =>  
+                    temp.funct7 := ZERO_7bits;
+                    temp.rs2    := ZERO_5bits;
+                when S_TYPE | B_TYPE   => 
+                    temp.funct7 := ZERO_7bits;
+                    temp.rd     := ZERO_5bits;   
+                when JAL | U_LUI | U_AUIPC  =>  
+                    temp.funct7 := ZERO_7bits;
+                    temp.rs1    := ZERO_5bits; 
+                    temp.rs2    := ZERO_5bits; 
+                    temp.funct3 := ZERO_7bits; 
+                when others => temp := EMPTY_DECODER;
+            end case;
+
             expected_content  <= temp;
+
+            wait until rising_edge(clk);  -- Decoder captures input
+            wait for 1 ns;                -- Let ID_content settle
 
             -- Compare fields
             if temp.funct7 = ID_content.funct7 and temp.rs2 = ID_content.rs2 and temp.rs1 = ID_content.rs1 and 
@@ -195,6 +214,7 @@ begin
                 if temp.imm20  /= ID_content.imm20  then fail_imm20 := fail_imm20 + 1; end if; 
               end if;            
  
+            wait for 10 ns;
         end loop;
 
         -- Summary report

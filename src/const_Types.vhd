@@ -11,13 +11,18 @@ package const_Types is
     constant REG_ADDR_WIDTH : integer := 5;
     constant FUNCT3_WIDTH   : integer := 3;
     constant FUNCT7_WIDTH   : integer := 7;
-    constant DEPTH          : integer := 4;
-    constant LOG2DEPTH      : integer := 2;
+    constant DEPTH          : integer := 1024;
+    constant LOG2DEPTH      : integer := 10;
     constant IMM12_WIDTH    : integer := 12;
     constant IMM20_WIDTH    : integer := 20;
     constant FLAGs_WIDTH    : integer := 3;
     constant SHIFT_WIDTH    : integer := 5;
     constant MAX            : integer := 2147483647;
+    constant FIVE           : integer := 5;
+    constant FOUR           : integer := 4;
+    constant CNTRL_WIDTH    : integer := 4;
+    constant HAZ_WIDTH      : integer := 4;
+    constant isFORW_ON      : boolean := true;
     
     constant ONE            : std_logic                                   := '1';
     constant ZERO           : std_logic                                   := '0';
@@ -51,5 +56,23 @@ package const_Types is
     constant BGE           : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "101";
     constant BLTU          : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "110";
     constant BGEU          : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "111";
+    
+    -- FUNCT3 codes
+     -- ALU
+    constant FUNC3_ADD_SUB : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "000";
+    constant FUNC3_SLL     : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "001";
+    constant FUNC3_SLT     : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "010";
+    constant FUNC3_SLTU    : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "011";
+    constant FUNC3_XOR     : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "100";
+    constant FUNC3_SRL_SRA : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "101";
+    constant FUNC3_OR      : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "110";
+    constant FUNC3_AND     : std_logic_vector(FUNCT3_WIDTH-1 downto 0) := "111";
+    
+    -- FUNCT7 codes
+    constant FUNC7_ADD     : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0000000";  -- For ADD
+    constant FUNC7_SUB     : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0100000";  -- For SUB
+    constant FUNC7_SRL     : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0000000";  -- For SRL
+    constant FUNC7_SRA     : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0100000";  -- For SRA
+    constant THIRTY_TWO    : std_logic_vector(FUNCT7_WIDTH-1 downto 0) := "0100000";
 
 end package;

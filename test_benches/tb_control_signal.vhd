@@ -13,6 +13,7 @@ library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_records.all;
+use work.ENUM_T.all; 
 
 entity tb_control_signal is
 --  Port ( );
@@ -75,9 +76,9 @@ begin
             else temp_op := R_TYPE;
             end if;
             
-            temp.target := NONE;
+            temp.target := NONE_c;
             temp.alu    := IMM;
-            temp.mem    := NONE;
+            temp.mem    := NONE_c;
             temp.wb     := REG_WRITE;    
             
             case temp_op is
@@ -95,16 +96,16 @@ begin
                 when S_TYPE =>
                     temp.target := MEM_REG;
                     temp.mem    := MEM_WRITE;
-                    temp.wb     := NONE;
+                    temp.wb     := NONE_c;
                     
                 when B_TYPE =>
                     temp.alu    := RS2;
-                    temp.wb     := NONE;
+                    temp.wb     := NONE_c;
                     temp.target := BRANCH;
                     
                 when JAL =>
                     temp.target := JUMP;
-                    temp.alu    := NONE; 
+                    temp.alu    := NONE_c; 
                 when others => temp := EMPTY_control_Type;
             end case;
             
