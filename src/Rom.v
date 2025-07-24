@@ -12,8 +12,9 @@ module rom (
 );
 
     reg [31:0] rom [0:1023];
-    reg [31:0] temp, temp2;
-    reg [4:0] temp_rs1, temp_rs2, temp_rd, temp_5bits;
+    reg [31:0] temp_instr;
+    reg [14:0] temp;
+    reg [4:0]  rand, rand_ishaz;
 
     //===== RISC-V Opcodes (Only allowed types)=====
     localparam [6:0]
@@ -106,6 +107,22 @@ module rom (
             generate_instruction = instr;
         end
     endfunction
+    
+    function [14:0] generate_registers;
+        input integer type_sel;
+        input reg [4:0] rd;
+        reg [14:0] rand_reg;
+        begin
+            case (type_sel)
+               0 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] = rd; rand_reg[4:0] = $urandom_range(0, 31); end 
+               1 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = rd; end 
+               2 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] = rd; rand_reg[4:0] = rd; end 
+               3 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
+               default : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
+            endcase
+        generate_registers = rand_reg;
+        end
+    endfunction
    
     // ================= ROM and instruction Initializations ===================
     integer i, j, k, h = 0;
@@ -113,8 +130,8 @@ module rom (
         
         instr1 = 32'h00000013;
         instr2 = 32'h00000013;
-        temp   = 32'h00000013;
-        temp2  = 32'h00000013;
+        temp   = 15'b0;
+        
         /*
         for (i = 0; i < 1024; i = i + 1) begin
             rom[i] = generate_instruction($urandom_range(0, 5)); // Include R-type
@@ -122,64 +139,38 @@ module rom (
         end
         */
         for (i = 0; i < 10; i = i + 1) begin
-            temp_rd  = $urandom_range(0, 31);
-            temp_rs1  = $urandom_range(0, 31);
-            temp_rs2  = $urandom_range(1, 10);
-            rom[i] = { 7'b0, temp_rs2, temp_rs1, 3'b000,  temp_rd, OPCODE_I_IMM}; //  I_IMME
+            temp = generate_registers (3, 5'b0);
+            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
             $display("ROM[%0d] = %h", i, rom[i]);
         end
         
         for (i = 10; i < 20; i = i + 1) begin  //  Include S-type
-            temp_rs2 = $urandom_range(0, 31);
+            rand = $urandom_range(0, 5);
             temp = rom[i - 10];
-            rom[i] = { 7'b0, temp_rs2, temp[19:15], 3'b010, 5'b0, OPCODE_S_TYPE};
+            temp = generate_registers (rand, temp[11:7]);
+            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b010,  temp[14:10], OPCODE_S_TYPE};
             $display("ROM[%0d] = %h", i, rom[i]);
         end
         
         for (i = 20; i < 50; i = i + 1) begin
-            j = $urandom_range(0, 19);
-            k = $urandom_range(0, 19);
-            h = $urandom_range(0, 3);
-            temp  = rom[j];
-            temp2 = rom[k];
-            if (i < 5) begin
-                if (k < 10 || j < 10) begin 
-                    case (h)
-                       0 : begin temp_rs1 = temp[11:7]; temp_rs2 = temp2[19:15]; temp_rd = temp2[24:20]; end 
-                       1 : begin temp_rs2 = temp[19:15]; temp_rs1 = temp2[11:7]; temp_rd = temp2[24:20]; end
-                       2 : begin temp_rd = temp[19:15]; temp_rs2 = temp2[19:15]; temp_rs1 = temp2[24:20]; end  
-                       3 : begin temp_rd = temp[19:15]; temp_rs1 = temp2[19:15]; temp_rs2 = temp2[24:20]; end  
-                       default:;
-                    endcase
-                end else begin
-                    case (h)
-                       0 : begin temp_rs1 = temp[19:15]; temp_rs2 = temp2[19:15]; temp_rd = temp2[24:20]; end 
-                       1 : begin temp_rs2 = temp2[24:20]; temp_rs1 = temp2[19:15]; temp_rd = temp[19:15]; end
-                       2 : begin temp_rd = temp[19:15]; temp_rs2 = temp2[24:20]; temp_rs1 = temp2[24:20]; end  
-                       3 : begin temp_rd = temp[19:15]; temp_rs1 = temp2[19:15]; temp_rs2 = temp2[24:20]; end  
-                       default:;
-                    endcase
-                end
+            rand = $urandom_range(0, 5);
+            rand_ishaz = $urandom_range(0, 20);
+            
+            if ( rand_ishaz < 5) begin
+                case (rand_ishaz)
+               0 : begin temp_instr = rom[i - 1]; end 
+               1 : begin temp_instr = rom[i - 2];; end 
+               2 : begin temp_instr = rom[i - 3];; end 
+               3 : begin temp_instr = rom[i - 4];; end 
+               4 : begin temp_instr = rom[i - 5];; end 
+               default : ; 
+            endcase
+                temp = {temp_instr[11:7], temp_instr[19:15], temp_instr[24:20] };
             end else begin
-                if (k < 10 || j < 10) begin 
-                    case (h)
-                       0 : begin temp_rs1 = temp[11:7]; temp_rs2 = temp2[19:15]; temp_rd = temp2[24:20]; end 
-                       1 : begin temp_rs2 = temp[11:7]; temp_rs1 = temp[19:15]; temp_rd = temp2[24:20]; end
-                       2 : begin temp_rd = temp[19:15]; temp_rs2 = temp2[19:15]; temp_rs1 = temp2[24:20]; end  
-                       3 : begin temp_rd = temp[19:15]; temp_rs1 = temp[11:7]; temp_rs2 = temp[11:7]; end  
-                       default:;
-                    endcase
-                end else begin
-                    case (h)
-                       0 : begin temp_rs1 = temp[19:15]; temp_rs2 = temp[11:7]; temp_rd = temp2[24:20]; end 
-                       1 : begin temp_rs2 = temp[11:7]; temp_rs1 = temp2[19:15]; temp_rd = temp[19:15]; end
-                       2 : begin temp_rd = temp[19:15]; temp_rs2 = temp2[24:20]; temp_rs1 = temp2[24:20]; end  
-                       3 : begin temp_rd = temp[11:7]; temp_rs1 = temp[11:7]; temp_rs2 = temp2[24:20]; end  
-                       default:;
-                    endcase
-                end
+                temp = generate_registers (3, 5'b0); 
             end
-            rom[i] = {7'b0, temp_rs2, temp_rs1, 3'b0, temp_rd, OPCODE_R_TYPE}; 
+            
+            rom[i] = {7'b0, temp[4:0], temp[9:5], 3'b0, temp[14:10], OPCODE_R_TYPE}; 
             $display("ROM[%0d] = %h", i, rom[i]);
         end
         
