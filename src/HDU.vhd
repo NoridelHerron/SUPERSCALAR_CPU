@@ -34,7 +34,6 @@ begin
          -- Forwarding logic (always active)
  -------------------------------------------------- INSTRUCTION A --------------------------------------------------
         -- Forward A
-        
         if EX_MEM.B.cntrl.wb = REG_WRITE and EX_MEM.B.rd /= ZERO_5bits and EX_MEM.B.rd = ID_EX.A.rs1 then
             temp.A.ForwA := EX_MEM_B;
         elsif EX_MEM.A.cntrl.wb = REG_WRITE and EX_MEM.A.rd /= ZERO_5bits and EX_MEM.A.rd = ID_EX.A.rs1 then
@@ -62,9 +61,13 @@ begin
         
         -- STALL A
         if ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.A.rs1 or ID_EX.A.rd = ID.A.rs2) then
-            temp.A.stall := A_STALL;  
+            temp.A.stall := A_STALL; 
+            temp.A.ForwA := NONE_h; 
+            temp.A.ForwB := NONE_h;
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
-            temp.A.stall := B_STALL;     
+            temp.A.stall := B_STALL; 
+            temp.A.ForwA := NONE_h; 
+            temp.A.ForwB := NONE_h;
         else
             temp.A.stall := NONE_h;
         end if;
@@ -104,14 +107,21 @@ begin
         -- STALL B
         if ID.A.op = "0000011" and  ID.A.rd /= ZERO_5bits and (ID.A.rd = ID.B.rs1 or ID.A.rd = ID.B.rs2)then
             temp.B.stall := STALL_FROM_A; 
+            temp.B.ForwA := NONE_h;
+            temp.B.ForwB := NONE_h;
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
+            temp.B.ForwA := NONE_h;
+            temp.B.ForwB := NONE_h;
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
-            temp.B.stall := B_STALL;    
+            temp.B.stall := B_STALL;   
+            temp.B.ForwA := NONE_h;
+            temp.B.ForwB := NONE_h; 
         else
             temp.B.stall := NONE_h;
         end if;
 
+        
         result  <= temp;  
     end process;
 

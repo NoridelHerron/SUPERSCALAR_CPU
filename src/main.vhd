@@ -35,7 +35,7 @@ entity main is
             ex_value    : out EX_CONTENT_N;
             mem_ipcv    : out Inst_PC_N; 
             exmem_value : out EX_CONTENT_N;  
-            mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0); 
+            mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0);
             wb_ipcv     : out Inst_PC_N; 
             memwb_value : out MEM_CONTENT_N;
             wb_value    : out WB_CONTENT_N_INSTR      
@@ -62,9 +62,7 @@ signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
-signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
-signal isLwOrSw      : CONTROL_SIG                             := NONE_c;
-signal mem_val_out   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+signal mem_val       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
 begin
 -------------------------------------------------------
@@ -110,7 +108,7 @@ begin
 -------------------------------------------------------
     U_ID_EX : entity work.ID_EX port map (
         clk         => clk,
-        reset       => reset,
+        reset       => reset, 
         id_stage    => ifid_reg,
         id          => id,
         id_c        => id_c,
@@ -154,23 +152,13 @@ begin
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
-    process (ex_mem_val)
-    begin
-        if ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE then
-            mem_val_in <= ex_mem_val.A.alu.result;
-            isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-        elsif ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE then
-            mem_val_in <= ex_mem_val.B.alu.result;
-            isLwOrSw   <= ex_mem_val.B.cntrl.mem;
-        end if;
-    end process;
-
     U_MEM : entity work.MEM_STA port map (
-            clk      => clk,
-            ex_mem   => mem_val_in,
-            ex_mem_c => isLwOrSw,
+            clk      => clk, 
+            write_in => ex_mem_val.A.S_data,
+            ex_mem   => ex_mem_val.A.alu.result,
+            ex_mem_c => ex_mem_val.A.cntrl.mem,
             -- Outputs to MEM/WB pipeline register
-            mem      => mem_val_out
+            mem      => mem_val 
         );  
  
  -------------------------------------------------------
@@ -185,7 +173,7 @@ begin
            ex_mem         => exmem_reg,
            exmem_content  => ex_mem_val,
            -- inputs from mem stage
-           memA_result    => mem_val_out,
+           memA_result    => mem_val,
            -- outputs
            mem_wb         => memwb_reg,
            mem_wb_content => mem_wb_val
@@ -213,7 +201,7 @@ idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
 mem_ipcv    <= exmem_reg; 
 exmem_value <= ex_mem_val;   
-mem_value   <= mem_val_out; 
+mem_value   <= mem_val; 
 wb_ipcv     <= memwb_reg; 
 memwb_value <= mem_wb_val; 
 wb_value    <= wb_val; 

@@ -46,7 +46,14 @@ begin
         -- wafeform of the integrated system
         elsif rising_edge(clk) then
             reg         <= EX;
-            reg_content <= EX_content;
+            if EX_content.A.cntrl.mem = MEM_READ or EX_content.A.cntrl.mem = MEM_WRITE then
+                reg_content <= EX_content;
+            elsif EX_content.B.cntrl.mem = MEM_READ or EX_content.B.cntrl.mem = MEM_WRITE then
+                reg_content.A <= EX_content.B;
+                reg_content.B <= EX_content.A;
+            else
+                reg_content <= EX_content;
+            end if;   
         end if;    
     end process;
 

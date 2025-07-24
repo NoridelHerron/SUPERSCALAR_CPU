@@ -98,20 +98,23 @@ begin
     --------------------------------------------------------------------------
     -- EX Output Assignments
     --------------------------------------------------------------------------
-    -- Path A
-    ex_out.A.operand.A  <= alu_in1.A;
-    ex_out.A.operand.B  <= alu_in1.B;
-    ex_out.A.alu        <= alu_out1;
-    ex_out.A.S_data     <= operands.S_data1;
-    ex_out.A.rd         <= ID_EX.A.rd;
-    ex_out.A.cntrl      <= ID_EX_c.A;
-
-    -- Path B
-    ex_out.B.operand.A  <= alu_in2.A;
-    ex_out.B.operand.B  <= alu_in2.B;
-    ex_out.B.alu        <= alu_out2;
-    ex_out.B.S_data     <= operands.S_data2;
-    ex_out.B.rd         <= ID_EX.B.rd;
-    ex_out.B.cntrl      <= ID_EX_c.B;
+    process (alu_in1, alu_out1, operands, alu_in2, alu_out2, ID_EX, ID_EX_c)
+    begin
+        -- Path A
+        ex_out.A.operand.A  <= alu_in1.A;
+        ex_out.A.operand.B  <= alu_in1.B;
+        ex_out.A.alu        <= alu_out1;
+        ex_out.A.S_data     <= operands.S_data1;
+        ex_out.A.rd         <= ID_EX.A.rd;
+        ex_out.A.cntrl      <= ID_EX_c.A;
+    
+        -- Path B
+        ex_out.B.operand.A  <= alu_in2.A;
+        ex_out.B.operand.B  <= alu_in2.B;
+        ex_out.B.alu        <= alu_out2;
+        ex_out.B.S_data     <= operands.S_data2;
+        ex_out.B.rd         <= ID_EX.B.rd;
+        ex_out.B.cntrl      <= ID_EX_c.B;
+    end process;
 
 end Behavioral;

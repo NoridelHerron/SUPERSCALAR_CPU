@@ -108,16 +108,28 @@ begin
             end if;
          end if;  
     else
-
-        temp.one.A   := reg.one.A; 
-        operA        := get_operand_val (ID_EX.A.op, reg.one.B, ID_EX.A.imm12);
-        temp.one.B   := operA.operand;
-        temp.S_data1 := operA.S_data; 
         
-        operB        := get_operand_val (ID_EX.B.op, reg.two.B, ID_EX.B.imm12);
-        temp.two.A   := reg.two.A;
-        temp.two.B   := operB.operand;
-        temp.S_data2 := operB.S_data; 
+        temp.one.A   := reg.one.A;
+        temp.two.A   := reg.two.A; 
+        
+        if ID_EX.A.op = S_TYPE or ID_EX.A.op = LOAD or ID_EX.A.op = I_IMME then
+            temp.one.B   := std_logic_vector(resize(signed(ID_EX.A.imm12), 32)); 
+            if ID_EX.A.op = S_TYPE then
+                temp.S_data1 := reg.one.B;
+            end if;
+        else
+            temp.one.B := reg.one.B;
+        end if; 
+        
+        if ID_EX.B.op = S_TYPE or ID_EX.B.op = LOAD or ID_EX.B.op = I_IMME then
+            temp.two.B   := std_logic_vector(resize(signed(ID_EX.B.imm12), 32)); 
+            if ID_EX.B.op = S_TYPE then
+                temp.S_data2 := reg.two.B;
+            end if;
+        else
+            temp.two.B := reg.two.B;
+        end if; 
+       
     end if;
     
          operands <= temp; 

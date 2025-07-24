@@ -52,7 +52,6 @@ signal ex_value         : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 -- EX_MEM/MEM
 signal mem_ipcv         : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal exmem_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
-
 signal mem_value        : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
 -- MEM_WB/WB
