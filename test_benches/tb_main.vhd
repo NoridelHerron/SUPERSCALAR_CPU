@@ -53,6 +53,7 @@ signal ex_value         : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal mem_ipcv         : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal exmem_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
+signal mem_haz          : HAZ_SIG                                 := NONE_h;
 signal mem_value        : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
 -- MEM_WB/WB
@@ -77,6 +78,7 @@ begin
         ex_value    => ex_value,
         mem_ipcv    => mem_ipcv,
         exmem_value => exmem_value,
+        mem_haz     => mem_haz,
         mem_value   => mem_value,
         wb_ipcv     => wb_ipcv,
         memwb_value => memwb_value,

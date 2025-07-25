@@ -59,12 +59,16 @@ begin
             reg_content.B.we  <= exmem_content.B.cntrl.wb;
             reg_content.B.me  <= exmem_content.B.cntrl.mem;
             
-            if exmem_content.A.cntrl.mem = MEM_READ then
+            if (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) and
+               (exmem_content.B.cntrl.mem /= MEM_READ or exmem_content.B.cntrl.mem /= MEM_WRITE)then
                 reg_content.A.mem <= memA_result;
                 reg_content.B.mem <= (others => '0');
-            else
+            elsif exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE then
                 reg_content.A.mem <= (others => '0');
                 reg_content.B.mem <= memA_result;
+            else
+                reg_content.A.mem <= (others => '0');
+                reg_content.B.mem <= (others => '0');
             end if;
         end if;    
     end process;

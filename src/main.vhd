@@ -35,6 +35,7 @@ entity main is
             ex_value    : out EX_CONTENT_N;
             mem_ipcv    : out Inst_PC_N; 
             exmem_value : out EX_CONTENT_N;  
+            mem_haz     : out HAZ_SIG;
             mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0); 
             wb_ipcv     : out Inst_PC_N; 
             memwb_value : out MEM_CONTENT_N;
@@ -62,6 +63,8 @@ signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
+signal mem_stall     : HAZ_SIG                                 := NONE_h;
+signal data_in       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal isLwOrSw      : CONTROL_SIG                             := NONE_c;
 signal mem_val_out   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -156,17 +159,23 @@ begin
 -------------------------------------------------------
     process (ex_mem_val)
     begin
-        if ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE then
+        if (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) and
+           (ex_mem_val.B.cntrl.mem /= MEM_READ or ex_mem_val.B.cntrl.mem /= MEM_WRITE) then
+            data_in    <= ex_mem_val.A.S_data;
             mem_val_in <= ex_mem_val.A.alu.result;
             isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-        elsif ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE then
+            mem_stall  <= B_STALL;
+        elsif (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+            data_in    <= ex_mem_val.B.S_data;
             mem_val_in <= ex_mem_val.B.alu.result;
             isLwOrSw   <= ex_mem_val.B.cntrl.mem;
+            mem_stall  <= NONE_h;
         end if;
     end process;
 
     U_MEM : entity work.MEM_STA port map (
             clk      => clk,
+            data_in  => data_in,
             ex_mem   => mem_val_in,
             ex_mem_c => isLwOrSw,
             -- Outputs to MEM/WB pipeline register
@@ -213,6 +222,7 @@ idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
 mem_ipcv    <= exmem_reg; 
 exmem_value <= ex_mem_val;   
+mem_haz     <= mem_stall;
 mem_value   <= mem_val_out; 
 wb_ipcv     <= memwb_reg; 
 memwb_value <= mem_wb_val; 

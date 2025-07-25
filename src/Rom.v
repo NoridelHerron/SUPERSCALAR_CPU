@@ -12,8 +12,9 @@ module rom (
 );
 
     reg [31:0] rom [0:1023];
-    reg [31:0] temp_instr;
+    reg [31:0] temp_instr, temp_instr2;
     reg [14:0] temp;
+    reg [4:0]  reg_source;
     reg [4:0]  rand, rand_ishaz;
 
     //===== RISC-V Opcodes (Only allowed types)=====
@@ -114,11 +115,11 @@ module rom (
         reg [14:0] rand_reg;
         begin
             case (type_sel)
-               0 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] = rd; rand_reg[4:0] = $urandom_range(0, 31); end 
-               1 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = rd; end 
-               2 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] = rd; rand_reg[4:0] = rd; end 
-               3 : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
-               default : begin rand_reg[14:10] = $urandom_range(0, 31); rand_reg[9:5] =  $urandom_range(0, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
+               0 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] = rd; rand_reg[4:0] = $urandom_range(1, 31); end 
+               1 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = rd; end 
+               2 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] = rd; rand_reg[4:0] = rd; end 
+               3 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
+               default : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = $urandom_range(1, 31); end 
             endcase
         generate_registers = rand_reg;
         end
@@ -128,9 +129,10 @@ module rom (
     integer i, j, k, h = 0;
     initial begin
         
-        instr1 = 32'h00000013;
-        instr2 = 32'h00000013;
-        temp   = 15'b0;
+        instr1     = 32'h00000013;
+        instr2     = 32'h00000013;
+        temp_instr = 32'h00000013;
+        temp       = 15'b0;
         
         /*
         for (i = 0; i < 1024; i = i + 1) begin
@@ -141,17 +143,39 @@ module rom (
         for (i = 0; i < 10; i = i + 1) begin
             temp = generate_registers (3, 5'b0);
             rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
-            $display("ROM[%0d] = %h", i, rom[i]);
+            $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
         end
         
+        // Ensure the result of the 10 instructions are store, so when I check load I can expect some value from the memory.
         for (i = 10; i < 20; i = i + 1) begin  //  Include S-type
-            rand = $urandom_range(0, 5);
-            temp = rom[i - 10];
-            temp = generate_registers (rand, temp[11:7]);
-            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b010,  temp[14:10], OPCODE_S_TYPE};
-            $display("ROM[%0d] = %h", i, rom[i]);
+            rand        = $urandom_range(0, 5);
+            temp_instr  = rom[i - 10];  
+            //temp       = generate_registers (rand, temp_instr[11:7]);
+            //rom[i]     = { 7'b0, temp[4:0], temp[9:5], 3'b010,  temp[14:10], OPCODE_S_TYPE};
+            rom[i]      = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
+            temp_instr2 = rom[i];
+            reg_source  = temp_instr2[24:20];
+            $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], reg_source);
         end
         
+        for (i = 20; i < 26; i = i + 1) begin
+            temp = generate_registers (3, $urandom_range(1, 31));
+            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
+            $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
+        end
+        
+        for (i = 26; i < 50; i = i + 1) begin
+            temp_instr = rom[i - 16];
+            rom[i]     = { 7'b0, 5'b0, temp_instr[24:20], 3'b000,  temp[14:10], OPCODE_LOAD}; //  LOAD
+            $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], temp[14:10] ,temp_instr[24:20]);
+        end
+        
+        for (i = 50; i < 60; i = i + 1) begin
+            temp = generate_registers (3, 5'b0);
+            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  I_IMME
+            $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
+        end
+        /*
         for (i = 20; i < 50; i = i + 1) begin
             rand = $urandom_range(0, 5);
             rand_ishaz = $urandom_range(0, 20);
@@ -173,10 +197,10 @@ module rom (
             rom[i] = {7'b0, temp[4:0], temp[9:5], 3'b0, temp[14:10], OPCODE_R_TYPE}; 
             $display("ROM[%0d] = %h", i, rom[i]);
         end
-        
-        for (i = 50; i < 1024; i = i + 1) begin
+        */
+        for (i = 60; i < 1024; i = i + 1) begin
             rom[i] = 32'h00000013; // NOP
-            $display("ROM[%0d] = %h", i, rom[i]);
+            //$display("ROM[%0d] = %h", i, rom[i]);
         end
   
         

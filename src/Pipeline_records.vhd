@@ -200,6 +200,5 @@ package Pipeline_Types is
         operand  : std_logic_vector(DATA_WIDTH-1 downto 0); 
         S_data   : std_logic_vector(DATA_WIDTH-1 downto 0); 
     end record;
-    
-    
+  
 end package;
