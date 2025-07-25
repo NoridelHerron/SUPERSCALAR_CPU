@@ -23,6 +23,7 @@ entity MEM_WB is
            -- inputs from ex_mem register
            ex_mem         : in  Inst_PC_N;
            exmem_content  : in  EX_CONTENT_N;
+           mem_stall      : in  HAZ_SIG;
            -- inputs from mem stage
            memA_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0); 
            -- outputs
@@ -59,11 +60,10 @@ begin
             reg_content.B.we  <= exmem_content.B.cntrl.wb;
             reg_content.B.me  <= exmem_content.B.cntrl.mem;
             
-            if (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) and
-               (exmem_content.B.cntrl.mem /= MEM_READ or exmem_content.B.cntrl.mem /= MEM_WRITE)then
+            if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
                 reg_content.A.mem <= memA_result;
                 reg_content.B.mem <= (others => '0');
-            elsif exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE then
+            elsif mem_stall = REL_B then
                 reg_content.A.mem <= (others => '0');
                 reg_content.B.mem <= memA_result;
             else

@@ -160,15 +160,24 @@ begin
     process (ex_mem_val)
     begin
         if (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) and
-           (ex_mem_val.B.cntrl.mem /= MEM_READ or ex_mem_val.B.cntrl.mem /= MEM_WRITE) then
+           (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
             data_in    <= ex_mem_val.A.S_data;
             mem_val_in <= ex_mem_val.A.alu.result;
             isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-            mem_stall  <= B_STALL;
-        elsif (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+            mem_stall  <= REL_A_WH;
+        elsif (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) and
+              (ex_mem_val.B.cntrl.mem /= MEM_READ or ex_mem_val.B.cntrl.mem /= MEM_WRITE) then
+            data_in    <= ex_mem_val.A.S_data;
+            mem_val_in <= ex_mem_val.A.alu.result;
+            isLwOrSw   <= ex_mem_val.A.cntrl.mem;
+            mem_stall  <= REL_A_NH;
+        elsif (ex_mem_val.A.cntrl.mem /= MEM_READ or ex_mem_val.A.cntrl.mem /= MEM_WRITE) and
+              (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
             data_in    <= ex_mem_val.B.S_data;
             mem_val_in <= ex_mem_val.B.alu.result;
             isLwOrSw   <= ex_mem_val.B.cntrl.mem;
+            mem_stall  <= REL_B;
+        else
             mem_stall  <= NONE_h;
         end if;
     end process;
@@ -193,6 +202,7 @@ begin
            -- inputs from ex_mem register
            ex_mem         => exmem_reg,
            exmem_content  => ex_mem_val,
+           mem_stall      => mem_stall,
            -- inputs from mem stage
            memA_result    => mem_val_out,
            -- outputs
