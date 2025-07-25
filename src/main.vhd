@@ -74,20 +74,24 @@ begin
 -------------------- IF STAGE -------------------------
 -------------------------------------------------------
     U_IF : entity work.IF_STAGE port map (
-        clk      => clk,
-        reset    => reset,
+        clk       => clk,
+        reset     => reset,
+        haz       => haz,
+        mem_stall => mem_stall,
         -- output
-        IF_STAGE => if_reg
+        IF_STAGE  => if_reg
     );
 -------------------------------------------------------
 ------------------ IF/ID register ---------------------
 -------------------------------------------------------
     U_IF_ID : entity work.IF_TO_ID port map (
-        clk      => clk,
-        reset    => reset,
-        if_stage => if_reg,
+        clk       => clk,
+        reset     => reset,
+        haz       => haz,
+        mem_stall => mem_stall,
+        if_stage  => if_reg,
         -- output
-        if_id    => ifid_reg
+        if_id     => ifid_reg
     );
 -------------------------------------------------------
 -------------------- ID STAGE -------------------------
@@ -118,6 +122,8 @@ begin
         id          => id,
         id_c        => id_c,
         datas_in    => datas,
+        haz         => haz,
+        mem_stall   => mem_stall,
         -- outputs
         id_ex_stage => idex_reg,
         id_ex       => id_ex_val,
@@ -148,8 +154,9 @@ begin
         clk            => clk,
         reset          => reset,
         EX             => idex_reg,
-        EX_content     => ex_val,
+        EX_val         => ex_val,
         -- outputs
+        mem_stall      => mem_stall,
         EX_MEM         => exmem_reg,
         EX_MEM_content => ex_mem_val
     ); 
@@ -157,28 +164,17 @@ begin
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
-    process (ex_mem_val)
+    process (mem_stall, ex_mem_val)
     begin
-        if (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) and
-           (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+        if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
             data_in    <= ex_mem_val.A.S_data;
             mem_val_in <= ex_mem_val.A.alu.result;
             isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-            mem_stall  <= REL_A_WH;
-        elsif (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) and
-              (ex_mem_val.B.cntrl.mem /= MEM_READ or ex_mem_val.B.cntrl.mem /= MEM_WRITE) then
-            data_in    <= ex_mem_val.A.S_data;
-            mem_val_in <= ex_mem_val.A.alu.result;
-            isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-            mem_stall  <= REL_A_NH;
-        elsif (ex_mem_val.A.cntrl.mem /= MEM_READ or ex_mem_val.A.cntrl.mem /= MEM_WRITE) and
-              (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+            
+        elsif mem_stall = REL_B then
             data_in    <= ex_mem_val.B.S_data;
             mem_val_in <= ex_mem_val.B.alu.result;
             isLwOrSw   <= ex_mem_val.B.cntrl.mem;
-            mem_stall  <= REL_B;
-        else
-            mem_stall  <= NONE_h;
         end if;
     end process;
 
