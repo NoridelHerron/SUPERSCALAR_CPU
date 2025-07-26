@@ -47,29 +47,41 @@ begin
             reg_content <= EMPTY_MEM_CONTENT_N;
         
         elsif rising_edge(clk) then
-            reg               <= ex_mem;
-            -- A contents
-            reg_content.A.alu <= exmem_content.A.alu.result;
-            reg_content.A.rd  <= exmem_content.A.rd;
-            reg_content.A.we  <= exmem_content.A.cntrl.wb;
-            reg_content.A.me  <= exmem_content.A.cntrl.mem;
-            -- B contents 
-            
-            reg_content.B.alu <= exmem_content.B.alu.result;
-            reg_content.B.rd  <= exmem_content.B.rd;
-            reg_content.B.we  <= exmem_content.B.cntrl.wb;
-            reg_content.B.me  <= exmem_content.B.cntrl.mem;
-            
-            if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
-                reg_content.A.mem <= memA_result;
-                reg_content.B.mem <= (others => '0');
-            elsif mem_stall = REL_B then
-                reg_content.A.mem <= (others => '0');
-                reg_content.B.mem <= memA_result;
-            else
-                reg_content.A.mem <= (others => '0');
-                reg_content.B.mem <= (others => '0');
-            end if;
+            if ex_mem.A.is_valid = VALID then
+                reg.A            <= ex_mem.A;
+                -- A contents
+                reg_content.A.alu <= exmem_content.A.alu.result;
+                reg_content.A.rd  <= exmem_content.A.rd;
+                reg_content.A.we  <= exmem_content.A.cntrl.wb;
+                reg_content.A.me  <= exmem_content.A.cntrl.mem;
+                
+                if ex_mem.B.is_valid = VALID then
+                    -- B contents 
+                    reg.B             <= ex_mem.B;
+                    reg_content.B.alu <= exmem_content.B.alu.result;
+                    reg_content.B.rd  <= exmem_content.B.rd;
+                    reg_content.B.we  <= exmem_content.B.cntrl.wb;
+                    reg_content.B.me  <= exmem_content.B.cntrl.mem;
+                end if;
+                
+                if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
+                    reg_content.A.mem <= memA_result;
+                    if ex_mem.B.is_valid = VALID then
+                        reg_content.B.mem <= (others => '0');
+                    end if;
+                elsif mem_stall = REL_B then
+                    reg_content.A.mem <= (others => '0');
+                    if ex_mem.B.is_valid = VALID then
+                        reg_content.B.mem <= memA_result;
+                    end if;
+                else
+                    reg_content.A.mem <= (others => '0');
+                    if ex_mem.B.is_valid = VALID then
+                        reg_content.B.mem <= (others => '0');
+                    end if;
+                end if;
+                
+           end if;
         end if;    
     end process;
 

@@ -64,7 +64,7 @@ package ENUM_T is
         HOLD_B, 
         B_INVALID, 
         NONE_h, REL_A_NH, REL_A_WH, REL_B,
-        SEND_A, NOT_READY, SEND_BOTH
+        SEND_A, NOT_READY, SEND_BOTH, RE_ORDER, NORMAL_AGAIN
     );
     
     

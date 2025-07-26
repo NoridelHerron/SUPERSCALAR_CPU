@@ -85,19 +85,26 @@ begin
             reg_content_v := EX_val;
             reOrder_v     := '0';
             
-            if reOrder = '1' then
+            if reOrder = '1' and (reg_content_v.A.cntrl.mem /= MEM_READ or reg_content_v.A.cntrl.mem /= MEM_WRITE)  then
                 reOrder_v       := '0'; 
                 reg_v.A         := re_reg;
                 reg_content_v.A := re_val;
                 reg_v.B         := EX.A;
                 reg_content_v.B := EX_val.A;
                 reset_stall     <= '1';
+                
+            elsif reOrder = '1' and (reg_content_v.A.cntrl.mem = MEM_READ or reg_content_v.A.cntrl.mem = MEM_WRITE)  then
+                reOrder_v       := '0'; 
+                reg_v.A         := re_reg;
+                reg_content_v.A := re_val;
+                reg_v.B         := reg_v.B;
+                reg_content_v.B := reg_content.B;
             
             elsif is_busy = REL_A_WH then   
-                reOrder_v := '1';
-                re_reg_v  := reg_v.B;
-                re_val_v  := EX_val.B;
-                
+                reOrder_v        := '1';
+                re_reg_v         := reg_v.B;
+                re_val_v         := EX_val.B;
+                reg_v.B.is_valid := INVALID;
             else
                 -- default
             end if;

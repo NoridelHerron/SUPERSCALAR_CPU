@@ -45,12 +45,13 @@ begin
         elsif rising_edge(clk) then
             if mem_stall = REL_A_WH then
                 reg.A        <= if_stage.A; 
+                re_stage_reg <= if_stage.B;   
                 reOrder      <= '1';
             else  
                 if reOrder = '1' then
-                    reg.A        <= if_stage.A; 
-                    re_stage_reg <= if_stage.B;   
-                    reOrder      <= '0';
+                    reg.A   <= if_stage.A; 
+                    reg.B   <= re_stage_reg; 
+                    reOrder <= '0';
                 else
                     if if_stage.A.is_valid = VALID then  
                         reg.A <= if_stage.A; 
