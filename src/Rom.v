@@ -14,8 +14,7 @@ module rom (
     reg [31:0] rom [0:1023];
     reg [31:0] temp_instr, temp_instr2;
     reg [14:0] temp;
-    reg [4:0]  reg_source;
-    reg [4:0]  rand, rand_ishaz;
+    reg [4:0]  reg_source1, reg_source2, reg_des; 
 
     //===== RISC-V Opcodes (Only allowed types)=====
     localparam [6:0]
@@ -27,7 +26,7 @@ module rom (
         OPCODE_B_TYPE = 7'b1100011;
 
     // ============= Function to generate the instructions ======================
-
+/*
     function [31:0] generate_instruction;
         input integer type_sel;
         reg [4:0]  rd, rs1, rs2;
@@ -108,17 +107,17 @@ module rom (
             generate_instruction = instr;
         end
     endfunction
-    
+    */
     function [14:0] generate_registers;
         input integer type_sel;
         input reg [4:0] rd;
         reg [14:0] rand_reg;
         begin
-            case (type_sel)
+            case (type_sel) // rd = rand_reg[14:10], rs1 = rand_reg[9:5], rs1 = rand_reg[4:0]
                0 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] = rd; rand_reg[4:0] = $urandom_range(1, 31); end 
                1 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = rd; end 
                2 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] = rd; rand_reg[4:0] = rd; end 
-               3 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = $urandom_range(0, 31); end 
+               3 : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = $urandom_range(1, 31); end 
                default : begin rand_reg[14:10] = $urandom_range(1, 31); rand_reg[9:5] =  $urandom_range(1, 31); rand_reg[4:0] = $urandom_range(1, 31); end 
             endcase
         generate_registers = rand_reg;
@@ -148,31 +147,31 @@ module rom (
         
         // Ensure the result of the 10 instructions are store, so when I check load I can expect some value from the memory.
         for (i = 10; i < 20; i = i + 1) begin  //  Include S-type
-            rand        = $urandom_range(0, 5);
             temp_instr  = rom[i - 10];  
             //temp       = generate_registers (rand, temp_instr[11:7]);
             //rom[i]     = { 7'b0, temp[4:0], temp[9:5], 3'b010,  temp[14:10], OPCODE_S_TYPE};
             rom[i]      = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
-            temp_instr2 = rom[i];
-            reg_source  = temp_instr2[24:20];
-            $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], reg_source);
+            $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], temp_instr[11:7]);
         end
         
         for (i = 20; i < 26; i = i + 1) begin
-            temp = generate_registers (3, $urandom_range(1, 31));
+            temp_instr  = rom[i - 20];  
+            temp = generate_registers (3,  temp_instr[11:7]);
             rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
             $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
         end
         
-        for (i = 26; i < 50; i = i + 1) begin
+        for (i = 26; i < 41; i = i + 1) begin
             temp_instr = rom[i - 16];
-            rom[i]     = { 7'b0, 5'b0, temp_instr[24:20], 3'b000,  temp[14:10], OPCODE_LOAD}; //  LOAD
+            temp = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
+            rom[i]     = { 7'b0, 5'b0, temp_instr[4:0], 3'b000,  temp[14:10], OPCODE_LOAD}; //  LOAD
             $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], temp[14:10] ,temp_instr[24:20]);
         end
         
-        for (i = 50; i < 60; i = i + 1) begin
-            temp = generate_registers (3, 5'b0);
-            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  I_IMME
+        for (i = 41; i < 60; i = i + 1) begin
+            temp_instr = rom[i - 21];
+            temp = generate_registers ($urandom_range(0, 3), temp_instr[11:7]);
+            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
             $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
         end
         /*

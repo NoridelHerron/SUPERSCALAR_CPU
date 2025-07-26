@@ -50,6 +50,7 @@ begin
                 if reOrder = '1' then
                     reg.A        <= if_stage.A; 
                     re_stage_reg <= if_stage.B;   
+                    reOrder      <= '0';
                 else
                     if if_stage.A.is_valid = VALID then  
                         reg.A <= if_stage.A; 

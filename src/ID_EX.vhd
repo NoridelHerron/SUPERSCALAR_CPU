@@ -59,27 +59,21 @@ begin
             
         elsif rising_edge(clk) then 
             if mem_stall = REL_A_WH then
+                reOrder  <= '1';
+                
+            elsif reOrder = '1' and mem_stall = NONE_h then
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
                     id_reg.A          <= id.A;
                     id_reg_c.A        <= id_c.A;
                     datas_reg.one     <= datas_in.one;  
-                    reOrder           <= '1';
+                    reOrder           <= '0';
                     re_stage_reg      <= id_stage.B;
                     re_id_reg         <= id.B;
                     re_id_reg_c       <= id_c.B;
                     re_datas_reg      <= datas_in.two; 
                 end if;
-            elsif reOrder = '1' then
-                id_ex_stage_reg.A <= re_stage_reg;
-                id_reg.A          <= re_id_reg;
-                id_reg_c.A        <= re_id_reg_c;
-                datas_reg.one     <= re_datas_reg; 
-                id_ex_stage_reg.B <= id_stage.A;
-                id_reg.B          <= id.A;
-                id_reg_c.B        <= id_c.A;
-                datas_reg.two     <= datas_in.one; 
-                reOrder           <= '0';
+
             else  
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
