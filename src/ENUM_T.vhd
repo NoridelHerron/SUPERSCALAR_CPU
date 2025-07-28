@@ -63,7 +63,7 @@ package ENUM_T is
         FORW_FROM_A, 
         HOLD_B, 
         B_INVALID, 
-        NONE_h
+        NONE_h, NEXT_A_STALL, REL_B, REL_A_STALL_B, REL_A_NS
     );
     
     

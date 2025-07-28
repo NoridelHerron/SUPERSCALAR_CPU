@@ -14,6 +14,7 @@ use work.ENUM_T.all;
 entity MEM_STA is 
     Port (   
             clk       : in  std_logic; 
+            data_in   : in  std_logic_vector(DATA_WIDTH-1 downto 0);   
             ex_mem    : in  std_logic_vector(DATA_WIDTH-1 downto 0);   
             ex_mem_c  : in  CONTROL_SIG;   
             -- Outputs to MEM/WB pipeline register
@@ -36,7 +37,7 @@ begin
                     clk         => clk,
                     cntrl       => ex_mem_c,
                     address     => mem_address,
-                    write_data  => ex_mem,
+                    write_data  => data_in,
                     read_data   => mem
                 );
    

@@ -102,12 +102,13 @@ begin
         end if;
  
         -- STALL B
-        if ID.A.op = "0000011" and  ID.A.rd /= ZERO_5bits and (ID.A.rd = ID.B.rs1 or ID.A.rd = ID.B.rs2)then
+        -- regular data hazard due to lw
+        if ID.A.op = LOAD and  ID.A.rd /= ZERO_5bits and (ID.A.rd = ID.B.rs1 or ID.A.rd = ID.B.rs2)then
             temp.B.stall := STALL_FROM_A; 
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
-            temp.B.stall := B_STALL;    
+            temp.B.stall := B_STALL; 
         else
             temp.B.stall := NONE_h;
         end if;

@@ -25,6 +25,7 @@ entity ID_EX is
             id              : in  DECODER_N_INSTR;   
             id_c            : in  control_Type_N;
             datas_in        : in  REG_DATAS;
+            mem_haz         : in  HAZ_SIG;
             id_ex_stage     : out Inst_PC_N;  
             id_ex           : out DECODER_N_INSTR;
             id_ex_c         : out control_Type_N;
@@ -49,20 +50,22 @@ begin
             id_reg_c        <= EMPTY_control_Type_N;
             datas_reg       <= EMPTY_REG_DATAS;
             
-        elsif rising_edge(clk) then    
-            if id_stage.A.is_valid = VALID then
-                id_ex_stage_reg.A <= id_stage.A;
-                id_reg.A          <= id.A;
-                id_reg_c.A        <= id_c.A;
-                datas_reg.one     <= datas_in.one; 
-                
-                if id_stage.B.is_valid = VALID then  
-                    id_ex_stage_reg.B <= id_stage.B;
-                    id_reg.B          <= id.B;
-                    id_reg_c.B        <= id_c.B;
-                    datas_reg.two     <= datas_in.two; 
-                end if;   
-            end if;
+        elsif rising_edge(clk) then 
+            if mem_haz /= REL_A_STALL_B then
+                if id_stage.A.is_valid = VALID then
+                    id_ex_stage_reg.A <= id_stage.A;
+                    id_reg.A          <= id.A;
+                    id_reg_c.A        <= id_c.A;
+                    datas_reg.one     <= datas_in.one; 
+                    
+                    if id_stage.B.is_valid = VALID then  
+                        id_ex_stage_reg.B <= id_stage.B;
+                        id_reg.B          <= id.B;
+                        id_reg_c.B        <= id_c.B;
+                        datas_reg.two     <= datas_in.two; 
+                    end if;   
+                end if;
+             end if;
         end if;
     end process;
 

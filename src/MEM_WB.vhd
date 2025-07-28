@@ -19,10 +19,11 @@ use work.ENUM_T.all;
 entity MEM_WB is
     Port ( 
            clk            : in   std_logic; 
-           reset          : in   std_logic; 
+           reset          : in   std_logic;
            -- inputs from ex_mem register
            ex_mem         : in  Inst_PC_N;
            exmem_content  : in  EX_CONTENT_N;
+           mem_haz        : in HAZ_SIG;
            -- inputs from mem stage
            memA_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0); 
            -- outputs
@@ -59,13 +60,18 @@ begin
             reg_content.B.we  <= exmem_content.B.cntrl.wb;
             reg_content.B.me  <= exmem_content.B.cntrl.mem;
             
-            if exmem_content.A.cntrl.mem = MEM_READ then
-                reg_content.A.mem <= memA_result;
-                reg_content.B.mem <= (others => '0');
-            else
-                reg_content.A.mem <= (others => '0');
-                reg_content.B.mem <= memA_result;
-            end if;
+            case mem_haz is
+                when REL_A_STALL_B | REL_A_NS => 
+                    reg_content.A.mem <= memA_result;
+                    reg_content.B.mem <= (others => '0');
+                when REL_B =>
+                    reg_content.A.mem <= (others => '0');
+                    reg_content.B.mem <= memA_result;
+                when others => 
+                    reg_content.A.mem <= (others => '0');
+                    reg_content.B.mem <= (others => '0');
+            end case;
+        
         end if;    
     end process;
 

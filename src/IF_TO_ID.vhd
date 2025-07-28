@@ -21,6 +21,7 @@ entity IF_TO_ID is
     Port (
            clk       : in  std_logic; 
            reset     : in  std_logic; 
+           mem_haz   : in  HAZ_SIG;
            if_stage  : in  Inst_PC_N;
            if_id     : out Inst_PC_N  
           );
@@ -39,13 +40,15 @@ begin
             reg <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if if_stage.A.is_valid = VALID then  
-                reg.A <= if_stage.A; 
-                --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
-                if if_stage.B.is_valid = VALID then  
-                    reg.B <= if_stage.B;
-                end if;  
-            end if;
+            if mem_haz /= REL_A_STALL_B then
+                if if_stage.A.is_valid = VALID then  
+                    reg.A <= if_stage.A; 
+                    --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
+                    if if_stage.B.is_valid = VALID then  
+                        reg.B <= if_stage.B;
+                    end if;  
+                end if;
+             end if;
         end if;
     end process;
 
