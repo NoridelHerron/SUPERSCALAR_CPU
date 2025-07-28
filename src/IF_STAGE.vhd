@@ -20,6 +20,8 @@ use work.ENUM_T.all;
 entity IF_stage is
     Port ( clk       : in  std_logic; 
            reset     : in  std_logic;
+           haz       : in  HDU_OUT_N;
+           is_send   : in  HAZ_SIG;
            IF_STAGE  : out Inst_PC_N 
     );
 end IF_stage;
@@ -34,6 +36,7 @@ signal instr_fetched : Inst_N     := NOP_Inst_N;
 
 signal temp_reg      : Inst_PC_N  := EMPTY_Inst_PC_N;
 signal after_reset   : std_logic  := '0';
+signal is_memHAZ     : HAZ_SIG    := NONE_h;
 
 begin
     
@@ -55,12 +58,7 @@ begin
             after_reset <= '1';    
             
         elsif rising_edge(clk) then
-            if after_reset = '1' then
-                after_reset <= '0';
-                temp_reg    <= EMPTY_Inst_PC_N;
-                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 8);  
-                
-            else  
+            if is_send = SEND_BOTH then
                 if pc_current = ZERO_32bits then
                     -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
                     temp_reg.A.is_valid <= INVALID; 
@@ -78,6 +76,7 @@ begin
                 -- Assigned fetched instruction
                 temp_reg.A.instr    <= instr_reg.A; 
                 temp_reg.B.instr    <= instr_reg.B; 
+                is_memHAZ           <= NONE_h;
             end if; 
             pc_current <= pc_fetch;    
   

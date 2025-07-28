@@ -50,7 +50,6 @@ signal idex_datas    : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
 -- EX_MEM/MEM
-signal mem_haz       : HAZ_SIG                                 := NONE_h;
 signal mem_ipcv      : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal exmem_value   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
@@ -76,7 +75,6 @@ begin
         idex_cntrl  => idex_cntrl,
         idex_datas  => idex_datas,
         ex_value    => ex_value,
-        memory_haz  => mem_haz,
         mem_ipcv    => mem_ipcv,
         exmem_value => exmem_value,
         mem_value   => mem_value,
