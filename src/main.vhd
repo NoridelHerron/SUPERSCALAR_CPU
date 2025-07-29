@@ -63,6 +63,7 @@ signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
+signal readyOrNot    : HAZ_SIG                                 := NONE_h;
 signal is_busy       : HAZ_SIG                                 := NONE_h;
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_addr_in   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -85,13 +86,14 @@ begin
 ------------------ IF/ID register ---------------------
 -------------------------------------------------------
     U_IF_ID : entity work.IF_TO_ID port map (
-        clk      => clk,
-        reset    => reset,
-        haz      => haz, 
-        is_send  => is_busy,
-        if_stage => if_reg,
+        clk        => clk,
+        reset      => reset,
+        haz        => haz, 
+        is_send    => is_busy,
+        if_stage   => if_reg,
         -- output
-        if_id    => ifid_reg
+        if_id      => ifid_reg,
+        readyOrNot => readyOrNot
     );
 -------------------------------------------------------
 -------------------- ID STAGE -------------------------
@@ -123,6 +125,7 @@ begin
         id_c        => id_c,
         datas_in    => datas,
         haz         => haz,
+        readyOrNot  => readyOrNot,
         is_busy     => is_busy,
         -- outputs
         id_ex_stage => idex_reg,

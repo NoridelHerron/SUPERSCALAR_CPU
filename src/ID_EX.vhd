@@ -26,6 +26,7 @@ entity ID_EX is
             id_c            : in  control_Type_N;
             datas_in        : in  REG_DATAS;
             haz             : in  HDU_OUT_N;
+            readyOrNot      : in HAZ_SIG; 
             is_busy         : out  HAZ_SIG;
             id_ex_stage     : out Inst_PC_N;  
             id_ex           : out DECODER_N_INSTR;
@@ -53,7 +54,7 @@ begin
             datas_reg       <= EMPTY_REG_DATAS;
             
         elsif rising_edge(clk) then 
-            if haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH then
+            if (haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH) and readyOrNot /= HOLD then
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
                     id_reg.A          <= id.A;

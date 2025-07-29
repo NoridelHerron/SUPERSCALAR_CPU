@@ -111,10 +111,6 @@ begin
             temp.B.stall := B_STALL; 
         elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE)) then
             temp.B.stall := REL_A_STALL_B; 
-        elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op /= LOAD or ID_EX.B.op /= S_TYPE))then
-            temp.B.stall := REL_A_NS; 
-        elsif ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE then
-            temp.B.stall := REL_B; 
         else
             temp.B.stall := NONE_h;
         end if;
