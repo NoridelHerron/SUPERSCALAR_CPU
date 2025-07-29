@@ -58,7 +58,7 @@ begin
             after_reset <= '1';    
             
         elsif rising_edge(clk) then
-            if is_send = SEND_BOTH then
+            if haz.B.stall = NONE_h or is_send = SEND_BOTH then
                 if pc_current = ZERO_32bits then
                     -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
                     temp_reg.A.is_valid <= INVALID; 
@@ -76,7 +76,7 @@ begin
                 -- Assigned fetched instruction
                 temp_reg.A.instr    <= instr_reg.A; 
                 temp_reg.B.instr    <= instr_reg.B; 
-                is_memHAZ           <= NONE_h;
+ 
             end if; 
             pc_current <= pc_fetch;    
   

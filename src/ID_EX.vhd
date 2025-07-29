@@ -43,17 +43,6 @@ signal datas_reg        : REG_DATAS        := EMPTY_REG_DATAS;
 signal is_memHAZ        : HAZ_SIG          := NONE_h;
 
 begin
-    process (is_memHAZ, haz)
-    begin
-        if haz.B.stall = REL_A_STALL_B then  
-            is_memHAZ   <= A_BUSY; 
-        elsif is_memHAZ = A_BUSY then    
-            is_memHAZ   <= B_BUSY; 
-        else
-            is_memHAZ <= SEND_BOTH;
-        end if;
-        is_busy <= is_memHAZ;
-    end process;
     
     process(clk, reset)
     begin
@@ -64,21 +53,7 @@ begin
             datas_reg       <= EMPTY_REG_DATAS;
             
         elsif rising_edge(clk) then 
-            if is_memHAZ = A_BUSY then 
-                if id_stage.A.is_valid = VALID then
-                    id_ex_stage_reg.A <= id_stage.A;
-                    id_reg.A          <= id.A;
-                    id_reg_c.A        <= id_c.A;
-                    datas_reg.one     <= datas_in.one; 
-                end if;
-                
-            elsif is_memHAZ = B_BUSY then
-                id_ex_stage_reg.B <= id_stage.B;
-                id_reg.B          <= id.B;
-                id_reg_c.B        <= id_c.B;
-                datas_reg.two     <= datas_in.two; 
-
-            else
+            if haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH then
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
                     id_reg.A          <= id.A;
@@ -92,7 +67,22 @@ begin
                         datas_reg.two     <= datas_in.two;  
                     end if;  
                 end if;
-                
+            elsif is_memHAZ = B_BUSY then
+                id_ex_stage_reg.B <= id_stage.B;
+                id_reg.B          <= id.B;
+                id_reg_c.B        <= id_c.B;
+                datas_reg.two     <= datas_in.two; 
+                is_memHAZ         <= SEND_BOTH;
+    
+            elsif haz.B.stall = REL_A_STALL_B then 
+                if id_stage.A.is_valid = VALID then
+                    id_ex_stage_reg.A <= id_stage.A;
+                    id_reg.A          <= id.A;
+                    id_reg_c.A        <= id_c.A;
+                    datas_reg.one     <= datas_in.one; 
+                end if;
+                is_memHAZ <= B_BUSY;
+   
              end if;
         end if;
     end process;
@@ -102,5 +92,6 @@ begin
     id_ex       <= id_reg;
     id_ex_c     <= id_reg_c;
     datas_out   <= datas_reg;
+    is_busy     <= is_memHAZ;
 
 end Behavioral;

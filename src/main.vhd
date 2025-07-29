@@ -29,6 +29,7 @@ entity main is
             id_haz      : out HDU_OUT_N;      
             id_datas    : out REG_DATAS;
             ex_ipcv     : out Inst_PC_N; 
+            ex_is_busy  : out HAZ_SIG;
             idex_value  : out DECODER_N_INSTR;
             idex_cntrl  : out control_Type_N;  
             idex_datas  : out REG_DATAS;
@@ -218,6 +219,7 @@ id_cntrl    <= id_c;
 id_haz      <= haz;
 id_datas    <= datas;
 ex_ipcv     <= idex_reg;
+ex_is_busy  <= is_busy;
 idex_value  <= id_ex_val;
 idex_cntrl  <= id_ex_c;
 idex_datas  <= id_ex_datas;

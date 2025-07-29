@@ -44,6 +44,7 @@ signal id_datas      : REG_DATAS          := EMPTY_REG_DATAS;
 
 -- ID_EX/EX
 signal ex_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal ex_is_busy    : HAZ_SIG            := NONE_h;
 signal idex_value    : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
 signal idex_cntrl    : control_Type_N     := EMPTY_control_Type_N;
 signal idex_datas    : REG_DATAS          := EMPTY_REG_DATAS;
@@ -71,6 +72,7 @@ begin
         id_haz      => id_haz,  
         id_datas    => id_datas,
         ex_ipcv     => ex_ipcv,
+        ex_is_busy  => ex_is_busy,
         idex_value  => idex_value,
         idex_cntrl  => idex_cntrl,
         idex_datas  => idex_datas,
