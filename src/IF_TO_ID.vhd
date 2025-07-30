@@ -42,7 +42,7 @@ begin
             reg <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if haz.B.stall = NONE_h or is_send = SEND_BOTH then
+            if (haz.B.stall = NONE_h or is_send = SEND_BOTH) and is_send /= B_STILL_BUSY then
                 if if_stage.A.is_valid = VALID then  
                     reg.A <= if_stage.A; 
                     --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
@@ -51,6 +51,7 @@ begin
                     end if;  
                     readyOrNot <= READY;
                 end if;
+                
              else
                 readyOrNot <= HOLD;
              end if; 

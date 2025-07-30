@@ -54,42 +54,60 @@ begin
             datas_reg       <= EMPTY_REG_DATAS;
             
         elsif rising_edge(clk) then 
-            if (haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH) and readyOrNot /= HOLD then
+            if is_memHAZ = B_STILL_BUSY then
+                is_memHAZ  <= SEND_BOTH;
+                
+            elsif readyOrNot = READY and haz.B.stall = REL_A_STALL_B then  
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
                     id_reg.A          <= id.A;
                     id_reg_c.A        <= id_c.A;
-                    datas_reg.one     <= datas_in.one; 
-                    
-                    if id_stage.B.is_valid = VALID then  
-                        id_ex_stage_reg.B <= id_stage.B;
-                        id_reg.B          <= id.B;
-                        id_reg_c.B        <= id_c.B;
-                        datas_reg.two     <= datas_in.two;  
-                    end if;  
-                end if;
-            elsif is_memHAZ = B_BUSY then
-                id_ex_stage_reg.B <= id_stage.B;
-                id_reg.B          <= id.B;
-                id_reg_c.B        <= id_c.B;
-                datas_reg.two     <= datas_in.two; 
-                is_memHAZ         <= SEND_BOTH;
-    
-            elsif haz.B.stall = REL_A_STALL_B then 
-                if id_stage.A.is_valid = VALID then
-                    id_ex_stage_reg.A <= id_stage.A;
-                    id_reg.A          <= id.A;
-                    id_reg_c.A        <= id_c.A;
-                    datas_reg.one     <= datas_in.one; 
+                    datas_reg.one     <= datas_in.one;    
                 end if;
                 is_memHAZ <= B_BUSY;
-   
-             end if;
+    
+            else
+                if (haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH) then
+                    if id_stage.A.is_valid = VALID then
+                        id_ex_stage_reg.A <= id_stage.A;
+                        id_reg.A          <= id.A;
+                        id_reg_c.A        <= id_c.A;
+                        datas_reg.one     <= datas_in.one; 
+                        
+                        if id_stage.B.is_valid = VALID then  
+                            id_ex_stage_reg.B <= id_stage.B;
+                            id_reg.B          <= id.B;
+                            id_reg_c.B        <= id_c.B;
+                            datas_reg.two     <= datas_in.two;  
+                        end if;  
+                    end if;
+                    
+                elsif is_memHAZ = B_BUSY then
+                    id_ex_stage_reg.B <= id_stage.B;
+                    id_reg.B          <= id.B;
+                    id_reg_c.B        <= id_c.B;
+                    datas_reg.two     <= datas_in.two; 
+                    
+                    if (id_c.A.mem = MEM_READ or id_c.A.mem = MEM_WRITE) and 
+                       (id_reg_c.B.mem = MEM_READ or id_reg_c.B.mem = MEM_WRITE) then  
+                       is_memHAZ <= B_STILL_BUSY;
+                    else
+                        is_memHAZ  <= SEND_BOTH;
+                    end if;
+ 
+                 end if;
+            end if;
         end if;
     end process;
 
     -- Assign outputs
-    id_ex_stage <= id_ex_stage_reg;
+    id_ex_stage.A.instr    <= id_ex_stage_reg.A.instr;
+    id_ex_stage.A.pc       <= id_ex_stage_reg.A.pc;
+    id_ex_stage.A.is_valid <= INVALID when is_memHAZ = B_BUSY or is_memHAZ = B_STILL_BUSY else VALID;
+    
+    id_ex_stage.B.instr    <= id_ex_stage_reg.B.instr;
+    id_ex_stage.B.pc       <= id_ex_stage_reg.B.pc;
+    id_ex_stage.B.is_valid <= VALID when haz.B.stall = NONE_h or is_memHAZ = SEND_BOTH or is_memHAZ = B_BUSY else INVALID;
     id_ex       <= id_reg;
     id_ex_c     <= id_reg_c;
     datas_out   <= datas_reg;

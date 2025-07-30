@@ -108,7 +108,7 @@ begin
         elsif ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.B.rs1 or ID_EX.A.rd = ID.B.rs2) then
             temp.B.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
-            temp.B.stall := B_STALL; 
+            temp.B.stall := B_STALL;    
         elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE)) then
             temp.B.stall := REL_A_STALL_B; 
         else

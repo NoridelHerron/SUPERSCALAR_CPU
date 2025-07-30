@@ -166,13 +166,13 @@ begin
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
-    process (ex_mem_val)
+    process (exmem_reg, ex_mem_val)
     begin
-        if (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) then
+        if exmem_reg.A.is_valid = VALID and (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) then
             mem_addr_in <= ex_mem_val.A.alu.result;
             mem_val_in  <= ex_mem_val.A.S_data;
             isLwOrSw    <= ex_mem_val.A.cntrl.mem;
-        elsif (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+        elsif exmem_reg.B.is_valid = VALID and (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
             mem_addr_in <= ex_mem_val.B.alu.result;
             mem_val_in  <= ex_mem_val.B.S_data;
             isLwOrSw    <= ex_mem_val.B.cntrl.mem;
