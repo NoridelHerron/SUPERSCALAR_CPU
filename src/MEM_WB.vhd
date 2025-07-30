@@ -19,11 +19,10 @@ use work.ENUM_T.all;
 entity MEM_WB is
     Port ( 
            clk            : in   std_logic; 
-           reset          : in   std_logic; 
+           reset          : in   std_logic;
            -- inputs from ex_mem register
            ex_mem         : in  Inst_PC_N;
            exmem_content  : in  EX_CONTENT_N;
-           mem_stall      : in  HAZ_SIG;
            -- inputs from mem stage
            memA_result    : in  std_logic_vector(DATA_WIDTH-1 downto 0); 
            -- outputs
@@ -47,41 +46,30 @@ begin
             reg_content <= EMPTY_MEM_CONTENT_N;
         
         elsif rising_edge(clk) then
-            if ex_mem.A.is_valid = VALID then
-                reg.A            <= ex_mem.A;
-                -- A contents
-                reg_content.A.alu <= exmem_content.A.alu.result;
-                reg_content.A.rd  <= exmem_content.A.rd;
-                reg_content.A.we  <= exmem_content.A.cntrl.wb;
-                reg_content.A.me  <= exmem_content.A.cntrl.mem;
-                
-                if ex_mem.B.is_valid = VALID then
-                    -- B contents 
-                    reg.B             <= ex_mem.B;
-                    reg_content.B.alu <= exmem_content.B.alu.result;
-                    reg_content.B.rd  <= exmem_content.B.rd;
-                    reg_content.B.we  <= exmem_content.B.cntrl.wb;
-                    reg_content.B.me  <= exmem_content.B.cntrl.mem;
-                end if;
-                
-                if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
-                    reg_content.A.mem <= memA_result;
-                    if ex_mem.B.is_valid = VALID then
-                        reg_content.B.mem <= (others => '0');
-                    end if;
-                elsif mem_stall = REL_B then
+            reg               <= ex_mem;
+            -- A contents
+            reg_content.A.alu <= exmem_content.A.alu.result;
+            reg_content.A.rd  <= exmem_content.A.rd;
+            reg_content.A.we  <= exmem_content.A.cntrl.wb;
+            reg_content.A.me  <= exmem_content.A.cntrl.mem;
+            -- B contents 
+            
+            reg_content.B.alu <= exmem_content.B.alu.result;
+            reg_content.B.rd  <= exmem_content.B.rd;
+            reg_content.B.we  <= exmem_content.B.cntrl.wb;
+            reg_content.B.me  <= exmem_content.B.cntrl.mem;
+            
+            if (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
+                reg_content.A.mem <= memA_result;
+                reg_content.B.mem <= (others => '0');
+            elsif (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
                     reg_content.A.mem <= (others => '0');
-                    if ex_mem.B.is_valid = VALID then
-                        reg_content.B.mem <= memA_result;
-                    end if;
-                else
+                    reg_content.B.mem <= memA_result;
+            else
                     reg_content.A.mem <= (others => '0');
-                    if ex_mem.B.is_valid = VALID then
-                        reg_content.B.mem <= (others => '0');
-                    end if;
-                end if;
-                
-           end if;
+                    reg_content.B.mem <= (others => '0');
+            end if;
+        
         end if;    
     end process;
 

@@ -35,7 +35,8 @@ end ID_STAGE;
 
 architecture Behavioral of ID_STAGE is
 
-signal decoded      : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
+signal decoded  : DECODER_N_INSTR := EMPTY_DECODER_N_INSTR; 
+signal haz_temp : HDU_OUT_N       := EMPTY_HDU_OUT_N;
 
 begin
 --------------------------------------------------------
@@ -89,7 +90,7 @@ begin
             ID       => decoded,
             reg_data => datas
         );
-        
+  
     ID <= decoded;
     
 end Behavioral;

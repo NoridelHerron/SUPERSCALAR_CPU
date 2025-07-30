@@ -29,13 +29,13 @@ entity main is
             id_haz      : out HDU_OUT_N;      
             id_datas    : out REG_DATAS;
             ex_ipcv     : out Inst_PC_N; 
+            ex_is_busy  : out HAZ_SIG;
             idex_value  : out DECODER_N_INSTR;
             idex_cntrl  : out control_Type_N;  
             idex_datas  : out REG_DATAS;
             ex_value    : out EX_CONTENT_N;
             mem_ipcv    : out Inst_PC_N; 
             exmem_value : out EX_CONTENT_N;  
-            mem_haz     : out HAZ_SIG;
             mem_value   : out std_logic_vector(DATA_WIDTH-1 downto 0); 
             wb_ipcv     : out Inst_PC_N; 
             memwb_value : out MEM_CONTENT_N;
@@ -62,10 +62,11 @@ signal ex_mem_val    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
+signal readyOrNot    : HAZ_SIG                                 := NONE_h;
+signal is_busy       : HAZ_SIG                                 := NONE_h;
 
-signal mem_stall     : HAZ_SIG                                 := NONE_h;
-signal data_in       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+signal mem_addr_in   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal isLwOrSw      : CONTROL_SIG                             := NONE_c;
 signal mem_val_out   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
@@ -74,10 +75,10 @@ begin
 -------------------- IF STAGE -------------------------
 -------------------------------------------------------
     U_IF : entity work.IF_STAGE port map (
-        clk       => clk,
-        reset     => reset,
-        haz       => haz,
-        mem_stall => mem_stall,
+        clk      => clk,
+        reset    => reset,
+        haz      => haz, 
+        is_send => is_busy,
         -- output
         IF_STAGE  => if_reg
     );
@@ -85,13 +86,14 @@ begin
 ------------------ IF/ID register ---------------------
 -------------------------------------------------------
     U_IF_ID : entity work.IF_TO_ID port map (
-        clk       => clk,
-        reset     => reset,
-        haz       => haz,
-        mem_stall => mem_stall,
-        if_stage  => if_reg,
+        clk        => clk,
+        reset      => reset,
+        haz        => haz, 
+        is_send    => is_busy,
+        if_stage   => if_reg,
         -- output
-        if_id     => ifid_reg
+        if_id      => ifid_reg,
+        readyOrNot => readyOrNot
     );
 -------------------------------------------------------
 -------------------- ID STAGE -------------------------
@@ -123,7 +125,8 @@ begin
         id_c        => id_c,
         datas_in    => datas,
         haz         => haz,
-        mem_stall   => mem_stall,
+        readyOrNot  => readyOrNot,
+        is_busy     => is_busy,
         -- outputs
         id_ex_stage => idex_reg,
         id_ex       => id_ex_val,
@@ -156,7 +159,6 @@ begin
         EX             => idex_reg,
         EX_val         => ex_val,
         -- outputs
-        mem_stall      => mem_stall,
         EX_MEM         => exmem_reg,
         EX_MEM_content => ex_mem_val
     ); 
@@ -164,24 +166,23 @@ begin
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
-    process (mem_stall, ex_mem_val)
+    process (exmem_reg, ex_mem_val)
     begin
-        if (mem_stall = REL_A_WH) or (mem_stall = REL_A_NH) then
-            data_in    <= ex_mem_val.A.S_data;
-            mem_val_in <= ex_mem_val.A.alu.result;
-            isLwOrSw   <= ex_mem_val.A.cntrl.mem;
-            
-        elsif mem_stall = REL_B then
-            data_in    <= ex_mem_val.B.S_data;
-            mem_val_in <= ex_mem_val.B.alu.result;
-            isLwOrSw   <= ex_mem_val.B.cntrl.mem;
+        if exmem_reg.A.is_valid = VALID and (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) then
+            mem_addr_in <= ex_mem_val.A.alu.result;
+            mem_val_in  <= ex_mem_val.A.S_data;
+            isLwOrSw    <= ex_mem_val.A.cntrl.mem;
+        elsif exmem_reg.B.is_valid = VALID and (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
+            mem_addr_in <= ex_mem_val.B.alu.result;
+            mem_val_in  <= ex_mem_val.B.S_data;
+            isLwOrSw    <= ex_mem_val.B.cntrl.mem;
         end if;
     end process;
 
     U_MEM : entity work.MEM_STA port map (
             clk      => clk,
-            data_in  => data_in,
-            ex_mem   => mem_val_in,
+            data_in  => mem_val_in,
+            ex_mem   => mem_addr_in,
             ex_mem_c => isLwOrSw,
             -- Outputs to MEM/WB pipeline register
             mem      => mem_val_out
@@ -198,7 +199,6 @@ begin
            -- inputs from ex_mem register
            ex_mem         => exmem_reg,
            exmem_content  => ex_mem_val,
-           mem_stall      => mem_stall,
            -- inputs from mem stage
            memA_result    => mem_val_out,
            -- outputs
@@ -222,13 +222,13 @@ id_cntrl    <= id_c;
 id_haz      <= haz;
 id_datas    <= datas;
 ex_ipcv     <= idex_reg;
+ex_is_busy  <= is_busy;
 idex_value  <= id_ex_val;
 idex_cntrl  <= id_ex_c;
 idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
 mem_ipcv    <= exmem_reg; 
 exmem_value <= ex_mem_val;   
-mem_haz     <= mem_stall;
 mem_value   <= mem_val_out; 
 wb_ipcv     <= memwb_reg; 
 memwb_value <= mem_wb_val; 

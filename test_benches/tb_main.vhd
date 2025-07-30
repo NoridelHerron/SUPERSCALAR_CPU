@@ -24,42 +24,42 @@ end tb_main;
 
 architecture sim of tb_main is
 
-constant clk_period     : time              := 10 ns;
-signal clk              : std_logic         := '0';
-signal rst              : std_logic         := '1';
+constant clk_period  : time              := 10 ns;
+signal clk           : std_logic         := '0';
+signal rst           : std_logic         := '1';
 
 -- IF
-signal if_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
---signal id_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
---signal ex_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
---signal mem_ipcv         : Inst_PC_N          := EMPTY_Inst_PC_N;
---signal wb_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal if_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
+--signal id_ipcv     : Inst_PC_N          := EMPTY_Inst_PC_N;
+--signal ex_ipcv     : Inst_PC_N          := EMPTY_Inst_PC_N;
+--signal mem_ipcv    : Inst_PC_N          := EMPTY_Inst_PC_N;
+--signal wb_ipcv     : Inst_PC_N          := EMPTY_Inst_PC_N;
 
 -- IF_ID/ID
-signal id_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
-signal id_value         : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
-signal id_cntrl         : control_Type_N     := EMPTY_control_Type_N;
-signal id_haz           : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
-signal id_datas         : REG_DATAS          := EMPTY_REG_DATAS;
+signal id_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal id_value      : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
+signal id_cntrl      : control_Type_N     := EMPTY_control_Type_N;
+signal id_haz        : HDU_OUT_N          := EMPTY_HDU_OUT_N; 
+signal id_datas      : REG_DATAS          := EMPTY_REG_DATAS;
 
 -- ID_EX/EX
-signal ex_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
-signal idex_value       : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
-signal idex_cntrl       : control_Type_N     := EMPTY_control_Type_N;
-signal idex_datas       : REG_DATAS          := EMPTY_REG_DATAS;
-signal ex_value         : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
+signal ex_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal ex_is_busy    : HAZ_SIG            := NONE_h;
+signal idex_value    : DECODER_N_INSTR    := EMPTY_DECODER_N_INSTR;
+signal idex_cntrl    : control_Type_N     := EMPTY_control_Type_N;
+signal idex_datas    : REG_DATAS          := EMPTY_REG_DATAS;
+signal ex_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
 -- EX_MEM/MEM
-signal mem_ipcv         : Inst_PC_N          := EMPTY_Inst_PC_N;
-signal exmem_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
+signal mem_ipcv      : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal exmem_value   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
-signal mem_haz          : HAZ_SIG                                 := NONE_h;
-signal mem_value        : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+signal mem_value     : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 
 -- MEM_WB/WB
-signal wb_ipcv          : Inst_PC_N          := EMPTY_Inst_PC_N;
-signal memwb_value      : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
-signal wb_value         : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
+signal wb_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
+signal memwb_value   : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
+signal wb_value      : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 
 begin
      UUT : entity work.main port map (
@@ -72,13 +72,13 @@ begin
         id_haz      => id_haz,  
         id_datas    => id_datas,
         ex_ipcv     => ex_ipcv,
+        ex_is_busy  => ex_is_busy,
         idex_value  => idex_value,
         idex_cntrl  => idex_cntrl,
         idex_datas  => idex_datas,
         ex_value    => ex_value,
         mem_ipcv    => mem_ipcv,
         exmem_value => exmem_value,
-        mem_haz     => mem_haz,
         mem_value   => mem_value,
         wb_ipcv     => wb_ipcv,
         memwb_value => memwb_value,
