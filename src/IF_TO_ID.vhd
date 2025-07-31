@@ -19,19 +19,18 @@ use work.ENUM_T.all;
 
 entity IF_TO_ID is
     Port (
-           clk        : in  std_logic; 
-           reset      : in  std_logic; 
-           haz        : in  HDU_OUT_N;
-           is_send    : in  HAZ_SIG;
-           if_stage   : in  Inst_PC_N;
-           if_id      : out Inst_PC_N;
-           readyOrNot : out HAZ_SIG 
+           clk       : in  std_logic; 
+           reset     : in  std_logic; 
+           haz       : in  HDU_OUT_N;
+           is_send   : in  HAZ_SIG;
+           if_stage  : in  Inst_PC_N;
+           if_id     : out Inst_PC_N  
           );
 end IF_TO_ID;
 
 architecture Behavioral of IF_TO_ID is
 
-signal reg       : Inst_PC_N := EMPTY_Inst_PC_N;
+signal reg : Inst_PC_N := EMPTY_Inst_PC_N;
 
 begin
 
@@ -42,19 +41,15 @@ begin
             reg <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if (haz.B.stall = NONE_h or is_send = SEND_BOTH) and is_send /= B_STILL_BUSY then
+            if is_send /= A_BUSY or haz.B.stall = NONE_h or haz.B.stall = A_BUSY or haz.B.stall = B_BUSY then
                 if if_stage.A.is_valid = VALID then  
                     reg.A <= if_stage.A; 
                     --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
                     if if_stage.B.is_valid = VALID then  
                         reg.B <= if_stage.B;
                     end if;  
-                    readyOrNot <= READY;
                 end if;
-                
-             else
-                readyOrNot <= HOLD;
-             end if; 
+             end if;
         end if;
     end process;
 

@@ -29,7 +29,7 @@ entity main is
             id_haz      : out HDU_OUT_N;      
             id_datas    : out REG_DATAS;
             ex_ipcv     : out Inst_PC_N; 
-            ex_is_busy  : out HAZ_SIG;
+            mem_is_busy : out HAZ_SIG;
             idex_value  : out DECODER_N_INSTR;
             idex_cntrl  : out control_Type_N;  
             idex_datas  : out REG_DATAS;
@@ -77,10 +77,10 @@ begin
     U_IF : entity work.IF_STAGE port map (
         clk      => clk,
         reset    => reset,
-        haz      => haz, 
-        is_send => is_busy,
+        haz      => haz,
+        is_send  => is_busy,
         -- output
-        IF_STAGE  => if_reg
+        IF_STAGE => if_reg
     );
 -------------------------------------------------------
 ------------------ IF/ID register ---------------------
@@ -88,12 +88,11 @@ begin
     U_IF_ID : entity work.IF_TO_ID port map (
         clk        => clk,
         reset      => reset,
-        haz        => haz, 
+        haz        => haz,
         is_send    => is_busy,
         if_stage   => if_reg,
         -- output
-        if_id      => ifid_reg,
-        readyOrNot => readyOrNot
+        if_id      => ifid_reg
     );
 -------------------------------------------------------
 -------------------- ID STAGE -------------------------
@@ -120,13 +119,12 @@ begin
     U_ID_EX : entity work.ID_EX port map (
         clk         => clk,
         reset       => reset,
+        haz         => haz,
+        is_send     => is_busy,
         id_stage    => ifid_reg,
         id          => id,
         id_c        => id_c,
         datas_in    => datas,
-        haz         => haz,
-        readyOrNot  => readyOrNot,
-        is_busy     => is_busy,
         -- outputs
         id_ex_stage => idex_reg,
         id_ex       => id_ex_val,
@@ -156,8 +154,10 @@ begin
     U_EX_MEM : entity work.EX_TO_MEM port map (
         clk            => clk,
         reset          => reset,
+        haz            => haz,
         EX             => idex_reg,
         EX_val         => ex_val,
+        is_busy        => is_busy,
         -- outputs
         EX_MEM         => exmem_reg,
         EX_MEM_content => ex_mem_val
@@ -222,11 +222,11 @@ id_cntrl    <= id_c;
 id_haz      <= haz;
 id_datas    <= datas;
 ex_ipcv     <= idex_reg;
-ex_is_busy  <= is_busy;
 idex_value  <= id_ex_val;
 idex_cntrl  <= id_ex_c;
 idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
+mem_is_busy <= is_busy;
 mem_ipcv    <= exmem_reg; 
 exmem_value <= ex_mem_val;   
 mem_value   <= mem_val_out; 
