@@ -36,6 +36,7 @@ signal instr_fetched : Inst_N     := NOP_Inst_N;
 
 signal temp_reg      : Inst_PC_N  := EMPTY_Inst_PC_N;
 signal after_reset   : std_logic  := '0';
+signal is_check      : std_logic  := '0';
 
 begin
     
@@ -62,26 +63,33 @@ begin
                 temp_reg    <= EMPTY_Inst_PC_N;
                 pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 8);  
                 
-            else  
-                if is_send /= A_BUSY or haz.B.stall = NONE_h or haz.B.stall = A_BUSY or haz.B.stall = B_BUSY then
-                    if pc_current = ZERO_32bits then
-                        -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
-                        temp_reg.A.is_valid <= INVALID; 
-                        temp_reg.B.is_valid <= INVALID;
-                    else
-                        temp_reg.A.is_valid <= VALID; 
-                        temp_reg.B.is_valid <= VALID;
-                    end if;
-                    -- fetched instruction from U_ROM
-                    instr_reg           <= instr_fetched;
-                    -- increment pcs
-                    pc_fetch            <= std_logic_vector(unsigned(pc_fetch) + 8); 
-                    temp_reg.A.pc       <= pc_current; 
-                    temp_reg.B.pc       <= std_logic_vector(unsigned(pc_current) + 4);
-                    -- Assigned fetched instruction
-                    temp_reg.A.instr    <= instr_reg.A; 
-                    temp_reg.B.instr    <= instr_reg.B; 
-                end if; 
+            else 
+                if (is_send = B_BUSY and haz.A.stall /= B_STILL_BUSY) or is_send = SEND_BOTH or is_send = NONE_h or is_send = B_STILL_BUSY then
+                --if (is_send = A_BUSY and haz.A.stall /= B_STILL_BUSY) or is_send = SEND_BOTH or is_send = NONE_h or (is_send = A_BUSY and haz.A.stall = NONE_h) then
+               -- if haz.A.stall /= B_STILL_BUSY or (haz.A.stall = B_STILL_BUSY and is_check = '0') then
+                  --  if is_send = A_BUSY or haz.B.stall = NONE_h or haz.B.stall = A_BUSY or haz.B.stall = B_BUSY then
+                        if pc_current = ZERO_32bits then
+                            -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
+                            temp_reg.A.is_valid <= INVALID; 
+                            temp_reg.B.is_valid <= INVALID;
+                        else
+                            temp_reg.A.is_valid <= VALID; 
+                            temp_reg.B.is_valid <= VALID;
+                        end if;
+                        -- fetched instruction from U_ROM
+                        instr_reg           <= instr_fetched;
+                        -- increment pcs
+                        pc_fetch            <= std_logic_vector(unsigned(pc_fetch) + 8); 
+                        temp_reg.A.pc       <= pc_current; 
+                        temp_reg.B.pc       <= std_logic_vector(unsigned(pc_current) + 4);
+                        -- Assigned fetched instruction
+                        temp_reg.A.instr    <= instr_reg.A; 
+                        temp_reg.B.instr    <= instr_reg.B; 
+                    --end if; 
+                   -- is_check <= '0';
+               -- else
+                  --  is_check <= '1';
+                end if;
             end if; 
             pc_current <= pc_fetch;    
   

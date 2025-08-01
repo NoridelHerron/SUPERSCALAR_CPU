@@ -67,6 +67,7 @@ package Pipeline_Types is
         forwA       : HAZ_SIG;
         forwB       : HAZ_SIG;
         stall       : HAZ_SIG;
+        stallf      : HAZ_SIG;
     end record;
     
     type HDU_OUT_N is record

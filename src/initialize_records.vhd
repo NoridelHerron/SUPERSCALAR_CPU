@@ -87,7 +87,8 @@ package initialize_records is
     constant EMPTY_HDU_r : HDU_r := (
         forwA      => NONE_h,
         forwB      => NONE_h,
-        stall      => NONE_h
+        stall      => NONE_h,
+        stallf     => NONE_h
     );
     
     constant EMPTY_HDU_OUT_N : HDU_OUT_N := (

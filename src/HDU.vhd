@@ -64,7 +64,10 @@ begin
         if ID_EX_c.A.mem = MEM_READ and  ID_EX.A.rd /= ZERO_5bits and (ID_EX.A.rd = ID.A.rs1 or ID_EX.A.rd = ID.A.rs2) then
             temp.A.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
-            temp.A.stall := B_STALL;     
+            temp.A.stall := B_STALL; 
+            -- Structural hazard 
+        elsif ((ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE) and (ID.A.op = LOAD or ID.A.op = S_TYPE)) then
+            temp.A.stall := B_STILL_BUSY;     
         else
             temp.A.stall := NONE_h;
         end if;

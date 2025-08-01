@@ -62,8 +62,9 @@ signal ex_mem_val    : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 signal memwb_reg     : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
-signal readyOrNot    : HAZ_SIG                                 := NONE_h;
-signal is_busy       : HAZ_SIG                                 := NONE_h;
+signal readyOrNot    : HAZ_SIG            := NONE_h;
+signal is_busy       : HAZ_SIG            := NONE_h;
+signal is_ready      : std_logic          := '0';
 
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_addr_in   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -157,6 +158,7 @@ begin
         haz            => haz,
         EX             => idex_reg,
         EX_val         => ex_val,
+    --    is_ready       => is_ready,
         is_busy        => is_busy,
         -- outputs
         EX_MEM         => exmem_reg,
