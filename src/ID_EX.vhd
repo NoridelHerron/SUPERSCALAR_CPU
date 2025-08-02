@@ -21,8 +21,8 @@ entity ID_EX is
     Port ( 
             clk         : in  std_logic; 
             reset       : in  std_logic; 
+            num_stall   : in  std_logic_vector (1 downto 0);
             haz         : in  HDU_OUT_N;
-            is_send     : in  HAZ_SIG;
             id_stage    : in  Inst_PC_N;
             id          : in  DECODER_N_INSTR;   
             id_c        : in  control_Type_N;
@@ -40,7 +40,6 @@ signal id_ex_stage_reg  : Inst_PC_N        := EMPTY_Inst_PC_N;
 signal id_reg           : DECODER_N_INSTR  := EMPTY_DECODER_N_INSTR;
 signal id_reg_c         : control_Type_N   := EMPTY_control_Type_N;
 signal datas_reg        : REG_DATAS        := EMPTY_REG_DATAS;
-signal is_check         : std_logic        := '0';
 
 begin
 
@@ -53,11 +52,8 @@ begin
             datas_reg       <= EMPTY_REG_DATAS;
             
         elsif rising_edge(clk) then
-            if (is_send = B_BUSY and haz.A.stall /= B_STILL_BUSY) or is_send = SEND_BOTH or is_send = NONE_h or is_send = B_STILL_BUSY then
-            --if (is_send = A_BUSY and haz.A.stall /= B_STILL_BUSY) or is_send = SEND_BOTH or is_send = NONE_h or (is_send = A_BUSY and haz.A.stall = NONE_h) then     
-            --if (is_send = A_BUSY and haz.A.stall /= B_STILL_BUSY) or is_send = SEND_BOTH or is_send = NONE_h then
-            --if haz.A.stall /= B_STILL_BUSY or (haz.A.stall = B_STILL_BUSY and is_check = '0') then
-            --if is_send = A_BUSY or haz.A.stall /= B_STILL_BUSY or haz.B.stall = NONE_h or haz.B.stall = A_BUSY or haz.B.stall = B_BUSY then
+            
+            if num_stall = "00" then
                 if id_stage.A.is_valid = VALID then
                     id_ex_stage_reg.A <= id_stage.A;
                     id_reg.A          <= id.A;
@@ -70,9 +66,6 @@ begin
                         id_reg_c.B        <= id_c.B;
                         datas_reg.two     <= datas_in.two; 
                     end if;  
-               --     is_check <= '0';
-               -- else
-                --    is_check <= '1'; 
                 end if;
             end if;
         end if;

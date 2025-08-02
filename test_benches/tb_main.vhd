@@ -28,6 +28,7 @@ constant clk_period  : time              := 10 ns;
 signal clk           : std_logic         := '0';
 signal rst           : std_logic         := '1';
 
+signal n_stall       : std_logic_vector (1 downto 0) := "00";
 -- IF
 signal if_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
 --signal id_ipcv     : Inst_PC_N          := EMPTY_Inst_PC_N;
@@ -65,6 +66,7 @@ begin
      UUT : entity work.main port map (
         clk         => clk,
         reset       => rst,
+        n_stall     => n_stall,
         if_ipcv     => if_ipcv,
         id_ipcv     => id_ipcv,
         id_value    => id_value,

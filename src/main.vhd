@@ -22,6 +22,7 @@ entity main is
     Port ( 
             clk         : in  std_logic; 
             reset       : in  std_logic;
+            n_stall     : out std_logic_vector (1 downto 0);
             if_ipcv     : out Inst_PC_N;
             id_ipcv     : out Inst_PC_N;
             id_value    : out DECODER_N_INSTR;
@@ -64,7 +65,8 @@ signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 signal readyOrNot    : HAZ_SIG            := NONE_h;
 signal is_busy       : HAZ_SIG            := NONE_h;
-signal is_ready      : std_logic          := '0';
+
+signal num_stall     : std_logic_vector (1 downto 0) := "00";
 
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_addr_in   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -76,12 +78,12 @@ begin
 -------------------- IF STAGE -------------------------
 -------------------------------------------------------
     U_IF : entity work.IF_STAGE port map (
-        clk      => clk,
-        reset    => reset,
-        haz      => haz,
-        is_send  => is_busy,
+        clk       => clk,
+        reset     => reset,
+        num_stall => num_stall,
+        haz       => haz,
         -- output
-        IF_STAGE => if_reg
+        IF_STAGE  => if_reg
     );
 -------------------------------------------------------
 ------------------ IF/ID register ---------------------
@@ -89,8 +91,8 @@ begin
     U_IF_ID : entity work.IF_TO_ID port map (
         clk        => clk,
         reset      => reset,
+        num_stall  => num_stall,
         haz        => haz,
-        is_send    => is_busy,
         if_stage   => if_reg,
         -- output
         if_id      => ifid_reg
@@ -120,8 +122,8 @@ begin
     U_ID_EX : entity work.ID_EX port map (
         clk         => clk,
         reset       => reset,
+        num_stall => num_stall,
         haz         => haz,
-        is_send     => is_busy,
         id_stage    => ifid_reg,
         id          => id,
         id_c        => id_c,
@@ -158,7 +160,7 @@ begin
         haz            => haz,
         EX             => idex_reg,
         EX_val         => ex_val,
-    --    is_ready       => is_ready,
+        num_stall      => num_stall,
         is_busy        => is_busy,
         -- outputs
         EX_MEM         => exmem_reg,
@@ -217,6 +219,7 @@ begin
         );          
     
 -- ASSIGN OUTPUTS
+n_stall     <= num_stall;
 if_ipcv     <= if_reg;
 id_ipcv     <= ifid_reg;
 id_value    <= id;
