@@ -17,7 +17,8 @@ package Pipeline_Types is
     -- PC and instruction for two instructions
     type Inst_PC_N is record
         A           : Inst_PC;     
-        B           : Inst_PC;   
+        B           : Inst_PC; 
+        isMemBusy   : HAZ_SIG;  
     end record;
     
     type Inst_N is record

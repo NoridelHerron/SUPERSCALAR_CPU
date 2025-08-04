@@ -21,8 +21,8 @@ entity IF_TO_ID is
     Port (
            clk       : in  std_logic; 
            reset     : in  std_logic; 
-           num_stall : in  std_logic_vector (1 downto 0);
            haz       : in  HDU_OUT_N;
+           is_send   : in  HAZ_SIG;
            if_stage  : in  Inst_PC_N;
            if_id     : out Inst_PC_N  
           );
@@ -30,8 +30,8 @@ end IF_TO_ID;
 
 architecture Behavioral of IF_TO_ID is
 
-signal reg      : Inst_PC_N := EMPTY_Inst_PC_N;
-signal is_check : std_logic := '0';
+signal reg       : Inst_PC_N := EMPTY_Inst_PC_N;
+signal is_memHAZ : HAZ_SIG   := NONE_h;
 
 begin
 
@@ -39,11 +39,12 @@ begin
     variable temp : Inst_PC_N := EMPTY_Inst_PC_N; 
     begin
         if reset = '1' then  
-            reg <= EMPTY_Inst_PC_N;
+            reg     <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            
-            if num_stall = "00" then
+          --  if is_send = REL_A or is_send = REL_B or (is_send /= NONE_h and haz.B.stall = AB_BUSY) or is_send = MEM_A or (is_send = NONE_h and haz.B.stall = NONE_h)then
+            -- if is_send = REL_A or is_send = REL_B or (is_send = NONE_h and haz.B.stall /= AB_BUSY) or is_send = MEM_A then
+            if is_send = REL_A or is_send = REL_B or is_send = NONE_h or is_send = MEM_A then
                 if if_stage.A.is_valid = VALID then  
                     reg.A <= if_stage.A; 
                     --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
@@ -51,7 +52,7 @@ begin
                         reg.B <= if_stage.B;
                     end if;  
                 end if;
-             end if;
+            end if;
         end if;
     end process;
 

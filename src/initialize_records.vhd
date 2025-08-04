@@ -16,7 +16,8 @@ package initialize_records is
     
     constant EMPTY_Inst_PC_N : Inst_PC_N := (
         A          => EMPTY_inst_pc,
-        B          => EMPTY_inst_pc
+        B          => EMPTY_inst_pc,
+        isMemBusy  => NONE_h
     );
     
     
@@ -34,7 +35,8 @@ package initialize_records is
     
      constant init_Inst_PC_N : Inst_PC_N := (
         A          => tbA_inst_pc,
-        B          => tbB_inst_pc
+        B          => tbB_inst_pc,
+        isMemBusy   => NONE_h
     );
     
     constant NOP_Inst_N : Inst_N := (

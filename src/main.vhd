@@ -22,7 +22,6 @@ entity main is
     Port ( 
             clk         : in  std_logic; 
             reset       : in  std_logic;
-            n_stall     : out std_logic_vector (1 downto 0);
             if_ipcv     : out Inst_PC_N;
             id_ipcv     : out Inst_PC_N;
             id_value    : out DECODER_N_INSTR;
@@ -30,7 +29,7 @@ entity main is
             id_haz      : out HDU_OUT_N;      
             id_datas    : out REG_DATAS;
             ex_ipcv     : out Inst_PC_N; 
-            mem_is_busy : out HAZ_SIG;
+           -- mem_is_busy : out HAZ_SIG;
             idex_value  : out DECODER_N_INSTR;
             idex_cntrl  : out control_Type_N;  
             idex_datas  : out REG_DATAS;
@@ -65,8 +64,7 @@ signal mem_wb_val    : MEM_CONTENT_N      := EMPTY_MEM_CONTENT_N;
 signal wb_val        : WB_CONTENT_N_INSTR := EMPTY_WB_CONTENT_N_INSTR;
 signal readyOrNot    : HAZ_SIG            := NONE_h;
 signal is_busy       : HAZ_SIG            := NONE_h;
-
-signal num_stall     : std_logic_vector (1 downto 0) := "00";
+signal is_ready      : std_logic          := '0';
 
 signal mem_val_in    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
 signal mem_addr_in   : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
@@ -78,12 +76,12 @@ begin
 -------------------- IF STAGE -------------------------
 -------------------------------------------------------
     U_IF : entity work.IF_STAGE port map (
-        clk       => clk,
-        reset     => reset,
-        num_stall => num_stall,
-        haz       => haz,
+        clk      => clk,
+        reset    => reset,
+        haz      => haz,
+        is_send  => idex_reg.isMemBusy,
         -- output
-        IF_STAGE  => if_reg
+        IF_STAGE => if_reg
     );
 -------------------------------------------------------
 ------------------ IF/ID register ---------------------
@@ -91,8 +89,8 @@ begin
     U_IF_ID : entity work.IF_TO_ID port map (
         clk        => clk,
         reset      => reset,
-        num_stall  => num_stall,
         haz        => haz,
+        is_send    => idex_reg.isMemBusy,
         if_stage   => if_reg,
         -- output
         if_id      => ifid_reg
@@ -122,13 +120,13 @@ begin
     U_ID_EX : entity work.ID_EX port map (
         clk         => clk,
         reset       => reset,
-        num_stall => num_stall,
         haz         => haz,
         id_stage    => ifid_reg,
         id          => id,
         id_c        => id_c,
         datas_in    => datas,
         -- outputs
+       -- is_memBusy  => is_busy,
         id_ex_stage => idex_reg,
         id_ex       => id_ex_val,
         id_ex_c     => id_ex_c,
@@ -157,11 +155,8 @@ begin
     U_EX_MEM : entity work.EX_TO_MEM port map (
         clk            => clk,
         reset          => reset,
-        haz            => haz,
         EX             => idex_reg,
         EX_val         => ex_val,
-        num_stall      => num_stall,
-        is_busy        => is_busy,
         -- outputs
         EX_MEM         => exmem_reg,
         EX_MEM_content => ex_mem_val
@@ -219,7 +214,6 @@ begin
         );          
     
 -- ASSIGN OUTPUTS
-n_stall     <= num_stall;
 if_ipcv     <= if_reg;
 id_ipcv     <= ifid_reg;
 id_value    <= id;
@@ -231,7 +225,7 @@ idex_value  <= id_ex_val;
 idex_cntrl  <= id_ex_c;
 idex_datas  <= id_ex_datas;
 ex_value    <= ex_val;
-mem_is_busy <= is_busy;
+--mem_is_busy <= is_busy;
 mem_ipcv    <= exmem_reg; 
 exmem_value <= ex_mem_val;   
 mem_value   <= mem_val_out; 

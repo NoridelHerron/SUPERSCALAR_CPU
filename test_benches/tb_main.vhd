@@ -27,8 +27,6 @@ architecture sim of tb_main is
 constant clk_period  : time              := 10 ns;
 signal clk           : std_logic         := '0';
 signal rst           : std_logic         := '1';
-
-signal n_stall       : std_logic_vector (1 downto 0) := "00";
 -- IF
 signal if_ipcv       : Inst_PC_N          := EMPTY_Inst_PC_N;
 --signal id_ipcv     : Inst_PC_N          := EMPTY_Inst_PC_N;
@@ -51,7 +49,7 @@ signal idex_datas    : REG_DATAS          := EMPTY_REG_DATAS;
 signal ex_value      : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
 -- EX_MEM/MEM
-signal mem_is_busy   : HAZ_SIG            := NONE_h;
+--signal mem_is_busy   : HAZ_SIG            := NONE_h;
 signal mem_ipcv      : Inst_PC_N          := EMPTY_Inst_PC_N;
 signal exmem_value   : EX_CONTENT_N       := EMPTY_EX_CONTENT_N;
 
@@ -66,7 +64,6 @@ begin
      UUT : entity work.main port map (
         clk         => clk,
         reset       => rst,
-        n_stall     => n_stall,
         if_ipcv     => if_ipcv,
         id_ipcv     => id_ipcv,
         id_value    => id_value,
@@ -74,7 +71,7 @@ begin
         id_haz      => id_haz,  
         id_datas    => id_datas,
         ex_ipcv     => ex_ipcv,
-        mem_is_busy => mem_is_busy,
+    --    mem_is_busy => mem_is_busy,
         idex_value  => idex_value,
         idex_cntrl  => idex_cntrl,
         idex_datas  => idex_datas,

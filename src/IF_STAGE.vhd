@@ -20,8 +20,8 @@ use work.ENUM_T.all;
 entity IF_stage is
     Port ( clk       : in  std_logic; 
            reset     : in  std_logic;
-           num_stall : in  std_logic_vector (1 downto 0);
            haz       : in  HDU_OUT_N;
+           is_send   : in  HAZ_SIG;
            IF_STAGE  : out Inst_PC_N 
     );
 end IF_stage;
@@ -54,16 +54,17 @@ begin
             pc_fetch    <= ZERO_32bits;
             pc_current  <= pc_fetch; 
             temp_reg    <= EMPTY_Inst_PC_N;
-            after_reset <= '1';    
+            after_reset <= '1'; 
             
         elsif rising_edge(clk) then
             if after_reset = '1' then
                 after_reset <= '0';
                 temp_reg    <= EMPTY_Inst_PC_N;
-                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 8);  
+                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 8); 
                 
             else 
-                if num_stall = "00" then
+               if is_send = REL_A or is_send = REL_B or is_send = NONE_h or is_send = MEM_A then
+             -- if haz.B.stall = NONE_h or (haz.B.stall = AB_BUSY and is_send = MEM_A) then
                     if pc_current = ZERO_32bits then
                         -- This will cause the instruction to be invalid during the first cycle after reset due to memory delay.
                         temp_reg.A.is_valid <= INVALID; 
@@ -75,16 +76,15 @@ begin
                     -- fetched instruction from U_ROM
                     instr_reg           <= instr_fetched;
                     -- increment pcs
-                    pc_fetch            <= std_logic_vector(unsigned(pc_fetch) + 8); 
-                    temp_reg.A.pc       <= pc_current; 
-                    temp_reg.B.pc       <= std_logic_vector(unsigned(pc_current) + 4);
+                    pc_fetch         <= std_logic_vector(unsigned(pc_fetch) + 8); 
+                    temp_reg.A.pc    <= pc_current; 
+                    temp_reg.B.pc    <= std_logic_vector(unsigned(pc_current) + 4);
                     -- Assigned fetched instruction
-                    temp_reg.A.instr    <= instr_reg.A; 
-                    temp_reg.B.instr    <= instr_reg.B; 
+                    temp_reg.A.instr <= instr_reg.A; 
+                    temp_reg.B.instr <= instr_reg.B; 
+                    pc_current       <= pc_fetch;
                 end if;
             end if; 
-            pc_current <= pc_fetch;    
-  
         end if;
     end process;
     

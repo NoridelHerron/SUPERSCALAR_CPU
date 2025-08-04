@@ -65,9 +65,6 @@ begin
             temp.A.stall := A_STALL;  
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.A.rs1 or ID_EX.B.rd = ID.A.rs2) then
             temp.A.stall := B_STALL; 
-            -- Structural hazard 
-        elsif ((ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE) and (ID.A.op = LOAD or ID.A.op = S_TYPE)) then
-            temp.A.stall := B_STILL_BUSY;     
         else
             temp.A.stall := NONE_h;
         end if;
@@ -113,8 +110,14 @@ begin
         elsif ID_EX_c.B.mem = MEM_READ and  ID_EX.B.rd /= ZERO_5bits and (ID_EX.B.rd = ID.B.rs1 or ID_EX.B.rd = ID.B.rs2) then
             temp.B.stall := B_STALL;   
         -- Structural hazard 
-        elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE)) then
+       -- elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE)) then
+          --  temp.B.stall := AB_BUSY; 
+        elsif ((ID.A.op = LOAD or ID.A.op = S_TYPE) and (ID.B.op = LOAD or ID.B.op = S_TYPE)) then
             temp.B.stall := AB_BUSY; 
+        elsif (ID.A.op = LOAD or ID.A.op = S_TYPE) then
+            temp.B.stall := REL_A; 
+        elsif (ID.B.op = LOAD or ID.B.op = S_TYPE) then
+            temp.B.stall := REL_B; 
         else
            temp.B.stall := NONE_h;
         end if;
