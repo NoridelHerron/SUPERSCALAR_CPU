@@ -52,8 +52,8 @@ begin
             reg_content.A.rd  <= exmem_content.A.rd;
             reg_content.A.we  <= exmem_content.A.cntrl.wb;
             reg_content.A.me  <= exmem_content.A.cntrl.mem;
-            -- B contents 
             
+            -- B contents 
             reg_content.B.alu <= exmem_content.B.alu.result;
             reg_content.B.rd  <= exmem_content.B.rd;
             reg_content.B.we  <= exmem_content.B.cntrl.wb;
@@ -62,12 +62,14 @@ begin
             if (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
                 reg_content.A.mem <= memA_result;
                 reg_content.B.mem <= (others => '0');
+                
             elsif (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
-                    reg_content.A.mem <= (others => '0');
-                    reg_content.B.mem <= memA_result;
+                reg_content.A.mem <= (others => '0');
+                reg_content.B.mem <= memA_result;
+                    
             else
-                    reg_content.A.mem <= (others => '0');
-                    reg_content.B.mem <= (others => '0');
+                reg_content.A.mem <= (others => '0');
+                reg_content.B.mem <= (others => '0');
             end if;
         
         end if;    

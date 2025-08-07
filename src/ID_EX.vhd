@@ -67,27 +67,10 @@ begin
                 id_reg.A          <= id.A;
                 id_reg_c.A        <= id_c.A;
                 datas_reg.one     <= datas_in.one; 
-                
-           --     B_stage_reg <= id_stage.B;
-             --   B_id_reg    <= id.B;
-               -- B_id_reg_c  <= id_c.B;
-              --  B_datas_reg <= datas_in.two; 
-                
                 id_ex_stage_reg.isMemBusy  <= MEM_A;
                 id_ex_stage_reg.B.is_valid <= INVALID;
                 
-         --   elsif is_check = '1' and id_ex_stage_reg.isMemBusy = MEM_A then
-          --      is_check          <= '0';
-            --    id_ex_stage_reg.B <= B_stage_reg;
-             --   id_reg.B          <= B_id_reg;
-             --   id_reg_c.B        <= B_id_reg_c;
-              --  datas_reg.two     <= B_datas_reg; 
-                
-            --    id_ex_stage_reg.isMemBusy  <= MEM_B;
-              --  id_ex_stage_reg.A.is_valid <= INVALID;
-                
              else 
-                
                 is_check        <= '0';
                 id_ex_stage_reg <= id_stage;
                 id_reg          <= id;

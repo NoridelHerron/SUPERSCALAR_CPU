@@ -148,9 +148,8 @@ module rom (
         // Ensure the result of the 10 instructions are store, so when I check load I can expect some value from the memory.
         for (i = 10; i < 20; i = i + 1) begin  //  Include S-type
             temp_instr  = rom[i - 10];  
-            //temp       = generate_registers (rand, temp_instr[11:7]);
-            //rom[i]     = { 7'b0, temp[4:0], temp[9:5], 3'b010,  temp[14:10], OPCODE_S_TYPE};
-            rom[i]      = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
+            //temp        = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
+            rom[i]     = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
             $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], temp_instr[11:7]);
         end
         
@@ -163,9 +162,9 @@ module rom (
         
         for (i = 30; i < 40; i = i + 1) begin
             temp_instr = rom[i - 20];
-            temp = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
-            rom[i]     = { 7'b0, 5'b0, temp_instr[4:0], 3'b000,  temp[14:10], OPCODE_LOAD}; //  LOAD
-            $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], temp[14:10] ,temp_instr[24:20]);
+            reg_des    = $urandom_range(0, 31);
+            rom[i]     = { 7'b0, 5'b0, temp_instr[24:20], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
+            $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], reg_des, temp_instr[24:20]);
         end
         
         for (i = 40; i < 60; i = i + 1) begin

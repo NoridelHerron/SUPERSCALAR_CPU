@@ -41,8 +41,21 @@ begin
             reg_content <= EMPTY_EX_CONTENT_N;
 
         elsif rising_edge(clk) then
-            reg         <= EX;
-            reg_content <= EX_val;
+            if EX.A.is_valid = VALID then
+                reg.A         <= EX.A;
+                reg_content.A <= EX_val.A;
+            else
+                reg.A.is_valid <= INVALID;
+                reg_content.A  <= EMPTY_EX_CONTENT;
+            end if;
+            
+            if EX.B.is_valid = VALID then
+                reg.B         <= EX.B;
+                reg_content.B <= EX_val.B;
+            else
+                reg.B.is_valid <= INVALID;
+                reg_content.B  <= EMPTY_EX_CONTENT;
+            end if;
     
         end if;
     end process;

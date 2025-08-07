@@ -48,8 +48,6 @@ begin
                 is_ready <= '1';
                 reg_h    <= reg;
                 
-          --  elsif is_ready = '1' then    
-            
             else 
                 is_ready <= '0';  
                 if if_stage.A.is_valid = VALID then  
