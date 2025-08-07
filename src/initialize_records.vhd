@@ -14,9 +14,21 @@ package initialize_records is
         is_valid    => INVALID
     );
     
+    constant EMPTY_inst_pc2 : Inst_PC := (
+        pc          => x"00000004",
+        instr       => NOP,
+        is_valid    => INVALID
+    );
+    
     constant EMPTY_Inst_PC_N : Inst_PC_N := (
         A          => EMPTY_inst_pc,
         B          => EMPTY_inst_pc,
+        isMemBusy  => NONE_h
+    );
+    
+    constant EMPTY_Inst_PC_start : Inst_PC_N := (
+        A          => EMPTY_inst_pc,
+        B          => EMPTY_inst_pc2,
         isMemBusy  => NONE_h
     );
     

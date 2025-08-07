@@ -112,12 +112,11 @@ begin
         -- Structural hazard 
        -- elsif ((ID_EX.A.op = LOAD or ID_EX.A.op = S_TYPE) and (ID_EX.B.op = LOAD or ID_EX.B.op = S_TYPE)) then
           --  temp.B.stall := AB_BUSY; 
-        elsif ((ID.A.op = LOAD or ID.A.op = S_TYPE) and (ID.B.op = LOAD or ID.B.op = S_TYPE)) then
-            temp.B.stall := AB_BUSY; 
-        elsif (ID.A.op = LOAD or ID.A.op = S_TYPE) then
-            temp.B.stall := REL_A; 
-        elsif (ID.B.op = LOAD or ID.B.op = S_TYPE) then
-            temp.B.stall := REL_B; 
+        elsif ID.A.op = LOAD and ID.B.op = LOAD then
+            temp.B.stall := ABL_BUSY; 
+            
+        elsif ID.A.op = S_TYPE and ID.B.op = S_TYPE then
+            temp.B.stall := ABS_BUSY; 
         else
            temp.B.stall := NONE_h;
         end if;

@@ -154,21 +154,21 @@ module rom (
             $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], temp_instr[11:7]);
         end
         
-        for (i = 20; i < 26; i = i + 1) begin
+        for (i = 20; i < 30; i = i + 1) begin
             temp_instr  = rom[i - 20];  
-            temp = generate_registers (3,  temp_instr[11:7]);
+            temp = generate_registers ($urandom_range(0, 2),  temp_instr[11:7]);
             rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
             $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
         end
         
-        for (i = 26; i < 41; i = i + 1) begin
-            temp_instr = rom[i - 16];
+        for (i = 30; i < 40; i = i + 1) begin
+            temp_instr = rom[i - 20];
             temp = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
             rom[i]     = { 7'b0, 5'b0, temp_instr[4:0], 3'b000,  temp[14:10], OPCODE_LOAD}; //  LOAD
             $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], temp[14:10] ,temp_instr[24:20]);
         end
         
-        for (i = 41; i < 60; i = i + 1) begin
+        for (i = 40; i < 60; i = i + 1) begin
             temp_instr = rom[i - 21];
             temp = generate_registers ($urandom_range(0, 3), temp_instr[11:7]);
             rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE

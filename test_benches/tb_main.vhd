@@ -101,7 +101,7 @@ begin
         rst <= '0';
         wait;
     end process;
-
+    
     end_simulation : process
     begin
         wait for 10000 ns;

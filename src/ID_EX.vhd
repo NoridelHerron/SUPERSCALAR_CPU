@@ -47,7 +47,7 @@ signal B_id_reg_c       : control_Type     := EMPTY_control_Type;
 signal B_datas_reg      : REG_DATA_PER     := EMPTY_REG_DATA_PER;
 
 signal is_memHAZ        : HAZ_SIG          := NONE_h;
-signal is_done          : std_logic        := '0';
+signal is_check         : std_logic        := '0';
 
 begin
 
@@ -58,50 +58,45 @@ begin
             id_reg          <= EMPTY_DECODER_N_INSTR;
             id_reg_c        <= EMPTY_control_Type_N;
             datas_reg       <= EMPTY_REG_DATAS;
-            is_done         <= '0';
+            is_check        <= '0';
             
         elsif rising_edge(clk) then
-           -- if id_ex_stage_reg.isMemBusy = MEM_A then
-             --   id_ex_stage_reg.B <= B_stage_reg;
-              --  id_reg.B          <= B_id_reg;
-             --   id_reg_c.B        <= B_id_reg_c;
-             --   datas_reg.two     <= B_datas_reg; 
-                
-               -- id_ex_stage_reg.isMemBusy  <= MEM_B;
-              --  id_ex_stage_reg.A.is_valid <= INVALID;
-                
-            if is_done = '0' and haz.B.stall = AB_BUSY then
+            if is_check = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY) then
+                is_check          <= '1';
                 id_ex_stage_reg.A <= id_stage.A;
                 id_reg.A          <= id.A;
                 id_reg_c.A        <= id_c.A;
                 datas_reg.one     <= datas_in.one; 
                 
-                B_stage_reg <= id_stage.B;
-                B_id_reg    <= id.B;
-                B_id_reg_c  <= id_c.B;
-                B_datas_reg <= datas_in.two; 
+           --     B_stage_reg <= id_stage.B;
+             --   B_id_reg    <= id.B;
+               -- B_id_reg_c  <= id_c.B;
+              --  B_datas_reg <= datas_in.two; 
                 
                 id_ex_stage_reg.isMemBusy  <= MEM_A;
                 id_ex_stage_reg.B.is_valid <= INVALID;
-                is_done                    <= '1';
+                
+         --   elsif is_check = '1' and id_ex_stage_reg.isMemBusy = MEM_A then
+          --      is_check          <= '0';
+            --    id_ex_stage_reg.B <= B_stage_reg;
+             --   id_reg.B          <= B_id_reg;
+             --   id_reg_c.B        <= B_id_reg_c;
+              --  datas_reg.two     <= B_datas_reg; 
+                
+            --    id_ex_stage_reg.isMemBusy  <= MEM_B;
+              --  id_ex_stage_reg.A.is_valid <= INVALID;
                 
              else 
-                is_done         <= '0';
+                
+                is_check        <= '0';
                 id_ex_stage_reg <= id_stage;
                 id_reg          <= id;
                 id_reg_c        <= id_c;
                 datas_reg       <= datas_in; 
                 
-                if is_done = '1' and id_ex_stage_reg.isMemBusy = MEM_A then
+                if is_check = '1' and id_ex_stage_reg.isMemBusy = MEM_A then
                     id_ex_stage_reg.isMemBusy  <= MEM_B;
                     id_ex_stage_reg.A.is_valid <= INVALID;
-                    
-                elsif haz.B.stall = REL_A then
-                    id_ex_stage_reg.isMemBusy  <= REL_A;
-                    
-                elsif haz.B.stall = REL_B then
-                    id_ex_stage_reg.isMemBusy  <= REL_B;
-                    
                 else
                     id_ex_stage_reg.isMemBusy  <= NONE_h;
                 end if;

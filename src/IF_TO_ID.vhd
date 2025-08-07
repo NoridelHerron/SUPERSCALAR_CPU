@@ -31,28 +31,37 @@ end IF_TO_ID;
 architecture Behavioral of IF_TO_ID is
 
 signal reg       : Inst_PC_N := EMPTY_Inst_PC_N;
+signal reg_h     : Inst_PC_N := EMPTY_Inst_PC_N;
 signal is_memHAZ : HAZ_SIG   := NONE_h;
+signal is_ready  : std_logic := '0';  
 
 begin
 
     process(clk, reset)
-    variable temp : Inst_PC_N := EMPTY_Inst_PC_N; 
+    variable temp     : Inst_PC_N := EMPTY_Inst_PC_N; 
     begin
         if reset = '1' then  
             reg     <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-          --  if is_send = REL_A or is_send = REL_B or (is_send /= NONE_h and haz.B.stall = AB_BUSY) or is_send = MEM_A or (is_send = NONE_h and haz.B.stall = NONE_h)then
-            -- if is_send = REL_A or is_send = REL_B or (is_send = NONE_h and haz.B.stall /= AB_BUSY) or is_send = MEM_A then
-            if is_send = REL_A or is_send = REL_B or is_send = NONE_h or is_send = MEM_A then
+            if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY) then
+                is_ready <= '1';
+                reg_h    <= reg;
+                
+          --  elsif is_ready = '1' then    
+            
+            else 
+                is_ready <= '0';  
                 if if_stage.A.is_valid = VALID then  
                     reg.A <= if_stage.A; 
-                    --We need to check the validity inside A because, in an in-order pipeline, we can't allow instruction B to proceed if it's invalid.
+                
                     if if_stage.B.is_valid = VALID then  
                         reg.B <= if_stage.B;
                     end if;  
                 end if;
+                
             end if;
+            
         end if;
     end process;
 
