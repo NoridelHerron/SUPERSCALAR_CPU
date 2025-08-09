@@ -43,7 +43,8 @@ package ENUM_T is
         VALID, 
         INVALID, 
         NONE_c, 
-        HOLD
+        HOLD,
+        ISPREV_VALID
     );
     
     attribute enum_encoding : string;
@@ -63,7 +64,7 @@ package ENUM_T is
         FORW_FROM_A, 
         HOLD_B, 
         B_INVALID, 
-        NONE_h, NEXT_A_STALL, MEM_A, MEM_B, ABL_BUSY, ABS_BUSY, B_BUSY, SEND_BOTH, B_STILL_BUSY, READY, A_BUSY, REL_A, REL_B
+        NONE_h, NEXT_A_STALL, MEM_A, MEM_B, ABL_BUSY, ABS_BUSY, B_BUSY, SEND_BOTH, B_STILL_BUSY, READY, A_BUSY, AB_BUSY
     );
     
     

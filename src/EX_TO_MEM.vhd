@@ -22,7 +22,10 @@ entity EX_TO_MEM is
             EX             : in  Inst_PC_N;
             EX_val         : in  EX_CONTENT_N; 
             EX_MEM         : out Inst_PC_N;
-            EX_MEM_content : out EX_CONTENT_N
+            EX_MEM_content : out EX_CONTENT_N;
+            mem_addr       : out std_logic_vector(DATA_WIDTH-1 downto 0);
+            isLwOrSw       : out CONTROL_SIG;
+            mem_data      : out std_logic_vector(DATA_WIDTH-1 downto 0)
         );
 end EX_TO_MEM;
 
@@ -34,6 +37,8 @@ architecture Behavioral of EX_TO_MEM is
 begin
     
     process(clk, reset)
+    variable reg_v         : Inst_PC_N    := EMPTY_Inst_PC_N;
+    variable reg_content_v : EX_CONTENT_N := EMPTY_EX_CONTENT_N;
     begin
         if reset = '1' then
             -- reset everything
@@ -41,22 +46,37 @@ begin
             reg_content <= EMPTY_EX_CONTENT_N;
 
         elsif rising_edge(clk) then
-            if EX.A.is_valid = VALID then
-                reg.A         <= EX.A;
-                reg_content.A <= EX_val.A;
-            else
-                reg.A.is_valid <= INVALID;
-                reg_content.A  <= EMPTY_EX_CONTENT;
-            end if;
+            reg_v         := EX;
+            reg_content_v := EX_val;
             
-            if EX.B.is_valid = VALID then
-                reg.B         <= EX.B;
-                reg_content.B <= EX_val.B;
+            if EX.isMemBusy = MEM_A and (EX_val.A.cntrl.mem = MEM_READ or EX_val.A.cntrl.mem = MEM_WRITE) then
+                mem_addr <= EX_val.A.alu.result;
+                mem_data <= EX_val.A.S_data;
+                isLwOrSw <= EX_val.A.cntrl.mem;
+                
+            elsif EX.isMemBusy = MEM_B and (EX_val.B.cntrl.mem = MEM_READ or EX_val.B.cntrl.mem = MEM_WRITE) then
+                mem_addr <= EX_val.B.alu.result;
+                mem_data <= EX_val.B.S_data;
+                isLwOrSw <= EX_val.B.cntrl.mem;
+            
+            elsif (EX_val.A.cntrl.mem = MEM_READ or EX_val.A.cntrl.mem = MEM_WRITE) then
+                mem_addr <= EX_val.A.alu.result;
+                mem_data <= EX_val.A.S_data;
+                isLwOrSw <= EX_val.A.cntrl.mem;
+            
+            elsif (EX_val.B.cntrl.mem = MEM_READ or EX_val.B.cntrl.mem = MEM_WRITE) then
+                mem_addr <= EX_val.B.alu.result;
+                mem_data <= EX_val.B.S_data;
+                isLwOrSw <= EX_val.B.cntrl.mem;
+            
             else
-                reg.B.is_valid <= INVALID;
-                reg_content.B  <= EMPTY_EX_CONTENT;
+                mem_addr <= ZERO_32bits;
+                mem_data <= ZERO_32bits;
+                isLwOrSw <= NONE_c;
+            
             end if;
-    
+            reg         <= reg_v;
+            reg_content <= reg_content_v;
         end if;
     end process;
 

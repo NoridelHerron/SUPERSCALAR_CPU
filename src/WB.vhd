@@ -21,7 +21,7 @@ begin
     begin
 
         -- Instruction A write-back stage
-        if MEM_WB.A.me = MEM_READ then
+        if MEM_WB.A.me = MEM_READ or MEM_WB.A.me = MEM_WRITE then
             WB_OUT.A.data <= MEM_WB.A.mem;
         else
             WB_OUT.A.data <= MEM_WB.A.alu;
@@ -31,13 +31,12 @@ begin
         WB_OUT.A.we <= MEM_WB.A.we;
 
         -- Instruction B write-back stage
-        if MEM_WB.B.me = MEM_READ then
+        if MEM_WB.B.me = MEM_READ or MEM_WB.B.me = MEM_WRITE then
             WB_OUT.B.data <= MEM_WB.B.mem;
         else
             WB_OUT.B.data <= MEM_WB.B.alu;
         end if;
-
-
+        
         WB_OUT.B.rd <= MEM_WB.B.rd;
         WB_OUT.B.we <= MEM_WB.B.we;
 

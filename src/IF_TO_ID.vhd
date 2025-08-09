@@ -18,6 +18,7 @@ use work.ENUM_T.all;
 --use work.MyFunctions.all;
 
 entity IF_TO_ID is
+    generic (ENABLE_FORWARDING : boolean := isFORW_ON);
     Port (
            clk       : in  std_logic; 
            reset     : in  std_logic; 
@@ -44,9 +45,17 @@ begin
             reg     <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY) then
+           -- if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY or haz.A.stall = A_STALL) then
+           -- if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY or haz.A.stall = A_STALL) then
+          -- if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY or haz.A.stall = A_STALL or
+            --    haz.A.ForwA = MEM_WB_A or haz.A.ForwB = MEM_WB_A or haz.A.ForwA = MEM_WB_B or haz.A.ForwB = MEM_WB_B) then
+            -- if is_ready = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY or haz.A.stall = A_STALL) then
+            if is_ready = '0' and haz.B.stall = AB_BUSY then
                 is_ready <= '1';
-                reg_h    <= reg;
+                
+             elsif ((is_ready = '0') and (not ENABLE_FORWARDING)) and ((haz.A.ForwA = MEM_WB_A) or 
+                   (haz.A.ForwB = MEM_WB_A) or (haz.A.ForwA = MEM_WB_B) or (haz.A.ForwB = MEM_WB_B)) then
+                is_ready <= '1';
                 
             else 
                 is_ready <= '0';  

@@ -35,10 +35,11 @@ end MEM_WB;
 architecture Behavioral of MEM_WB is
 
 signal reg         : Inst_PC_N      := EMPTY_Inst_PC_N;
-signal reg_content : MEM_CONTENT_N := EMPTY_MEM_CONTENT_N;
+signal reg_content : MEM_CONTENT_N  := EMPTY_MEM_CONTENT_N;
 
 begin
     process(clk, reset)
+    variable reg_content_v : MEM_CONTENT_N := EMPTY_MEM_CONTENT_N;
     begin
         if reset = '1' then  
             -- clear everything
@@ -48,30 +49,32 @@ begin
         elsif rising_edge(clk) then
             reg               <= ex_mem;
             -- A contents
-            reg_content.A.alu <= exmem_content.A.alu.result;
-            reg_content.A.rd  <= exmem_content.A.rd;
-            reg_content.A.we  <= exmem_content.A.cntrl.wb;
-            reg_content.A.me  <= exmem_content.A.cntrl.mem;
+            reg_content_v.A.alu := exmem_content.A.alu.result;
+            reg_content_v.A.rd  := exmem_content.A.rd;
+            reg_content_v.A.we  := exmem_content.A.cntrl.wb;
+            reg_content_v.A.me  := exmem_content.A.cntrl.mem;
+            reg_content_v.A.mem := (others => '0');
             
             -- B contents 
-            reg_content.B.alu <= exmem_content.B.alu.result;
-            reg_content.B.rd  <= exmem_content.B.rd;
-            reg_content.B.we  <= exmem_content.B.cntrl.wb;
-            reg_content.B.me  <= exmem_content.B.cntrl.mem;
+            reg_content_v.B.alu := exmem_content.B.alu.result;
+            reg_content_v.B.rd  := exmem_content.B.rd;
+            reg_content_v.B.we  := exmem_content.B.cntrl.wb;
+            reg_content_v.B.me  := exmem_content.B.cntrl.mem;
+            reg_content_v.B.mem := (others => '0');
             
-            if (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
-                reg_content.A.mem <= memA_result;
-                reg_content.B.mem <= (others => '0');
+            if ex_mem.isMemBusy = MEM_A and (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
+                reg_content_v.A.mem := memA_result;
+            
+            elsif ex_mem.isMemBusy = MEM_B and (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
+                reg_content_v.B.mem := memA_result;
+            
+            elsif (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
+                reg_content_v.A.mem := memA_result;
                 
             elsif (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
-                reg_content.A.mem <= (others => '0');
-                reg_content.B.mem <= memA_result;
-                    
-            else
-                reg_content.A.mem <= (others => '0');
-                reg_content.B.mem <= (others => '0');
+                reg_content_v.B.mem := memA_result;  
             end if;
-        
+            reg_content <= reg_content_v;
         end if;    
     end process;
 

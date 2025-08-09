@@ -75,7 +75,8 @@ begin
 -------------------------------------------------------
 -------------------- IF STAGE -------------------------
 -------------------------------------------------------
-    U_IF : entity work.IF_STAGE port map (
+    U_IF : entity work.IF_STAGE
+    port map (
         clk      => clk,
         reset    => reset,
         haz      => haz,
@@ -86,7 +87,8 @@ begin
 -------------------------------------------------------
 ------------------ IF/ID register ---------------------
 -------------------------------------------------------
-    U_IF_ID : entity work.IF_TO_ID port map (
+    U_IF_ID : entity work.IF_TO_ID 
+    port map (
         clk        => clk,
         reset      => reset,
         haz        => haz,
@@ -117,7 +119,8 @@ begin
 -------------------------------------------------------
 ------------------ ID/EX register ---------------------
 -------------------------------------------------------
-    U_ID_EX : entity work.ID_EX port map (
+    U_ID_EX : entity work.ID_EX 
+    port map (
         clk         => clk,
         reset       => reset,
         haz         => haz,
@@ -152,31 +155,23 @@ begin
 -------------------------------------------------------
 ------------------ EX/MEM register ---------------------
 -------------------------------------------------------
-    U_EX_MEM : entity work.EX_TO_MEM port map (
+    U_EX_MEM : entity work.EX_TO_MEM 
+    port map (
         clk            => clk,
         reset          => reset,
         EX             => idex_reg,
         EX_val         => ex_val,
         -- outputs
         EX_MEM         => exmem_reg,
-        EX_MEM_content => ex_mem_val
+        EX_MEM_content => ex_mem_val,
+        mem_addr       => mem_addr_in,
+        isLwOrSw       => isLwOrSw,
+        mem_data       => mem_val_in
     ); 
     
 -------------------------------------------------------
 -------------------- MEM STAGE -------------------------
 -------------------------------------------------------
-    process (exmem_reg, ex_mem_val)
-    begin
-        if exmem_reg.A.is_valid = VALID and (ex_mem_val.A.cntrl.mem = MEM_READ or ex_mem_val.A.cntrl.mem = MEM_WRITE) then
-            mem_addr_in <= ex_mem_val.A.alu.result;
-            mem_val_in  <= ex_mem_val.A.S_data;
-            isLwOrSw    <= ex_mem_val.A.cntrl.mem;
-        elsif exmem_reg.B.is_valid = VALID and (ex_mem_val.B.cntrl.mem = MEM_READ or ex_mem_val.B.cntrl.mem = MEM_WRITE) then
-            mem_addr_in <= ex_mem_val.B.alu.result;
-            mem_val_in  <= ex_mem_val.B.S_data;
-            isLwOrSw    <= ex_mem_val.B.cntrl.mem;
-        end if;
-    end process;
 
     U_MEM : entity work.MEM_STA port map (
             clk      => clk,

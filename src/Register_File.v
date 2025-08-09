@@ -62,10 +62,24 @@ module Register_file(
             regs[rd2] <= wb_data2;
 
     end
-
     // Read logic (combinational)
-    assign rs1_data = (rs1 == 0) ? 32'b0 : regs[rs1];
-    assign rs2_data = (rs2 == 0) ? 32'b0 : regs[rs2];
-    assign rs3_data = (rs3 == 0) ? 32'b0 : regs[rs3];
-    assign rs4_data = (rs4 == 0) ? 32'b0 : regs[rs4];
+    //assign rs1_data = (rs1 == 0) ? 32'b0 : regs[rs1];
+    //assign rs2_data = (rs2 == 0) ? 32'b0 : regs[rs2];
+   // assign rs3_data = (rs3 == 0) ? 32'b0 : regs[rs3];
+   // assign rs4_data = (rs4 == 0) ? 32'b0 : regs[rs4];
+   
+   // WB->ID bypass: If write and read occur on same register in same cycle,
+    // return the value being written (write-first behavior) to avoid WB vs ID hazard.
+    assign rs1_data = (rs1 == 0) ? 32'b0 : ((wb_we1 == 4'd2 && rd1 == rs1) ? wb_data1 :
+            (wb_we2 == 4'd2 && rd2 == rs1) ? wb_data2 : regs[rs1]);
+
+    assign rs2_data = (rs2 == 0) ? 32'b0 : ((wb_we1 == 4'd2 && rd1 == rs2) ? wb_data1 :
+           (wb_we2 == 4'd2 && rd2 == rs2) ? wb_data2 : regs[rs2]);
+    
+    assign rs3_data = (rs3 == 0) ? 32'b0 : ((wb_we1 == 4'd2 && rd1 == rs3) ? wb_data1 :
+           (wb_we2 == 4'd2 && rd2 == rs3) ? wb_data2 : regs[rs3]);
+    
+    assign rs4_data = (rs4 == 0) ? 32'b0 : ((wb_we1 == 4'd2 && rd1 == rs4) ? wb_data1 :
+          (wb_we2 == 4'd2 && rd2 == rs4) ? wb_data2 : regs[rs4]);
+   
 endmodule

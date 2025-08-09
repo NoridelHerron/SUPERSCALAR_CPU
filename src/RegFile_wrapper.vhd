@@ -17,10 +17,10 @@ use work.ENUM_T.all;
 use work.MyFunctions.all;
 
 entity RegFile_wrapper is
-    Port ( clk      : in  std_logic;   
-           WB       : in  WB_CONTENT_N_INSTR;
-           ID       : in  DECODER_N_INSTR;
-           reg_data : out REG_DATAS
+    Port ( clk       : in  std_logic;   
+           WB        : in  WB_CONTENT_N_INSTR;
+           ID        : in  DECODER_N_INSTR;
+           reg_data  : out REG_DATAS
     );
 end RegFile_wrapper;
 

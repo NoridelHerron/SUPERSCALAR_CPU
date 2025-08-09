@@ -23,9 +23,10 @@ entity DATA_MEM is
 end DATA_MEM;
 
 architecture Behavioral of DATA_MEM is
-    -- Declare the memory_array and initialize each element to 0
-    type memory_array is array (0 to DEPTH-1) of std_logic_vector(DATA_WIDTH-1 downto 0); 
-    signal mem : memory_array := (others => (others => '0')); 
+-- Declare the memory_array and initialize each element to 0
+type memory_array is array (0 to DEPTH-1) of std_logic_vector(DATA_WIDTH-1 downto 0); 
+signal mem : memory_array := (others => (others => '0')); 
+
 begin
     process(clk)
     begin

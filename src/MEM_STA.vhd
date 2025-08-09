@@ -13,7 +13,7 @@ use work.ENUM_T.all;
 
 entity MEM_STA is 
     Port (   
-            clk       : in  std_logic; 
+            clk       : in  std_logic;
             data_in   : in  std_logic_vector(DATA_WIDTH-1 downto 0);   
             ex_mem    : in  std_logic_vector(DATA_WIDTH-1 downto 0);   
             ex_mem_c  : in  CONTROL_SIG;   
@@ -28,15 +28,12 @@ signal mem_address : std_logic_vector(LOG2DEPTH - 1 downto 0) := (others => '0')
 
 begin
 
-    -- Extract address bits [11:2] for word-aligned access
-    mem_address <= ex_mem(LOG2DEPTH + 1 downto 2);
-
     -- Memory instance
     memory_block : entity work.DATA_MEM
         port map (
                     clk         => clk,
                     cntrl       => ex_mem_c,
-                    address     => mem_address,
+                    address     => ex_mem(LOG2DEPTH + 1 downto 2), -- Extract address bits [11:2] for word-aligned access
                     write_data  => data_in,
                     read_data   => mem
                 );

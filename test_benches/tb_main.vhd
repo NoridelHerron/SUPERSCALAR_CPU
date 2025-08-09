@@ -17,6 +17,7 @@ use work.ENUM_T.all;
 use work.instruction_generator.all;
 use work.MyFunctions.all;
 use work.decoder_function.all;
+use work.reusable_function.all;
 
 entity tb_main is
 --  Port ( );
