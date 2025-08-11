@@ -61,8 +61,6 @@ begin
             is_check        <= '0';
             
         elsif rising_edge(clk) then
-          --  if is_check = '0' and (haz.B.stall = ABL_BUSY or haz.B.stall = ABS_BUSY) then
-            --datas_reg       <= datas_in; 
             if is_check = '0' and haz.B.stall = AB_BUSY then
                 is_check                   <= '1';
                 id_ex_stage_reg.A          <= id_stage.A;
@@ -74,7 +72,15 @@ begin
                 id_reg_c.B                 <= EMPTY_control_Type;
                 datas_reg.two              <= EMPTY_REG_DATA_PER; 
                 id_ex_stage_reg.isMemBusy  <= MEM_A;
-             
+                
+             elsif is_check = '0' and (haz.A.stall = A_STALL or haz.A.stall = B_STALL) then
+                id_ex_stage_reg.A.is_valid <= ISPREV_VALID;
+                id_ex_stage_reg.B.is_valid <= ISPREV_VALID;
+                id_ex_stage_reg.isMemBusy  <= NONE_h;
+                id_reg                     <= EMPTY_DECODER_N_INSTR;
+                id_reg_c                   <= EMPTY_control_Type_N;
+                datas_reg                  <= EMPTY_REG_DATAS;
+                
              else 
                 is_check        <= '0';
                 id_ex_stage_reg <= id_stage;
