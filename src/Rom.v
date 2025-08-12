@@ -126,21 +126,22 @@ module rom (
     endfunction
    
     // ================= ROM and instruction Initializations ===================
-    integer i, j, k, h = 0;
+    integer i, j, k, h, n;
     initial begin
         
         instr1     = 32'h00000013;
         instr2     = 32'h00000013;
         temp_instr = 32'h00000013;
         temp       = 15'b0;
-        
+        k = 10; 
+        n = 3;
+        j = 0;
         /*
         for (i = 0; i < 1024; i = i + 1) begin
             rom[i] = generate_instruction($urandom_range(0, 5)); // Include R-type
             $display("ROM[%0d] = %h", i, rom[i]);
         end
         */
-        /* Uncomment to check for structural hazard
         for (i = 0; i < 10; i = i + 1) begin
             temp = generate_registers (3, 5'b0);
             rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
@@ -148,85 +149,110 @@ module rom (
         end
         
         // Ensure the result of the 10 instructions are store, so when I check load I can expect some value from the memory.
-        for (i = 10; i < 18; i = i + 1) begin  //  Include S-type
+        for (i = 10; i < 20; i = i + 1) begin  //  Include S-type
             temp_instr  = rom[i - 10];  
-            //temp        = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
             rom[i]     = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
             $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], temp_instr[11:7]);
         end
         
-        for (i = 18; i < 22; i = i + 1) begin
-            temp_instr  = rom[i - 18];  
-            temp = generate_registers ($urandom_range(0, 2),  temp_instr[11:7]);
-            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
-            $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
-        end
-        
-        for (i = 22; i < 30; i = i + 1) begin
-            temp_instr = rom[i - 12];
-            reg_des    = $urandom_range(0, 31);
-            rom[i]     = { 7'b0, 5'b0, temp_instr[24:20], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
-            $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], reg_des, temp_instr[24:20]);
-        end
-        
-        for (i = 30; i < 40; i = i + 1) begin
-            temp_instr = rom[i - 8];
-            temp = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
-            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_R_TYPE}; //  R_TYPE
-            $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
-        end
-        */
-        for (i = 0; i < 10; i = i + 1) begin
-            temp = generate_registers (3, 5'b0);
-            rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
-            $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]);
-        end
-        
-        // Ensure the result of the 10 instructions are store, so when I check load I can expect some value from the memory.
-        for (i = 10; i < 19; i = i + 1) begin  //  Include S-type
-            temp_instr  = rom[i - 10];  
-            //temp        = generate_registers ($urandom_range(0, 2), temp_instr[11:7]);
-            rom[i]     = { 7'b0, temp_instr[11:7], temp_instr[11:7], 3'b010,  5'b0, OPCODE_S_TYPE};
-            $display("ROM[%0d] = %h, sw x%0d 0(x%0d)", i, rom[i], temp_instr[11:7], temp_instr[11:7]);
-        end
-        
-        for (i = 19; i < 40; i = i + 1) begin
-            if (j == 0 || j == 1) begin
-                temp_instr = rom[i - 18];
-                reg_des    = $urandom_range(0, 31);
-                rom[i]     = { 7'b0, 5'b0, temp_instr[11:7], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
-                $display("ROM[%0d] = %h, lw x%d, 0(x%d)", i, rom[i], reg_des, temp_instr[11:7]);
-                j = j + 1;
-                
-            end else if (j == 2) begin
-                if ($urandom_range(0, 10) > 5) begin
-                    temp_instr  = rom[i - 1];  
-                end else begin
-                    temp_instr  = rom[i - 2];  
-                end
-                reg_des    = $urandom_range(2, 31); 
-                reg_source = $urandom_range(2, 31);
-                if ($urandom_range(0, 10) > 5) begin
-                    temp_instr2 = { 7'b0, reg_source, temp_instr[11:7], 3'b000,  reg_des, OPCODE_R_TYPE}; //  R_TYPE
-                end else begin
-                    temp_instr2 = { 7'b0, temp_instr[11:7], reg_source, 3'b000,  reg_des, OPCODE_R_TYPE}; //  R_TYPE
-                end
-                
-                rom[i] = temp_instr2;
-                
-                $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, rom[i], temp_instr2[11:7], temp_instr2[19:15], temp_instr2[24:20]);
-                j = j + 1;
+        // instruction 2b will be dependent to instruction 1a
+        for (i = 20, j = 0, k = 10; i < 40; i = i + 1) begin 
+            
+            reg_des    = $urandom_range(2, 31);
+            reg_source  = $urandom_range(2, 5);
+            
+            if (j == 0) begin
+                temp_instr  = rom[k];  
+                temp_instr2 = { 7'b0, reg_source, temp_instr[24:20], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
+                k = k + 1;
+                $display("ROM[%0d] = %h, lw x%0d %d(x%0d)", i, temp_instr2, temp_instr2[11:7], temp_instr2[24:20], temp_instr2[19:15]);
+               
+            end else if (j == 1 || j == 2) begin
+                temp = generate_registers (3, 5'b0);
+                temp_instr2 = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
+                $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, temp_instr2, temp[14:10] ,temp[9:5] ,temp[4:0]); 
                 
             end else begin
-                temp = generate_registers (3, 5'b0);
-                rom[i] = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
-                $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, rom[i], temp[14:10] ,temp[9:5] ,temp[4:0]); 
+                temp_instr  = rom[i - 3]; 
+                if (temp_instr[6:0] == OPCODE_S_TYPE) begin
+                    temp_instr2 = { 7'b0, temp_instr[24:20], reg_source,  3'b000, reg_des, OPCODE_R_TYPE};
+                end else begin
+                    temp_instr2 = { 7'b0, reg_source, temp_instr[11:7], 3'b000, reg_des, OPCODE_R_TYPE};
+                end
+                $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, temp_instr2, temp_instr2[11:7], temp_instr2[19:15], temp_instr2[24:20]);
+            end
+            rom[i] = temp_instr2;
+            if ( j == 3) begin
                 j = 0;
+            end else begin
+                j = j + 1;
+            end
+            
+        end
+        
+        // instruction 2b will be dependent to instruction 1b
+        for (i = 40, j = 0, k = 10; i < 60; i = i + 1) begin 
+            reg_des    = $urandom_range(2, 31);
+            reg_source  = $urandom_range(2, 5);
+            
+            if (j == 0 || j == 2) begin
+                temp = generate_registers (3, 5'b0);
+                temp_instr2 = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
+                $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, temp_instr2, temp[14:10] ,temp[9:5] ,temp[4:0]); 
                 
+            end else if ( j == 1) begin
+                temp_instr  = rom[k];
+                temp_instr2 = { 7'b0, reg_source, temp_instr[24:20], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
+                $display("ROM[%0d] = %h, lw x%0d %d(x%0d)", i, temp_instr2, temp_instr2[11:7], temp_instr2[24:20], temp_instr2[19:15]);
+                k = k + 1;
+           
+            end else begin
+                temp_instr  = rom[i - 2];
+                temp_instr2 = { 7'b0, reg_source, temp_instr[11:7], 3'b000, reg_des, OPCODE_R_TYPE};
+                $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, temp_instr2, temp_instr2[11:7], temp_instr2[19:15], temp_instr2[24:20]);
+            end
+            rom[i] = temp_instr2;
+            if ( j == 3) begin
+                j = 0;
+            end else begin
+                j = j + 1;
             end
         end
         
-        for (i = 40; i < 1024; i = i + 1) begin
+        // instruction 2b will be dependent to instruction 1a
+        for (i = 60, j = 0, k = 10; i < 80; i = i + 1) begin 
+            reg_des    = $urandom_range(2, 31);
+            reg_source  = $urandom_range(2, 5);
+            
+            if (j == 0 || j == 1) begin
+                temp = generate_registers (3, 5'b0);
+                temp_instr2 = { 7'b0, temp[4:0], temp[9:5], 3'b000,  temp[14:10], OPCODE_I_IMM}; //  I_IMME
+                $display("ROM[%0d] = %h, addi x%d, x%d, %d", i, temp_instr2, temp[14:10] ,temp[9:5] ,temp[4:0]); 
+                
+            end else if (j == 2) begin
+                temp_instr  = rom[k];  
+                temp_instr2 = { 7'b0, reg_source, temp_instr[11:7], 3'b010,  reg_des, OPCODE_LOAD}; //  LOAD
+                $display("ROM[%0d] = %h, lw x%0d %d(x%0d)", i, temp_instr2, temp_instr2[11:7], temp_instr2[24:20], temp_instr2[19:15]);
+                
+            end else begin
+                temp_instr  = rom[i - 1]; 
+                if (temp_instr[6:0] == OPCODE_S_TYPE) begin
+                    temp_instr2 = { 7'b0, temp_instr[24:20], reg_source,  3'b000, reg_des, OPCODE_R_TYPE};
+                end else begin
+                    temp_instr2 = { 7'b0, reg_source, temp_instr[11:7], 3'b000, reg_des, OPCODE_R_TYPE};
+                end
+                $display("ROM[%0d] = %h, add x%d, x%d, x%d", i, temp_instr2, temp_instr2[11:7], temp_instr2[19:15], temp_instr2[24:20]);
+            end
+            
+            if ( j == 3) begin
+                j = 0;
+            end else begin
+                j = j + 1;
+            end
+            rom[i] = temp_instr2;
+        end
+       
+        for (i = 80; i < 1024; i = i + 1) begin
             rom[i] = 32'h00000013; // NOP
             //$display("ROM[%0d] = %h", i, rom[i]);
         end
@@ -240,6 +266,7 @@ module rom (
         instr1 <= rom[addr];       // addr must be PC >> 2
         instr2 <= rom[addr + 1];   // fetch next word
        // $display("1 = %0h, 2 = %0h", instr1, instr2);
+       
     end
 
 endmodule

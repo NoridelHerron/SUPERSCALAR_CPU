@@ -61,7 +61,7 @@ begin
             is_check        <= '0';
             
         elsif rising_edge(clk) then
-            if is_check = '0' and haz.B.stall = AB_BUSY then
+            if is_check = '0' and (haz.B.stall = AB_BUSY or haz.B.stall = A_STALL or haz.B.stall = B_STALL) then
                 is_check                   <= '1';
                 id_ex_stage_reg.A          <= id_stage.A;
                 id_reg.A                   <= id.A;

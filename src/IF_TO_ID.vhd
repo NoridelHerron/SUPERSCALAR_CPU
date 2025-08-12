@@ -45,7 +45,8 @@ begin
             reg     <= EMPTY_Inst_PC_N;
             
         elsif rising_edge(clk) then
-            if is_ready = '0' and (haz.B.stall = AB_BUSY or haz.A.stall = A_STALL or haz.A.stall = B_STALL) then
+            if is_ready = '0' and (haz.B.stall = AB_BUSY or haz.A.stall = A_STALL or haz.A.stall = B_STALL
+                or haz.B.stall = A_STALL or haz.B.stall = B_STALL or haz.B.stall = STALL_FROM_A) then
                 is_ready <= '1';
                 
             else 
