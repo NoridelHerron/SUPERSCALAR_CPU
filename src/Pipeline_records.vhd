@@ -19,6 +19,7 @@ package Pipeline_Types is
         A           : Inst_PC;     
         B           : Inst_PC; 
         isMemBusy   : HAZ_SIG;  
+        is_ready    : CONTROL_SIG;
     end record;
     
     type Inst_N is record
@@ -162,6 +163,7 @@ package Pipeline_Types is
     type EX_CONTENT_N is record
         A        : EX_CONTENT; 
         B        : EX_CONTENT;  
+        is_ready : CONTROL_SIG;
     end record;
     
     -----------------------------------------MEM STAGE------------------------------------------

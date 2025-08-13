@@ -39,6 +39,7 @@ signal reg_content : MEM_CONTENT_N  := EMPTY_MEM_CONTENT_N;
 
 begin
     process(clk, reset)
+    variable reg_v        : Inst_PC_N      := EMPTY_Inst_PC_N;
     variable reg_content_v : MEM_CONTENT_N := EMPTY_MEM_CONTENT_N;
     begin
         if reset = '1' then  
@@ -47,7 +48,7 @@ begin
             reg_content <= EMPTY_MEM_CONTENT_N;
         
         elsif rising_edge(clk) then
-            reg               <= ex_mem;
+            reg_v              := ex_mem;
             -- A contents
             reg_content_v.A.alu := exmem_content.A.alu.result;
             reg_content_v.A.rd  := exmem_content.A.rd;
@@ -67,6 +68,7 @@ begin
             
             elsif ex_mem.isMemBusy = MEM_B and (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
                 reg_content_v.B.mem := memA_result;
+                reg_v.is_ready      := INTRA_READY;
             
             elsif (exmem_content.A.cntrl.mem = MEM_READ or exmem_content.A.cntrl.mem = MEM_WRITE) then
                 reg_content_v.A.mem := memA_result;
@@ -74,6 +76,7 @@ begin
             elsif (exmem_content.B.cntrl.mem = MEM_READ or exmem_content.B.cntrl.mem = MEM_WRITE) then
                 reg_content_v.B.mem := memA_result;  
             end if;
+            reg <= reg_v;
             reg_content <= reg_content_v;
         end if;    
     end process;

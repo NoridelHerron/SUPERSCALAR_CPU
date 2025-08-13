@@ -143,6 +143,7 @@ begin
     generic map ( ENABLE_FORWARDING => isFORW_ON )
     port map (
             EX_MEM   => ex_mem_val,
+            mem_wb   => memwb_reg,
             WB       => wb_val,
             ID_EX    => id_ex_val,
             ID_EX_c  => id_ex_c,
@@ -161,6 +162,7 @@ begin
         reset          => reset,
         EX             => idex_reg,
         EX_val         => ex_val,
+        mem_wb         => memwb_reg,
         -- outputs
         EX_MEM         => exmem_reg,
         EX_MEM_content => ex_mem_val,

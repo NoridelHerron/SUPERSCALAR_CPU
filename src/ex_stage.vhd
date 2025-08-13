@@ -19,6 +19,7 @@ entity ex_stage is
     generic (ENABLE_FORWARDING : boolean := isFORW_ON);
     Port ( 
         EX_MEM   : in  EX_CONTENT_N; 
+        mem_wb   : in  Inst_PC_N;  
         WB       : in  WB_CONTENT_N_INSTR;
         ID_EX    : in  DECODER_N_INSTR;
         ID_EX_c  : in  control_Type_N;
@@ -48,6 +49,7 @@ begin
         generic map ( ENABLE_FORWARDING => ENABLE_FORWARDING )
         port map (
             EX_MEM   => EX_MEM,
+            mem_wb   => mem_wb,
             WB       => WB,
             ID_EX    => ID_EX,
             reg      => reg,
@@ -114,5 +116,7 @@ begin
     ex_out.B.S_data     <= operands.S_data2;
     ex_out.B.rd         <= ID_EX.B.rd;
     ex_out.B.cntrl      <= ID_EX_c.B;
+    
+    ex_out.is_ready     <= NONE_c;
 
 end Behavioral;

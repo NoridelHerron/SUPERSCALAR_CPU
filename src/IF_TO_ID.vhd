@@ -31,10 +31,11 @@ end IF_TO_ID;
 
 architecture Behavioral of IF_TO_ID is
 
-signal reg       : Inst_PC_N := EMPTY_Inst_PC_N;
-signal reg_h     : Inst_PC_N := EMPTY_Inst_PC_N;
-signal is_memHAZ : HAZ_SIG   := NONE_h;
-signal is_ready  : std_logic := '0';  
+signal reg             : Inst_PC_N := EMPTY_Inst_PC_N;
+signal reg_h           : Inst_PC_N := EMPTY_Inst_PC_N;
+signal is_memHAZ       : HAZ_SIG   := NONE_h;
+signal is_ready        : std_logic := '0';  
+signal is_stall_again  : std_logic  := '0';  
 
 begin
 
@@ -48,7 +49,13 @@ begin
             if is_ready = '0' and (haz.B.stall = AB_BUSY or haz.A.stall = A_STALL or haz.A.stall = B_STALL
                 or haz.B.stall = A_STALL or haz.B.stall = B_STALL or haz.B.stall = STALL_FROM_A) then
                 is_ready <= '1';
-                
+                if haz.B.stall = STALL_FROM_A then
+                    is_stall_again <= '1';
+                else
+                    is_stall_again <= '0';
+                end if; 
+            elsif is_stall_again = '1' then
+                is_stall_again <= '0';  
             else 
                 is_ready <= '0';  
                 if if_stage.A.is_valid = VALID then  

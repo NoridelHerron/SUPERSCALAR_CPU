@@ -36,6 +36,7 @@ signal instr_fetched_h : Inst_N     := NOP_Inst_N;
 signal temp_reg        : Inst_PC_N  := EMPTY_Inst_PC_N;
 signal after_reset     : std_logic  := '0';
 signal is_ready        : std_logic  := '0';  
+signal is_stall_again  : std_logic  := '0';  
 
 begin
    -- Instantiate the Unit
@@ -71,15 +72,23 @@ begin
                 or haz.B.stall = A_STALL or haz.B.stall = B_STALL or haz.B.stall = STALL_FROM_A) then
                 is_ready        <= '1';
                 instr_fetched_h <= instr_fetched;
+                if haz.B.stall = STALL_FROM_A then
+                    is_stall_again <= '1';
+                else
+                    is_stall_again <= '0';
+                end if; 
                 
             elsif is_ready = '1' then
-                is_ready         <= '0';
-                pc_fetch         <= std_logic_vector(unsigned(pc_fetch) + 8); 
-                temp_reg.A.pc    <= pc_fetch; 
-                temp_reg.B.pc    <= std_logic_vector(unsigned(pc_fetch) + 4);
-                temp_reg.A.instr <= instr_fetched_h.A; 
-                temp_reg.B.instr <= instr_fetched_h.B; 
-                
+                if is_stall_again = '0' then
+                    is_ready         <= '0';
+                    pc_fetch         <= std_logic_vector(unsigned(pc_fetch) + 8); 
+                    temp_reg.A.pc    <= pc_fetch; 
+                    temp_reg.B.pc    <= std_logic_vector(unsigned(pc_fetch) + 4);
+                    temp_reg.A.instr <= instr_fetched_h.A; 
+                    temp_reg.B.instr <= instr_fetched_h.B; 
+                else
+                    is_stall_again <= '0';
+                end if;
             else 
                 is_ready         <= '0'; 
                 pc_fetch         <= std_logic_vector(unsigned(pc_fetch) + 8); 

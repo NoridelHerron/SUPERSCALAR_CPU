@@ -26,6 +26,7 @@ entity Forw_Unit is
     generic (ENABLE_FORWARDING : boolean := isFORW_ON);
     Port ( 
             EX_MEM      : in EX_CONTENT_N; 
+            mem_wb      : in  Inst_PC_N;
             WB          : in WB_CONTENT_N_INSTR;
             ID_EX       : in DECODER_N_INSTR;
             reg         : in REG_DATAS;
@@ -109,6 +110,10 @@ begin
                 temp.S_data2 := operB.S_data;
             end if;
          end if;  
+         
+         if mem_wb.isMemBusy = MEM_B and mem_wb.is_ready = INTRA_READY then
+            temp.two.A := WB.B.data;
+         end if;
     else
 
         temp.one.A   := reg.one.A; 

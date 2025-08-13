@@ -159,7 +159,7 @@ module rom (
         for (i = 20, j = 0, k = 10; i < 40; i = i + 1) begin 
             
             reg_des    = $urandom_range(2, 31);
-            reg_source  = $urandom_range(2, 5);
+            reg_source  = $urandom_range(2, 5) * 4;
             
             if (j == 0) begin
                 temp_instr  = rom[k];  
@@ -193,7 +193,7 @@ module rom (
         // instruction 2b will be dependent to instruction 1b
         for (i = 40, j = 0, k = 10; i < 60; i = i + 1) begin 
             reg_des    = $urandom_range(2, 31);
-            reg_source  = $urandom_range(2, 5);
+            reg_source  = $urandom_range(2, 5) * 4;
             
             if (j == 0 || j == 2) begin
                 temp = generate_registers (3, 5'b0);
@@ -222,7 +222,7 @@ module rom (
         // instruction 2b will be dependent to instruction 1a
         for (i = 60, j = 0, k = 10; i < 80; i = i + 1) begin 
             reg_des    = $urandom_range(2, 31);
-            reg_source  = $urandom_range(2, 5);
+            reg_source  = $urandom_range(2, 5) * 4;
             
             if (j == 0 || j == 1) begin
                 temp = generate_registers (3, 5'b0);
